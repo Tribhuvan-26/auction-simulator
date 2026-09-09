@@ -7,7 +7,8 @@ import { Pause, Play, Octagon, ArrowRight, Check, X, Undo2, RotateCcw, Plus } fr
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { SplitReveal } from '@/components/ui/split-reveal'
-import { SquaresBg } from '@/components/ui/squares-bg'
+import { BrutalButton } from '@/components/ui/brutal-button'
+import { SectionHeader } from '@/components/ui/brutal-card'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
@@ -44,7 +45,7 @@ function TimerButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/10 text-slate-200 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25"
+      className="flex h-12 w-12 items-center justify-center border-[3px] border-brand-charcoal bg-brand-yellow text-brand-charcoal shadow-brutal transition-transform hover:-translate-y-[1px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
     </button>
