@@ -1,69 +1,86 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+import { BrutalCard } from '@/components/ui/brutal-card'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const rooms = await prisma.auctionRoom.findMany({
+    include: { teams: { orderBy: { name: 'asc' } }, _count: { select: { players: true } } },
+    orderBy: { createdAt: 'desc' },
+  })
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1 bg-brand-charcoal px-6 py-10 md:px-12">
+      <header className="mb-10 max-w-4xl">
+        <h1 className="font-heading text-5xl font-bold leading-[0.95] text-brand-white md:text-7xl">
+          Auction
+          <span className="ml-3 inline-block border-[3px] border-brand-white bg-brand-yellow px-3 text-brand-charcoal shadow-brutal-white">
+            Live
+          </span>
+        </h1>
+        <p className="mt-4 max-w-md text-brand-white/80">
+          Pick a room, then open the seat you need. Run the auction from the console, bid from a team
+          seat, or put the display on the big screen.
+        </p>
+      </header>
+
+      {rooms.length === 0 && (
+        <BrutalCard className="max-w-lg">
+          <h2 className="font-heading text-xl font-bold">No rooms yet</h2>
+          <p className="mt-2">
+            Seed the demo data to get 8 teams and 40 players: run{' '}
+            <code className="border-2 border-brand-charcoal bg-brand-yellow px-1">npx prisma db seed</code>.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+        </BrutalCard>
+      )}
+
+      <div className="flex flex-col gap-8">
+        {rooms.map((room) => (
+          <BrutalCard key={room.id} className="max-w-5xl">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b-[3px] border-brand-charcoal pb-3">
+              <h2 className="font-heading text-3xl font-bold">{room.name}</h2>
+              <span className="border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-1 font-heading font-bold">
+                {room.phase}
+              </span>
+              <span className="text-sm">
+                {room.teams.length} teams · {room._count.players} players · round {room.round}
+              </span>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href={`/admin/${room.id}`}
+                className="border-[3px] border-brand-charcoal bg-brand-blue px-4 py-2 font-heading font-bold text-brand-white shadow-brutal transition-transform hover:-translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
+              >
+                Admin console
+              </Link>
+              <Link
+                href={`/display/${room.id}`}
+                className="border-[3px] border-brand-charcoal bg-brand-charcoal px-4 py-2 font-heading font-bold text-brand-white shadow-brutal transition-transform hover:-translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
+              >
+                Big screen
+              </Link>
+            </div>
+
+            <h3 className="mt-6 font-heading text-sm font-bold uppercase">Team seats</h3>
+            <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
+              {room.teams.map((t) => (
+                <li key={t.id}>
+                  <Link
+                    href={`/team/${room.id}/${t.id}`}
+                    className="flex items-center justify-between gap-2 border-[3px] border-brand-charcoal px-3 py-2 shadow-brutal transition-transform hover:-translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
+                    style={{ borderLeftColor: t.colorAccent, borderLeftWidth: 10 }}
+                  >
+                    <span className="truncate font-heading font-bold">{t.name}</span>
+                    <span className="font-heading text-xs">{t.shortCode}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </BrutalCard>
+        ))}
+      </div>
+    </main>
+  )
 }

@@ -3,14 +3,15 @@ import { vi } from 'vitest'
 import { AdminConsole } from './admin-console'
 import type { AdminSnapshot } from './actions'
 
-vi.mock('@/hooks/use-auction-socket', () => ({ useAuctionSocket: vi.fn() }))
-vi.mock('@/stores/auction-store', () => ({
-  useAuctionStore: Object.assign(
-    vi.fn(() => ({ room: null })),
-    { getState: () => ({ setRoom: vi.fn() }) }
-  ),
+vi.mock('@/hooks/use-live-snapshot', () => ({
+  useLiveSnapshot: (_roomId: string, initial: AdminSnapshot) => ({
+    snapshot: initial,
+    setSnapshot: vi.fn(),
+    lastEvent: null,
+  }),
 }))
 vi.mock('./actions', () => ({
+  getAdminSnapshot: vi.fn(async () => baseSnapshot),
   setPhase: vi.fn(async () => baseSnapshot),
   markSold: vi.fn(async () => baseSnapshot),
   markUnsold: vi.fn(async () => baseSnapshot),
@@ -21,17 +22,18 @@ vi.mock('./actions', () => ({
 }))
 
 const baseSnapshot: AdminSnapshot = {
-  room: { id: 'room-1', phase: 'LIVE', round: 1 },
+  room: { id: 'room-1', name: 'Room One', phase: 'LIVE', round: 1 },
   currentLot: null,
   teams: [],
   queue: [],
+  soldLog: [],
 }
 
 const liveSnapshot: AdminSnapshot = {
   ...baseSnapshot,
   currentLot: {
     id: 'lot-1', status: 'BIDDING', currentBid: 20, currentBiddingTeamId: 'team-1', timerSeconds: 30, bidHistory: [],
-    player: { id: 'p1', name: 'X', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 1, runs: null, wickets: null, average: null, strikeRate: null, economy: null },
+    player: { id: 'p1', name: 'X', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 1, runs: null, wickets: null, average: null, strikeRate: null, economy: null, isOverseas: false, setNumber: 'Set 1' },
   },
 }
 
@@ -41,12 +43,13 @@ describe('AdminConsole', () => {
     expect(screen.getByText('LIVE')).toBeInTheDocument()
   })
 
-  it('shows a confirm modal before ending the auction, and does not end it on cancel', () => {
+  it('shows a confirm modal before ending the auction, and does not end it on cancel', async () => {
     render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
     fireEvent.click(screen.getByRole('button', { name: /end auction/i }))
     expect(screen.getByText(/are you sure/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(screen.queryByText(/are you sure/i)).not.toBeInTheDocument()
+    // AnimatePresence keeps the modal mounted through its exit animation.
+    await vi.waitFor(() => expect(screen.queryByText(/are you sure/i)).not.toBeInTheDocument())
   })
 })
 

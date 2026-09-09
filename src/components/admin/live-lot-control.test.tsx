@@ -12,14 +12,15 @@ vi.mock('@/app/admin/[roomId]/actions', () => ({
 }))
 
 const snapshotWithTeam: AdminSnapshot = {
-  room: { id: 'r1', phase: 'LIVE', round: 1 },
+  room: { id: 'r1', name: 'Room', phase: 'LIVE', round: 1 },
   currentLot: {
     id: 'lot-1', status: 'BIDDING', currentBid: 50, currentBiddingTeamId: 'team-1', timerSeconds: 30,
     bidHistory: [],
-    player: { id: 'p1', name: 'Test Player', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 10, runs: null, wickets: null, average: null, strikeRate: null, economy: null },
+    player: { id: 'p1', name: 'Test Player', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 10, runs: null, wickets: null, average: null, strikeRate: null, economy: null, isOverseas: false, setNumber: 'Set 1' },
   },
-  teams: [{ id: 'team-1', name: 'Team A', shortCode: 'TMA', colorAccent: '#2074D5', purseRemaining: 9950, squadCount: 0, squadMax: 25, overseasSlotsUsed: 0, overseasSlotsMax: 8 }],
+  teams: [{ id: 'team-1', name: 'Team A', shortCode: 'TMA', colorAccent: '#2074D5', purseTotal: 10000, purseRemaining: 9950, squadCount: 0, squadMax: 25, overseasSlotsUsed: 0, overseasSlotsMax: 8, squad: [] }],
   queue: [],
+  soldLog: [],
 }
 
 const snapshotNoTeam: AdminSnapshot = { ...snapshotWithTeam, currentLot: { ...snapshotWithTeam.currentLot!, currentBiddingTeamId: null } }

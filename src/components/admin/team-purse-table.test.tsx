@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { TeamPurseTable } from './team-purse-table'
 
 const teams = [
-  { id: 't1', name: 'Team A', shortCode: 'TMA', colorAccent: '#2074D5', purseRemaining: 9000, squadCount: 3, squadMax: 25, overseasSlotsUsed: 1, overseasSlotsMax: 8 },
-  { id: 't2', name: 'Team B', shortCode: 'TMB', colorAccent: '#EB547C', purseRemaining: 8000, squadCount: 4, squadMax: 25, overseasSlotsUsed: 2, overseasSlotsMax: 8 },
+  { id: 't1', name: 'Team A', shortCode: 'TMA', colorAccent: '#2074D5', purseTotal: 10000, squad: [], purseRemaining: 9000, squadCount: 3, squadMax: 25, overseasSlotsUsed: 1, overseasSlotsMax: 8 },
+  { id: 't2', name: 'Team B', shortCode: 'TMB', colorAccent: '#EB547C', purseTotal: 10000, squad: [], purseRemaining: 8000, squadCount: 4, squadMax: 25, overseasSlotsUsed: 2, overseasSlotsMax: 8 },
 ]
 
 describe('TeamPurseTable', () => {

@@ -2,9 +2,11 @@
 
 import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
+import { bidRejectionReason } from '@/lib/bid-rules'
+import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 
 export type AdminSnapshot = {
-  room: { id: string; phase: string; round: number }
+  room: { id: string; name: string; phase: string; round: number }
   currentLot: {
     id: string
     status: string
@@ -17,14 +19,17 @@ export type AdminSnapshot = {
       photoUrl: string | null; nationality: string; matches: number
       runs: number | null; wickets: number | null; average: number | null
       strikeRate: number | null; economy: number | null
+      isOverseas: boolean; setNumber: string
     }
   } | null
   teams: {
     id: string; name: string; shortCode: string; colorAccent: string
-    purseRemaining: number; squadCount: number; squadMax: number
+    purseTotal: number; purseRemaining: number; squadCount: number; squadMax: number
     overseasSlotsUsed: number; overseasSlotsMax: number
+    squad: { id: string; name: string; role: string; price: number }[]
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string }[]
+  soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
 }
 
 export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
@@ -48,8 +53,15 @@ export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
     orderBy: { id: 'asc' },
   })
 
+  const soldRaw = await prisma.player.findMany({
+    where: { roomId, status: 'SOLD' },
+    include: { team: true },
+    orderBy: { id: 'desc' },
+    take: 12,
+  })
+
   return {
-    room: { id: room.id, phase: room.phase, round: room.round },
+    room: { id: room.id, name: room.name, phase: room.phase, round: room.round },
     currentLot: lot
       ? {
           id: lot.id,
@@ -76,6 +88,8 @@ export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
             average: lot.player.average,
             strikeRate: lot.player.strikeRate,
             economy: lot.player.economy,
+            isOverseas: lot.player.isOverseas,
+            setNumber: lot.player.setNumber,
           },
         }
       : null,
@@ -84,11 +98,13 @@ export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
       name: t.name,
       shortCode: t.shortCode,
       colorAccent: t.colorAccent,
+      purseTotal: t.purseTotal,
       purseRemaining: t.purseRemaining,
       squadCount: t.players.length,
       squadMax: t.squadMax,
       overseasSlotsUsed: t.overseasSlotsUsed,
       overseasSlotsMax: t.overseasSlotsMax,
+      squad: t.players.map((p) => ({ id: p.id, name: p.name, role: p.role, price: p.soldPrice ?? 0 })),
     })),
     queue: queueRaw.map((p) => ({
       id: p.id,
@@ -98,13 +114,30 @@ export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
       setNumber: p.setNumber,
       status: p.status,
     })),
+    soldLog: soldRaw.map((p) => ({
+      id: p.id,
+      playerName: p.name,
+      price: p.soldPrice ?? 0,
+      teamShortCode: p.team?.shortCode ?? '',
+    })),
   }
 }
 
 export async function placeBid(roomId: string, teamId: string, amount: number): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    include: { player: true },
   })
+  const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId }, include: { players: true } })
+
+  // Trust boundary: team consoles are untrusted clients, so re-check here even
+  // though the BID button is already disabled with the same reason.
+  const rejection = bidRejectionReason(
+    { ...team, squadCount: team.players.length },
+    { currentBid: lot.currentBid, status: lot.status, player: lot.player },
+    amount
+  )
+  if (rejection) throw new Error(rejection)
 
   await prisma.$transaction([
     prisma.bid.create({ data: { lotId: lot.id, teamId, amount } }),
@@ -121,6 +154,7 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
 export async function markSold(roomId: string): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    include: { player: true },
   })
   if (!lot.currentBiddingTeamId) throw new Error('Cannot mark sold with no bidding team')
 
@@ -132,7 +166,10 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
     }),
     prisma.team.update({
       where: { id: lot.currentBiddingTeamId },
-      data: { purseRemaining: { decrement: lot.currentBid } },
+      data: {
+        purseRemaining: { decrement: lot.currentBid },
+        overseasSlotsUsed: { increment: lot.player.isOverseas ? 1 : 0 },
+      },
     }),
   ])
 
@@ -183,8 +220,6 @@ export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
   await emitAuctionEvent(roomId, { type: 'UNDO' })
   return getAdminSnapshot(roomId)
 }
-
-const TIMER_DEFAULT_SECONDS = 30
 
 export async function controlTimer(
   roomId: string,

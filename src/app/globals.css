@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #282828;
   --color-blue: #2074D5;
   --color-yellow: #F9D47B;
   --color-pink: #EB547C;
@@ -21,5 +21,44 @@
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
   --shadow-brutal: 4px 4px 0 #282828;
+  --shadow-brutal-lg: 8px 8px 0 #282828;
   --shadow-brutal-pressed: 1px 1px 0 #282828;
+  --shadow-brutal-white: 4px 4px 0 #FFFFFF;
+}
+
+/* Court Brutalism motion. The bid-pop pulse, timer urgency pulse, and ticker
+ * marquee are steady/looping effects that don't need a JS timeline — plain
+ * CSS keyframes. One-shot sequences (SOLD/UNSOLD, lot-change entrance,
+ * confetti) are GSAP timelines (see src/components/ui), and mount/unmount
+ * moments (toasts, modals, team chip swap) are Framer Motion — see globals.css
+ * history for the CSS-only versions this replaced. All opt-out under
+ * prefers-reduced-motion below. */
+@keyframes bid-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes urgent-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+.anim-bid-pop { animation: bid-pop 0.35s ease-out; }
+.anim-marquee { animation: marquee 28s linear infinite; }
+.anim-urgent { animation: urgent-pulse 0.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-bid-pop, .anim-marquee, .anim-urgent {
+    animation: none !important;
+  }
+}
+
+/* Focus is structural here, not a ring: charcoal outline offset off the hard edge. */
+:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
 }

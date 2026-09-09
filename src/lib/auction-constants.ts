@@ -1,0 +1,1 @@
+export const TIMER_DEFAULT_SECONDS = 30

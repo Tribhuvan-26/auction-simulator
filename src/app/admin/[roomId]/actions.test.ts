@@ -285,3 +285,43 @@ describe('advanceToNextLot', () => {
     expect(snapshot.currentLot?.status).toBe('QUEUED')
   })
 })
+
+describe('placeBid validation', () => {
+  let roomId: string, teamId: string, lotId: string
+
+  beforeAll(async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Guard Room', phase: 'LIVE' } })
+    roomId = room.id
+    const team = await prisma.team.create({
+      data: { roomId, name: 'Broke Team', shortCode: 'BRK', purseTotal: 100, purseRemaining: 100, squadMax: 25, squadMin: 18, overseasSlotsMax: 0 },
+    })
+    teamId = team.id
+    const player = await prisma.player.create({
+      data: { roomId, name: 'Guard Player', role: 'BATTER', basePrice: 20, nationality: 'Australia', isOverseas: true, matches: 10, setNumber: 'Set 1', status: 'LIVE' },
+    })
+    const lot = await prisma.auctionLot.create({
+      data: { roomId, playerId: player.id, currentBid: 50, status: 'BIDDING', timerSeconds: 30 },
+    })
+    lotId = lot.id
+  })
+
+  afterAll(async () => {
+    await prisma.bid.deleteMany({ where: { lotId } })
+    await prisma.auctionLot.deleteMany({ where: { roomId } })
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.team.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+  })
+
+  it('rejects a bid at or below the current price', async () => {
+    await expect(placeBid(roomId, teamId, 50)).rejects.toThrow(/below current price/i)
+  })
+
+  it('rejects a bid beyond the purse', async () => {
+    await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/purse insufficient/i)
+  })
+
+  it('rejects an overseas player when no overseas slots remain', async () => {
+    await expect(placeBid(roomId, teamId, 60)).rejects.toThrow(/overseas slots full/i)
+  })
+})

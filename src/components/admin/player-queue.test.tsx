@@ -4,7 +4,7 @@ import { PlayerQueue } from './player-queue'
 import type { AdminSnapshot } from '@/app/admin/[roomId]/actions'
 
 vi.mock('@/app/admin/[roomId]/actions', () => ({
-  advanceToNextLot: vi.fn(async () => ({ room: { id: 'r1', phase: 'LIVE', round: 1 }, currentLot: null, teams: [], queue: [] }) as AdminSnapshot),
+  advanceToNextLot: vi.fn(async () => ({ room: { id: 'r1', name: 'Room', phase: 'LIVE', round: 1 }, currentLot: null, teams: [], queue: [], soldLog: [] }) as AdminSnapshot),
 }))
 
 const queue: AdminSnapshot['queue'] = [
