@@ -121,102 +121,97 @@ export function AdminConsole({
   }, [roomId, snapshot])
 
   return (
-    <div className="font-body flex h-screen w-screen overflow-hidden bg-[#0a0f18] text-slate-200">
-      {/* ── Left pane (70%) ───────────────────────────────────── */}
-      <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#0a0f18]">
-        <SquaresBg className="pointer-events-none absolute inset-0 h-full w-full" />
+    <div className="font-body flex h-screen w-screen flex-col overflow-hidden bg-grid-paper text-brand-charcoal">
+      <h1 className="shrink-0 border-b-[3px] border-brand-charcoal px-8 pt-4 pb-2 font-heading text-3xl font-black uppercase leading-none tracking-tight md:text-4xl">
+        Admin Super-Control Panel: {snapshot.room.name}
+      </h1>
 
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+      {/* ── Left pane (70%) ───────────────────────────────────── */}
+      <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top navigation */}
-        <div className="relative flex w-full shrink-0 items-start justify-between px-10 pt-8">
+        <div className="relative flex w-full shrink-0 items-start justify-between px-8 pt-6">
           <div>
             <Link
               href="/"
-              className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300"
+              className="font-heading text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60 hover:text-brand-charcoal"
             >
               All rooms
             </Link>
-            <h1 className="text-3xl font-semibold text-white">{snapshot.room.name}</h1>
-            <p className="text-sm text-slate-500">
+            <p className="mt-1 font-heading text-sm font-bold text-brand-charcoal/70">
               Round {snapshot.room.round} • {snapshot.queue.length} players left
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-xs font-bold tracking-widest text-yellow-500">
+            <span className="border-[3px] border-brand-charcoal bg-brand-pink px-4 py-2 font-heading text-xs font-bold tracking-widest text-brand-charcoal">
               {snapshot.room.phase}
             </span>
-            <button
-              type="button"
-              onClick={() => run(() => advanceToNextLot(roomId))}
-              className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-            >
+            <BrutalButton variant="blue" onClick={() => run(() => advanceToNextLot(roomId))} className="flex items-center gap-2 text-sm">
               Load next player <ArrowRight size={15} aria-hidden />
-            </button>
-            <button
-              type="button"
+            </BrutalButton>
+            <BrutalButton
+              variant="plain"
               onClick={() => run(() => setPhase(roomId, snapshot.room.phase === 'LIVE' ? 'PAUSED' : 'LIVE'))}
-              className="flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/5"
+              className="flex items-center gap-2 text-sm"
             >
               {snapshot.room.phase === 'LIVE' ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
               {snapshot.room.phase === 'LIVE' ? 'Pause' : 'Resume'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowEndConfirm(true)}
-              className="flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/5"
-            >
+            </BrutalButton>
+            <BrutalButton variant="plain" onClick={() => setShowEndConfirm(true)} className="flex items-center gap-2 text-sm">
               <Octagon size={15} aria-hidden /> End auction
-            </button>
+            </BrutalButton>
           </div>
         </div>
 
         {/* Cinematic stage */}
         {lot ? (
-          <div className="relative flex min-h-0 flex-1 items-center gap-10 overflow-hidden px-10 pt-8">
+          <div className="relative flex min-h-0 flex-1 items-start gap-6 overflow-hidden px-10 pt-6">
             <PlayerAvatar
               name={lot.player.name}
               photoUrl={lot.player.photoUrl}
-              className="brutal-offset h-[240px] w-[240px] shrink-0 rounded-full border-[3px] border-white/25 text-5xl"
+              className="h-[170px] w-[170px] shrink-0 border-[3px] border-brand-charcoal text-5xl"
             />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-500">
+              <p className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-brand-charcoal/60">
                 {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
               </p>
-              <h2 className="mt-2 text-7xl font-black tracking-tighter text-white">
+              <h2 className="mt-1 font-heading text-5xl font-black tracking-tight">
                 <SplitReveal text={lot.player.name} trigger={lot.id} />
               </h2>
-              <p className="mt-1 text-xl font-medium text-slate-400">
+              <p className="mt-1 text-lg font-medium text-brand-charcoal/70">
                 {lot.player.role.replace('_', '-')} • {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
               </p>
               <BidNumber
                 value={lot.currentBid}
-                className="my-4 block text-[8rem] font-black leading-none tabular-nums text-[#facc15] drop-shadow-xl"
+                className="my-2 inline-block border-[3px] border-brand-charcoal bg-brand-pink px-4 py-1 text-4xl font-black leading-none tabular-nums"
               />
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-brand-charcoal/60">
                 {leader ? `Leading: ${leader.name}` : 'No bids yet'} •{' '}
                 {closed ? lot.status : `next ${formatMoney(nextBid)}`}
               </p>
             </div>
           </div>
         ) : (
-          <div className="relative min-h-0 flex-1 overflow-hidden px-10 pt-16">
-            <h2 className="text-5xl font-black tracking-tighter text-white">No lot on the block</h2>
-            <p className="mt-2 text-xl text-slate-500">Load the next player to start bidding.</p>
+          <div className="relative min-h-0 flex-1 overflow-hidden px-8 pt-16">
+            <h2 className="font-heading text-5xl font-black tracking-tight">No lot on the block</h2>
+            <p className="mt-2 text-xl text-brand-charcoal/60">Load the next player to start bidding.</p>
           </div>
         )}
 
         {/* A closed lot disables every chip, which otherwise looks like a dead
          * grid. Say what happened and what the two ways out are. */}
         {lot && closed && (
-          <p className="relative shrink-0 px-10 pb-3 text-sm text-slate-400">
-            <span className="font-bold text-white">{lot.status}</span> — press{' '}
-            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">Z</kbd> to put this lot back on
+          <p className="relative shrink-0 px-8 pb-3 text-sm text-brand-charcoal/70">
+            <span className="font-bold">{lot.status}</span> — press{' '}
+            <kbd className="border border-brand-charcoal px-1.5 py-0.5 text-xs">Z</kbd> to put this lot back on
             the block, or load the next player.
           </p>
         )}
 
         {/* Team grid */}
-        <div className="relative mt-auto mb-10 grid shrink-0 grid-cols-5 gap-4 px-10">
+        <SectionHeader className="mt-auto shrink-0 mx-8">Bidding Control Panel</SectionHeader>
+        <div className="relative mb-8 grid shrink-0 grid-cols-5 gap-3 px-8 pt-3">
           {snapshot.teams.map((team) => {
             const leading = team.id === leaderId
             const blocked = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'No lot on the block'
