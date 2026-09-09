@@ -60,7 +60,14 @@ export function generatePasscodes(count: number): string[] {
   return [...pins]
 }
 
-export async function seed(prisma: PrismaClient) {
+export const DEFAULT_ROOM_NAME = 'IPL 2026 Auction'
+
+/**
+ * Seeds one room. Several sessions can run at once, so name each one — the
+ * landing page lists every room and the name is all an operator has to tell
+ * them apart when pointing people to their seats.
+ */
+export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM_NAME) {
   const officialPlayers = loadOfficialPlayers()
   const rolesByName = loadRoles()
   const unroled = officialPlayers.filter((p) => !rolesByName[p.name]).map((p) => p.name)
@@ -68,7 +75,7 @@ export async function seed(prisma: PrismaClient) {
   const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
 
   const room = await prisma.auctionRoom.create({
-    data: { name: 'IPL 2026 Auction', phase: 'SETUP' },
+    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP' },
   })
 
   const teamIdByName = new Map<string, string>()
@@ -92,7 +99,7 @@ export async function seed(prisma: PrismaClient) {
     teamIdByName.set(teamName, team.id)
   }
 
-  console.log('\nTeam seat PINs — hand one to each table:')
+  console.log(`\n${room.name} — team seat PINs, hand one to each table:`)
   for (const [i, teamName] of teamNames.entries()) {
     console.log(`  ${TEAM_META[teamName].code.padEnd(5)} ${passcodes[i]}  ${teamName}`)
   }
@@ -121,8 +128,12 @@ export async function seed(prisma: PrismaClient) {
 if (require.main === module) {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
   const prisma = new PrismaClient({ adapter })
-  seed(prisma)
-    .then(() => prisma.$disconnect())
+  // npx prisma db seed -- "Saturday 10am — Batch A"
+  seed(prisma, process.argv.slice(2).join(' ') || DEFAULT_ROOM_NAME)
+    .then((room) => {
+      console.log(`Room id: ${room.id}`)
+      return prisma.$disconnect()
+    })
     .catch(async (e) => {
       console.error(e)
       await prisma.$disconnect()

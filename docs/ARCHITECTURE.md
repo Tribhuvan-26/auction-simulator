@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 54 passing, 11 files |
+| Tests | 57 passing, 11 files |
 
 **Contents**
 
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 11 files, 54 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 11 files, 57 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -164,7 +164,8 @@ missing from it, so the two files can't drift apart silently.
 
 ### What the seed builds
 
-- One room, *IPL 2026 Auction*, in `SETUP`.
+- One room in `SETUP`, named by the seed's argument — `npx prisma db seed -- "Saturday 10am"` — so
+  parallel sessions are distinguishable on the landing page. Defaults to *IPL 2026 Auction*.
 - Ten teams with real short codes and brand colours, each on ₹120 Cr with a 25-player cap and 8
   overseas slots.
 - 254 players as `UPCOMING`, split into two sets — *Capped Players* and *Uncapped Players*.
@@ -212,6 +213,13 @@ clients, so the button being disabled is a courtesy, not a guarantee.
 - **Purse insufficient** — the amount exceeds `purseRemaining`.
 - **Squad full** — `squadCount >= squadMax`.
 - **Overseas slots full** — an overseas player when `overseasSlotsUsed >= overseasSlotsMax`.
+
+### Running several rooms at once
+
+Every query in this file is scoped by `roomId`, including the bidding team's — a `teamId` from
+another room is refused rather than charged. PINs are unique *within* a room, so two rooms can both
+hand out `7059`, and the unlock cookie is keyed by team id, which is globally unique. Each seed run
+mints its own players, teams and PINs.
 
 ### The bid ladder
 
@@ -366,7 +374,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 11 files, 54 tests
+### Tests — 11 files, 57 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a

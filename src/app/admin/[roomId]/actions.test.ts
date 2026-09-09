@@ -334,6 +334,17 @@ describe('placeBid validation', () => {
     await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/off-tier/i)
   })
 
+  it('rejects a team from another room', async () => {
+    const other = await prisma.auctionRoom.create({ data: { name: 'Other Room', phase: 'LIVE' } })
+    const intruder = await prisma.team.create({
+      data: { roomId: other.id, name: 'Intruder', shortCode: 'INT', passcode: '9500', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+    })
+    await expect(placeBid(roomId, intruder.id, 55)).rejects.toThrow()
+    expect(await prisma.bid.count({ where: { teamId: intruder.id } })).toBe(0)
+    await prisma.team.delete({ where: { id: intruder.id } })
+    await prisma.auctionRoom.delete({ where: { id: other.id } })
+  })
+
   it('rejects a bid beyond the purse', async () => {
     await expect(placeBid(roomId, poorTeamId, 55)).rejects.toThrow(/purse insufficient/i)
   })

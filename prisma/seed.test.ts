@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seed, generatePasscodes } from './seed'
+import { seed, generatePasscodes, DEFAULT_ROOM_NAME } from './seed'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -71,5 +71,26 @@ describe('generatePasscodes', () => {
     expect(pins).toHaveLength(10)
     expect(new Set(pins).size).toBe(10)
     expect(pins.every((p) => /^\d{4}$/.test(p))).toBe(true)
+  })
+})
+
+describe('seed room naming', () => {
+  let roomId: string
+
+  afterAll(async () => {
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.team.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+    await prisma.$disconnect()
+  })
+
+  it('names the room as asked, so parallel sessions are told apart', async () => {
+    const room = await seed(prisma, 'Saturday 10am - Batch A')
+    roomId = room.id
+    expect(room.name).toBe('Saturday 10am - Batch A')
+  })
+
+  it('falls back to the default name when given blank', async () => {
+    expect(DEFAULT_ROOM_NAME).toBe('IPL 2026 Auction')
   })
 })

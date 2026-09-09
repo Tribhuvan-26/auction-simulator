@@ -131,7 +131,12 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
     include: { player: true },
     orderBy: { id: 'desc' },
   })
-  const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId }, include: { players: true } })
+  // Scoped to the room: a teamId from another room must not be able to bid on
+  // this lot, or markSold would debit a purse in a different auction entirely.
+  const team = await prisma.team.findFirstOrThrow({
+    where: { id: teamId, roomId },
+    include: { players: true },
+  })
 
   // The ladder allows exactly one next amount, so don't take the client's word
   // for it — recompute and reject anything that doesn't match. A lot that
