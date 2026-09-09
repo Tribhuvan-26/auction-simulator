@@ -360,22 +360,20 @@ export function AdminConsole({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                  className="flex shrink-0 items-center justify-between gap-2 rounded-lg border border-white/5 bg-white/5 px-4 py-3"
+                  className="flex shrink-0 items-center justify-between gap-2 border-2 border-brand-charcoal px-4 py-3"
                 >
-                  <span className="truncate text-sm font-semibold text-white">{bid.teamName}</span>
-                  <span className="shrink-0 text-sm font-bold tabular-nums text-[#facc15]">
-                    {formatMoney(bid.amount)}
-                  </span>
+                  <span className="truncate text-sm font-semibold">{bid.teamName}</span>
+                  <span className="shrink-0 text-sm font-bold tabular-nums">{formatMoney(bid.amount)}</span>
                 </motion.li>
               ))}
             </AnimatePresence>
-            {!lot?.bidHistory.length && <li className="text-sm text-slate-600">No bids on this lot yet.</li>}
+            {!lot?.bidHistory.length && <li className="text-sm text-brand-charcoal/50">No bids on this lot yet.</li>}
           </ul>
         </div>
 
-        <div className="flex min-h-0 flex-[6] flex-col border-t border-white/10 px-6 pt-6 pb-8">
-          <h2 className="shrink-0 text-xs font-bold uppercase tracking-widest text-slate-500">Purse matrix</h2>
-          <ul className="scrollbar-thin-dark mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-2">
+        <SectionHeader>Team Bid Tracker</SectionHeader>
+        <div className="flex min-h-0 flex-[6] flex-col px-6 pt-4 pb-8">
+          <ul className="scrollbar-thin-dark flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-2">
             {snapshot.teams.map((team) => (
               <PurseRow key={team.id} team={team} leading={team.id === leaderId} />
             ))}
