@@ -157,29 +157,29 @@ export function TeamConsole({
               </p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur-lg">
-              <h2 className="font-heading text-4xl font-black text-white">Between lots</h2>
-              <p className="mt-2 text-slate-400">The auctioneer is loading the next player. Sit tight.</p>
+            <div className="border-[3px] border-brand-charcoal bg-brand-white p-10 text-center shadow-brutal">
+              <h2 className="font-heading text-4xl font-black">Between lots</h2>
+              <p className="mt-2 text-brand-charcoal/70">The auctioneer is loading the next player. Sit tight.</p>
             </div>
           )}
 
           <PaddleButton state={paddle} amount={nextBid} onClick={raisePaddle} hint={rejection} />
 
           {error && (
-            <p role="alert" className="flex items-center justify-center gap-2 text-sm font-bold text-rose-400">
+            <p role="alert" className="flex items-center justify-center gap-2 text-sm font-bold text-brand-pink">
               <TriangleAlert size={14} aria-hidden /> {error}
             </p>
           )}
         </section>
 
         {/* ── Squad matrix (50%) ────────────────────────────── */}
-        <section className="relative flex h-full w-1/2 flex-col border-l border-white/10 bg-black/20 p-10">
-          <div className="flex shrink-0 items-baseline justify-between">
-            <h2 className="font-heading text-xs font-bold uppercase tracking-widest text-slate-500">Squad matrix</h2>
-            <span className="text-xs tabular-nums text-slate-600">
+        <section className="relative flex h-full w-1/2 flex-col border-l-[3px] border-brand-charcoal bg-brand-white p-8">
+          <SectionHeader className="-mx-8 -mt-8 mb-0 flex items-baseline justify-between">
+            <span>Your Team Status</span>
+            <span className="text-xs font-bold normal-case tabular-nums text-brand-white/70">
               {team.squadCount} signed • {team.squadMax - team.squadCount} slots open
             </span>
-          </div>
+          </SectionHeader>
 
           <div className="scrollbar-thin-dark mt-6 grid min-h-0 flex-1 grid-cols-5 content-start gap-4 overflow-y-auto pr-2">
             {squadSlots.map((player, i) =>
@@ -196,18 +196,17 @@ export function TeamConsole({
                     name={player.name}
                     photoUrl={player.photoUrl}
                     className="aspect-square w-full border-2 text-xs"
-                    style={{
-                      borderColor: ROLE_RING[player.role] ?? '#64748b',
-                      boxShadow: `0 0 14px -2px ${ROLE_RING[player.role] ?? '#64748b'}`,
-                    }}
+                    style={{ borderColor: ROLE_RING[player.role] ?? '#64748b' }}
                   />
-                  <span className="w-full truncate text-center text-[10px] text-slate-400">{player.name}</span>
-                  <span className="text-[10px] tabular-nums text-slate-600">{formatMoney(player.price)}</span>
+                  <span className="w-full truncate text-center text-[10px] text-brand-charcoal/70">
+                    {player.name}
+                  </span>
+                  <span className="text-[10px] tabular-nums text-brand-charcoal/50">{formatMoney(player.price)}</span>
                 </motion.div>
               ) : (
                 <div
                   key={`empty-${i}`}
-                  className="flex aspect-square items-center justify-center rounded-full border-2 border-[#1e293b] text-xs text-slate-700"
+                  className="flex aspect-square items-center justify-center border-2 border-brand-charcoal/30 text-xs text-brand-charcoal/40"
                 >
                   {i + 1}
                 </div>
