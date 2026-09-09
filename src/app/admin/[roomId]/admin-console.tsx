@@ -394,35 +394,32 @@ export function AdminConsole({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="max-w-sm rounded-xl border border-white/10 bg-[#05080f] p-6"
+              className="max-w-sm border-[3px] border-brand-charcoal bg-brand-white p-6 shadow-brutal-lg"
             >
-              <h2 className="text-xl font-bold text-white">Are you sure?</h2>
-              <p className="mt-2 text-sm text-slate-400">
+              <h2 className="font-heading text-xl font-bold">Are you sure?</h2>
+              <p className="mt-2 text-sm text-brand-charcoal/70">
                 Ending the auction closes the room for every team. Unsold players stay unsold.
               </p>
               <div className="mt-5 flex gap-3">
-                <button
-                  type="button"
+                <BrutalButton
+                  variant="pink"
                   onClick={async () => {
                     await run(() => setPhase(roomId, 'COMPLETED'))
                     setShowEndConfirm(false)
                   }}
-                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
                 >
                   End auction
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowEndConfirm(false)}
-                  className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5"
-                >
+                </BrutalButton>
+                <BrutalButton variant="plain" onClick={() => setShowEndConfirm(false)}>
                   Cancel
-                </button>
+                </BrutalButton>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
+      <div className="telemetry-footer shrink-0">// NEO-GRID POP SYSTEM TELEMETRY v2.1 // DEPLOYED //</div>
     </div>
   )
 }
@@ -450,19 +447,16 @@ function PurseRow({ team, leading }: { team: Team; leading: boolean }) {
   return (
     <motion.li
       data-testid={`purse-${team.shortCode}`}
-      animate={{ backgroundColor: hit ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0)' }}
+      animate={{ backgroundColor: hit ? 'rgba(32,116,213,0.12)' : 'rgba(255,255,255,0)' }}
       transition={{ duration: 0.35 }}
-      className={`shrink-0 rounded-md px-1 py-1 ${leading ? 'ring-1 ring-[#facc15]/40' : ''}`}
+      className={`shrink-0 border-2 border-brand-charcoal px-2 py-1.5 ${leading ? 'shadow-brutal' : ''}`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-bold text-white">{team.shortCode}</span>
-        <span className="text-sm font-semibold tabular-nums text-white">{formatMoney(team.purseRemaining)}</span>
+        <span className="text-sm font-bold">{team.shortCode}</span>
+        <span className="text-sm font-semibold tabular-nums">{formatMoney(team.purseRemaining)}</span>
       </div>
-      <div className="mt-2 h-1 w-full rounded-full bg-white/10">
-        <div
-          className="h-1 rounded-full bg-blue-500 transition-[width] duration-500"
-          style={{ width: `${percent}%` }}
-        />
+      <div className="mt-2 h-2 w-full border border-brand-charcoal bg-brand-white">
+        <div className="h-full bg-brand-blue transition-[width] duration-500" style={{ width: `${percent}%` }} />
       </div>
     </motion.li>
   )
