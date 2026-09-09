@@ -225,22 +225,15 @@ export function AdminConsole({
                 title={blocked ?? `Bid ${formatMoney(nextBid)} for ${team.name}`}
                 animate={{ scale: leading ? 1.02 : 1 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className={`flex h-24 flex-col justify-between rounded-xl p-4 text-left transition-transform ${
-                  leading
-                    ? 'border-none bg-[#facc15] text-black shadow-[0_0_30px_rgba(250,204,21,0.3)]'
-                    : 'border border-white/5 bg-white/5 text-slate-500 hover:bg-white/10'
+                style={{ backgroundColor: leading ? team.colorAccent ?? undefined : undefined }}
+                className={`flex h-24 flex-col justify-between border-[3px] border-brand-charcoal p-3 text-left transition-transform ${
+                  leading ? 'text-brand-white shadow-brutal' : 'bg-brand-white/60 text-brand-charcoal/60 hover:bg-brand-white'
                 } ${blocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
               >
-                <span className="flex items-center gap-2">
-                  <span
-                    aria-hidden
-                    className={`h-2 w-2 shrink-0 rounded-full ${leading ? 'bg-black/60' : 'bg-slate-700'}`}
-                  />
-                  <span className="text-xs font-bold tracking-widest">{team.shortCode}</span>
-                </span>
+                <span className="font-heading text-xs font-bold tracking-widest">{team.shortCode}</span>
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className={`truncate text-xs ${leading ? 'text-black/60' : ''}`}>{team.name}</span>
-                  <span className={`shrink-0 text-xs tabular-nums ${leading ? 'text-black' : 'text-slate-400'}`}>
+                  <span className="truncate text-xs">{team.name}</span>
+                  <span className="shrink-0 text-xs tabular-nums">
                     {formatMoney(team.purseRemaining)} • {team.squadCount}/{team.squadMax}
                   </span>
                 </span>
