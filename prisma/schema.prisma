@@ -50,7 +50,7 @@ model AuctionRoom {
 model Team {
   id                String       @id @default(cuid())
   roomId            String
-  room              AuctionRoom  @relation(fields: [roomId], references: [id])
+  room              AuctionRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   name              String
   shortCode         String
   logoUrl           String?
@@ -63,12 +63,14 @@ model Team {
   overseasSlotsUsed Int          @default(0)
   players           Player[]
   bids              Bid[]
+
+  @@index([roomId])
 }
 
 model Player {
   id          String       @id @default(cuid())
   roomId      String
-  room        AuctionRoom  @relation(fields: [roomId], references: [id])
+  room        AuctionRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   name        String
   role        PlayerRole
   basePrice   Int
@@ -87,12 +89,15 @@ model Player {
   teamId      String?
   team        Team?        @relation(fields: [teamId], references: [id])
   lot         AuctionLot?
+
+  @@index([roomId])
+  @@index([teamId])
 }
 
 model AuctionLot {
   id                    String      @id @default(cuid())
   roomId                String
-  room                  AuctionRoom @relation(fields: [roomId], references: [id])
+  room                  AuctionRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
   playerId              String      @unique
   player                Player      @relation(fields: [playerId], references: [id])
   currentBid            Int
@@ -100,6 +105,8 @@ model AuctionLot {
   status                LotStatus   @default(QUEUED)
   timerSeconds          Int         @default(30)
   bids                  Bid[]
+
+  @@index([roomId])
 }
 
 model Bid {
@@ -110,4 +117,7 @@ model Bid {
   team      Team       @relation(fields: [teamId], references: [id])
   amount    Int
   timestamp DateTime   @default(now())
+
+  @@index([lotId])
+  @@index([teamId])
 }

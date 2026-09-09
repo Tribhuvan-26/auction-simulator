@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react'
 import { io } from 'socket.io-client'
 import { useAuctionStore } from '@/stores/auction-store'

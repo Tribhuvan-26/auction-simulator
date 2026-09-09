@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "socket-server": "tsx server/socket-server.ts"
@@ -40,8 +41,5 @@
     "typescript": "^5",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }

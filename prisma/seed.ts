@@ -5,7 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 const TEAM_NAMES = [
   ['Mumbai Monarchs', 'MUM'], ['Chennai Chargers', 'CHE'], ['Delhi Daredevils', 'DEL'],
   ['Bangalore Blazers', 'BLR'], ['Kolkata Knights', 'KOL'], ['Hyderabad Hawks', 'HYD'],
-  ['Punjab Panthers', 'PUN'], ['Rajasthan Royals2', 'RAJ'],
+  ['Punjab Panthers', 'PUN'], ['Rajasthan Royals', 'RAJ'],
 ] as const
 
 const ROLES: PlayerRole[] = ['BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KEEPER']

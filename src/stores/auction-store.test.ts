@@ -47,7 +47,7 @@ describe('auction-store', () => {
     expect(currentLot!.bidHistory).toHaveLength(1)
   })
 
-  it('undo on an empty bid history resets to the base bid without erroring', () => {
+  it('undo on an empty bid history leaves currentBid unchanged without erroring', () => {
     useAuctionStore.getState().undoLastBid()
     const { currentLot } = useAuctionStore.getState().room!
     expect(currentLot!.currentBid).toBe(100)
