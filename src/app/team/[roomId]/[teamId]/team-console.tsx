@@ -9,6 +9,7 @@ import { bidRejectionReason } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getAdminSnapshot, placeBid, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
 import { BidNumber } from '@/components/ui/bid-number'
+import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { Gavel, TriangleAlert } from 'lucide-react'
 
 const BID_STEP = 5
@@ -92,9 +93,11 @@ export function TeamConsole({
           <span className="font-heading text-4xl font-bold tabular-nums">{formatMoney(team.purseRemaining)}</span>
           <span className="text-sm opacity-90">of {formatMoney(team.purseTotal)} left</span>
         </div>
-        <div className="mt-2 h-4 border-[3px] border-brand-charcoal bg-brand-white">
+        <div className="mt-2 h-4 rounded-full border-[3px] border-brand-charcoal bg-brand-white">
           <div
-            className="h-full bg-brand-yellow transition-[width] duration-500"
+            className={`h-full rounded-full transition-[width,background-color] duration-500 ${
+              pursePercent <= 15 ? 'bg-brand-pink' : pursePercent <= 40 ? 'bg-brand-yellow' : 'bg-brand-blue'
+            }`}
             style={{ width: `${pursePercent}%` }}
           />
         </div>
@@ -115,19 +118,22 @@ export function TeamConsole({
             >
               <BrutalCard variant={leading ? 'active' : 'default'} className="flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="font-heading text-3xl font-bold leading-tight">{lot.player.name}</h2>
-                    <p className="mt-1 text-sm">
-                      {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-                      {lot.player.isOverseas ? ' · overseas' : ''} · {lot.player.matches} matches
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <PlayerAvatar name={lot.player.name} photoUrl={lot.player.photoUrl} className="h-12 w-12 text-xs" />
+                    <div>
+                      <h2 className="font-heading text-3xl font-bold leading-tight">{lot.player.name}</h2>
+                      <p className="mt-1 text-sm">
+                        {lot.player.role.replace('_', '-')} · {lot.player.nationality}
+                        {lot.player.isOverseas ? ' · overseas' : ''} · {lot.player.matches} matches
+                      </p>
+                    </div>
                   </div>
                   <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-2 py-1 font-heading text-sm font-bold">
                     Base {formatMoney(lot.player.basePrice)}
                   </span>
                 </div>
 
-                <div className="mt-3 border-[3px] border-brand-charcoal p-3">
+                <div className="mt-3 rounded-xl border-[3px] border-brand-charcoal p-3">
                   <p className="font-heading text-xs font-bold">Current bid</p>
                   <BidNumber value={lot.currentBid} className="block text-6xl" />
                   <p className="text-sm">
@@ -158,7 +164,7 @@ export function TeamConsole({
             {team.squad.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center gap-2 border-[3px] border-brand-charcoal px-2 py-1 text-sm"
+                className="flex items-center gap-2 rounded-xl border-[3px] border-brand-charcoal px-2 py-1 text-sm"
               >
                 <span className="font-heading font-bold">{p.name}</span>
                 <span className="tabular-nums">{p.price}</span>
@@ -190,13 +196,17 @@ export function TeamConsole({
           variant={leading ? 'yellow' : 'pink'}
           onClick={handleBid}
           disabled={!!rejection || pending || leading}
-          className="flex w-full items-center justify-center gap-2 py-5 text-2xl"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl py-6 text-3xl"
         >
-          <Gavel size={24} aria-hidden />
+          <Gavel size={28} aria-hidden />
           {leading ? 'You hold this lot' : `Bid ${formatMoney(nextBid)}`}
         </BrutalButton>
-        <p className="mt-2 flex items-center justify-center gap-1 text-center text-sm">
-          {!leading && !!rejection && !error && <TriangleAlert size={14} aria-hidden />}
+        <p
+          className={`mt-2 flex items-center justify-center gap-1 text-center text-sm ${
+            !leading && (!!rejection || !!error) ? 'font-bold text-brand-pink' : ''
+          }`}
+        >
+          {!leading && (!!rejection || !!error) && <TriangleAlert size={14} aria-hidden />}
           {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? `Raises the bid by ${formatMoney(BID_STEP)}`))}
         </p>
       </div>
