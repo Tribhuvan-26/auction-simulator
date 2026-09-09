@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { formatMoney } from '@/lib/money'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
@@ -27,6 +28,14 @@ export function LiveLotControl({
 }) {
   const lot = snapshot.currentLot
 
+  // Explicit team picker — the operator calls out the team taking the raise,
+  // so quick-increment bids get attributed to whichever team is selected here
+  // rather than a guessed "next" team. Defaults to whoever isn't currently
+  // leading, but the operator can change it before hitting an increment.
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(
+    snapshot.teams.find((t) => t.id !== lot?.currentBiddingTeamId)?.id ?? snapshot.teams[0]?.id
+  )
+
   if (!lot) {
     return (
       <BrutalCard className="flex-1">
@@ -37,15 +46,12 @@ export function LiveLotControl({
   }
 
   const closed = lot.status === 'SOLD' || lot.status === 'UNSOLD'
-  // Quick-increment bids go to the first team that isn't already the top bidder —
-  // in a real room the auctioneer calls the team out loud.
-  // ponytail: no team picker; add one if bids need explicit attribution.
-  const nextBidder = snapshot.teams.find((t) => t.id !== lot.currentBiddingTeamId) ?? snapshot.teams[0]
   const leader = snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId)
+  const selectedTeam = snapshot.teams.find((t) => t.id === selectedTeamId)
 
   async function handleIncrement(amount: number) {
-    if (!nextBidder) return
-    onSnapshot(await placeBid(roomId, nextBidder.id, lot!.currentBid + amount))
+    if (!selectedTeamId) return
+    onSnapshot(await placeBid(roomId, selectedTeamId, lot!.currentBid + amount))
   }
 
   async function handleTimer(action: 'start' | 'pause' | 'reset' | 'add10') {
@@ -83,14 +89,33 @@ export function LiveLotControl({
       </div>
 
       <div>
-        <p className="mb-2 font-heading text-xs font-bold">Raise the bid</p>
+        <p className="mb-2 font-heading text-xs font-bold">Bidding team</p>
+        <select
+          className="w-full border-[3px] border-brand-charcoal bg-white px-2 py-2 font-heading text-sm font-bold"
+          value={selectedTeamId ?? ''}
+          onChange={(e) => setSelectedTeamId(e.target.value || undefined)}
+          disabled={closed}
+        >
+          {snapshot.teams.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+              {t.id === lot.currentBiddingTeamId ? ' (currently leading)' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <p className="mb-2 font-heading text-xs font-bold">
+          Raise the bid{selectedTeam ? ` for ${selectedTeam.name}` : ''}
+        </p>
         <div className="flex flex-wrap gap-2">
           {INCREMENTS.map((inc) => (
             <BrutalButton
               key={inc}
               variant="yellow"
               onClick={() => handleIncrement(inc)}
-              disabled={closed || !nextBidder}
+              disabled={closed || !selectedTeamId}
             >
               +{inc}L
             </BrutalButton>
