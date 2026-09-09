@@ -1,0 +1,113 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlayerRole {
+  BATTER
+  BOWLER
+  ALL_ROUNDER
+  WICKET_KEEPER
+}
+
+enum PlayerStatus {
+  UPCOMING
+  LIVE
+  SOLD
+  UNSOLD
+}
+
+enum RoomPhase {
+  SETUP
+  LIVE
+  PAUSED
+  COMPLETED
+}
+
+enum LotStatus {
+  QUEUED
+  BIDDING
+  SOLD
+  UNSOLD
+}
+
+model AuctionRoom {
+  id           String       @id @default(cuid())
+  name         String
+  phase        RoomPhase    @default(SETUP)
+  round        Int          @default(1)
+  currentLotId String?
+  createdAt    DateTime     @default(now())
+  teams        Team[]
+  players      Player[]
+  lots         AuctionLot[]
+}
+
+model Team {
+  id                String       @id @default(cuid())
+  roomId            String
+  room              AuctionRoom  @relation(fields: [roomId], references: [id])
+  name              String
+  shortCode         String
+  logoUrl           String?
+  colorAccent       String       @default("#2074D5")
+  purseTotal        Int
+  purseRemaining    Int
+  squadMax          Int
+  squadMin          Int
+  overseasSlotsMax  Int
+  overseasSlotsUsed Int          @default(0)
+  players           Player[]
+  bids              Bid[]
+}
+
+model Player {
+  id          String       @id @default(cuid())
+  roomId      String
+  room        AuctionRoom  @relation(fields: [roomId], references: [id])
+  name        String
+  role        PlayerRole
+  basePrice   Int
+  photoUrl    String?
+  nationality String
+  isOverseas  Boolean      @default(false)
+  matches     Int
+  runs        Int?
+  wickets     Int?
+  average     Float?
+  strikeRate  Float?
+  economy     Float?
+  status      PlayerStatus @default(UPCOMING)
+  setNumber   String
+  soldPrice   Int?
+  teamId      String?
+  team        Team?        @relation(fields: [teamId], references: [id])
+  lot         AuctionLot?
+}
+
+model AuctionLot {
+  id                    String      @id @default(cuid())
+  roomId                String
+  room                  AuctionRoom @relation(fields: [roomId], references: [id])
+  playerId              String      @unique
+  player                Player      @relation(fields: [playerId], references: [id])
+  currentBid            Int
+  currentBiddingTeamId  String?
+  status                LotStatus   @default(QUEUED)
+  timerSeconds          Int         @default(30)
+  bids                  Bid[]
+}
+
+model Bid {
+  id        String     @id @default(cuid())
+  lotId     String
+  lot       AuctionLot @relation(fields: [lotId], references: [id])
+  teamId    String
+  team      Team       @relation(fields: [teamId], references: [id])
+  amount    Int
+  timestamp DateTime   @default(now())
+}
