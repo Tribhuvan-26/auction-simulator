@@ -318,22 +318,21 @@ in a shared link only prefills the box; the cookie is always set by the action.
 
 ### Admin console
 
-A broadcast-grade command centre on `#1a1d24`, split 70/30 and never scrolling. The left pane carries
-concentric vinyl grooves with the brand colours pooled in a layer *above* them, so the accents stay
-saturated rather than sitting under a scrim. Surfaces are recessed glass — `bg-white/5`,
-`border-white/10` — not cards.
+A broadcast-grade command centre on `#0a0f18`, split 70/30 and never scrolling. Depth comes from a
+single large radial gradient across the left pane rather than borders; surfaces are recessed glass —
+`bg-white/5` over `border-white/5` — not cards. The ledger sits on `#020617`, the command plate on
+`#05080f`.
 
-- **Stage (left 70%)** — the player's photo at 192px with a hard offset shadow, their name and role
+- **Stage (left 70%)** — the player's photo at 240px in a thin-bordered circle, their name and role
   revealed character by character on every lot change (GSAP `SplitText`, free since 3.13, so no
   hand-rolled splitter), and the live price in `font-black` yellow, rolling up to each new figure
   rather than snapping.
-- **Bidding grid** — all ten franchises in a 5×2 grid, recessed glass with a muted accent dot, their
-  purse and squad count on the chip. Clicking one bids the ladder's next amount for that team; a team
-  that can't afford it, or has no squad or overseas room, is disabled with the reason on hover. The
-  team holding the lot flips to a yellow chip with a blue border and a 30px blue glow at
-  `scale: 1.05`.
-- **Command bar** — fixed `h-20` strip on `#111318`: sold, unsold, a vivid undo, four white
-  icon buttons for the timer, and a jump-bid box for naming a team and amount directly.
+- **Bidding grid** — all ten franchises in a 5×2 grid of `h-24` glass cards with a muted dot, the
+  team's purse and squad count on the card. Clicking one bids the ladder's next amount for that team;
+  a team that can't afford it, or has no squad or overseas room, is disabled with the reason on
+  hover. The team holding the lot morphs to solid `#facc15` with a 30px yellow glow.
+- **Command plate** — `h-24` strip on `#05080f` in three clusters: sold / unsold / undo on the left,
+  four square timer controls in the middle, and a jump-bid override on the right.
 - **Ledger (right 30%)** — the bid log, newest sliding in at the top, and a purse matrix that flashes
   a team's row white the moment their purse drops.
 

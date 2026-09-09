@@ -24,8 +24,8 @@ import {
 
 type Team = AdminSnapshot['teams'][number]
 
-/** Small white rounded-square icon button — the timer transport controls. */
-function IconButton({
+/** Square transport control for the timer. */
+function TimerButton({
   label,
   onClick,
   disabled,
@@ -43,7 +43,7 @@ function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className="flex h-10 min-w-10 items-center justify-center gap-1 rounded-md bg-white px-2 text-sm font-bold text-[#111318] transition-transform hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-30"
+      className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/10 text-slate-200 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25"
     >
       {children}
     </button>
@@ -98,8 +98,8 @@ export function AdminConsole({
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!snapshot.currentLot) return
-      // The jump-bid box lives in the command bar; typing an amount there must
-      // not fire SOLD on the "s" of a keystroke.
+      // The jump-bid box lives in the command plate; typing an amount there
+      // must not fire SOLD on the "s" of a keystroke.
       const target = e.target as HTMLElement | null
       if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
       if (e.key === ' ') {
@@ -119,234 +119,234 @@ export function AdminConsole({
   }, [roomId, snapshot])
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#1a1d24] text-slate-200">
-      {/* ── Stage (70%) ───────────────────────────────────────── */}
-      <section className="bg-vinyl relative flex min-w-0 flex-1 flex-col overflow-hidden pb-24">
-        {/* Brand pools sit above the grooves, so the accents stay saturated
-         * instead of being flattened by a scrim. */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(32,116,213,0.30),transparent_45%),radial-gradient(circle_at_95%_95%,rgba(235,84,124,0.22),transparent_45%)]" />
+    <div className="font-body flex h-screen w-screen overflow-hidden bg-[#0a0f18] text-slate-200">
+      {/* ── Left pane (70%) ───────────────────────────────────── */}
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-[#1e293b]/40 via-[#0f172a]/80 to-[#020617]">
+        {/* Top navigation */}
+        <div className="flex w-full shrink-0 items-start justify-between px-10 pt-8">
+          <div>
+            <Link
+              href="/"
+              className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300"
+            >
+              All rooms
+            </Link>
+            <h1 className="text-3xl font-semibold text-white">{snapshot.room.name}</h1>
+            <p className="text-sm text-slate-500">
+              Round {snapshot.room.round} • {snapshot.queue.length} players left
+            </p>
+          </div>
 
-        <div className="relative flex min-h-0 flex-1 flex-col px-8 pt-6">
-          {/* Top nav */}
-          <header className="flex shrink-0 flex-wrap items-center justify-between gap-4">
-            <div>
-              <Link
-                href="/"
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300"
-              >
-                All rooms
-              </Link>
-              <h1 className="text-2xl font-bold leading-tight text-white">{snapshot.room.name}</h1>
-              <p className="text-sm text-slate-400">
-                Round {snapshot.room.round} • {snapshot.queue.length} players left
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="rounded-md bg-brand-yellow px-3 py-1.5 text-sm font-black tracking-wide text-black">
-                {snapshot.room.phase}
-              </span>
-              <button
-                type="button"
-                onClick={() => run(() => advanceToNextLot(roomId))}
-                className="flex items-center gap-2 rounded-full bg-brand-blue px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500"
-              >
-                Load next player <ArrowRight size={15} aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={() => run(() => setPhase(roomId, snapshot.room.phase === 'LIVE' ? 'PAUSED' : 'LIVE'))}
-                className="flex items-center gap-2 rounded-full border border-brand-blue px-5 py-2 text-sm font-bold text-brand-blue transition-colors hover:bg-brand-blue/10"
-              >
-                {snapshot.room.phase === 'LIVE' ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
-                {snapshot.room.phase === 'LIVE' ? 'Pause' : 'Resume'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowEndConfirm(true)}
-                className="flex items-center gap-2 rounded-full border border-white/15 px-5 py-2 text-sm font-bold text-slate-300 transition-colors hover:border-white/40 hover:text-white"
-              >
-                <Octagon size={15} aria-hidden /> End auction
-              </button>
-            </div>
-          </header>
-
-          {/* Player profile */}
-          {lot ? (
-            <div className="mt-8 flex min-h-0 items-start gap-8">
-              <PlayerAvatar
-                name={lot.player.name}
-                photoUrl={lot.player.photoUrl}
-                className="h-48 w-48 shrink-0 border border-white/15 text-4xl shadow-[inset_0_2px_24px_rgba(0,0,0,0.65)]"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-yellow-500">
-                  {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
-                </p>
-                <h2 className="mt-1 text-6xl font-black tracking-tight text-white">
-                  <SplitReveal text={lot.player.name} trigger={lot.id} />
-                </h2>
-                <p className="mt-1 text-lg text-slate-400">
-                  {lot.player.role.replace('_', '-')} • {lot.player.nationality}
-                  {lot.player.isOverseas ? ' • overseas' : ''}
-                </p>
-
-                <BidNumber
-                  value={lot.currentBid}
-                  className="mt-4 block text-[6rem] font-black leading-none tabular-nums text-brand-yellow drop-shadow-lg"
-                />
-                <p className="mt-1 text-sm text-slate-400">
-                  {leader ? `Leading: ${leader.name}` : 'No bids yet'} •{' '}
-                  {closed ? lot.status : `next ${formatMoney(nextBid)}`}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-8 rounded-xl border border-white/10 bg-white/5 p-8">
-              <h2 className="text-3xl font-black text-white">No lot on the block</h2>
-              <p className="mt-2 text-slate-400">Load the next player to start bidding.</p>
-            </div>
-          )}
-
-          {/* Team grid */}
-          <div className="mt-12 mb-6 grid w-full shrink-0 grid-cols-5 gap-3 px-4">
-            {snapshot.teams.map((team) => {
-              const leading = team.id === leaderId
-              const blocked = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'No lot on the block'
-              return (
-                <motion.button
-                  key={team.id}
-                  type="button"
-                  data-testid={`bid-${team.shortCode}`}
-                  onClick={() => bidFor(team)}
-                  disabled={!!blocked}
-                  title={blocked ?? `Bid ${formatMoney(nextBid)} for ${team.name}`}
-                  animate={{ scale: leading ? 1.05 : 1 }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                  className={`rounded-xl p-3 text-left transition-all ${
-                    leading
-                      ? 'border-2 border-blue-500 bg-yellow-400 text-black shadow-[0_0_30px_rgba(32,116,213,0.5)]'
-                      : 'border border-white/10 bg-white/5 text-slate-500 hover:border-white/25 hover:text-slate-300'
-                  } ${blocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ background: leading ? '#000' : team.colorAccent, opacity: leading ? 1 : 0.55 }}
-                    />
-                    <span className="text-xs font-black tracking-wider">{team.shortCode}</span>
-                  </span>
-                  <span className="mt-1 block truncate text-sm font-bold">{team.name}</span>
-                  <span className={`mt-1 block text-[11px] tabular-nums ${leading ? 'text-black/70' : 'text-slate-500'}`}>
-                    {formatMoney(team.purseRemaining)} • {team.squadCount}/{team.squadMax}
-                  </span>
-                </motion.button>
-              )
-            })}
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-xs font-bold tracking-widest text-yellow-500">
+              {snapshot.room.phase}
+            </span>
+            <button
+              type="button"
+              onClick={() => run(() => advanceToNextLot(roomId))}
+              className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              Load next player <ArrowRight size={15} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => run(() => setPhase(roomId, snapshot.room.phase === 'LIVE' ? 'PAUSED' : 'LIVE'))}
+              className="flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/5"
+            >
+              {snapshot.room.phase === 'LIVE' ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
+              {snapshot.room.phase === 'LIVE' ? 'Pause' : 'Resume'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowEndConfirm(true)}
+              className="flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/5"
+            >
+              <Octagon size={15} aria-hidden /> End auction
+            </button>
           </div>
         </div>
+
+        {/* Cinematic stage */}
+        {lot ? (
+          <div className="flex min-h-0 flex-1 items-center gap-10 overflow-hidden px-10 pt-8">
+            <PlayerAvatar
+              name={lot.player.name}
+              photoUrl={lot.player.photoUrl}
+              className="h-[240px] w-[240px] shrink-0 rounded-full border border-white/10 text-5xl shadow-[0_0_40px_rgba(0,0,0,0.5)]"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-500">
+                {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
+              </p>
+              <h2 className="mt-2 text-7xl font-black tracking-tighter text-white">
+                <SplitReveal text={lot.player.name} trigger={lot.id} />
+              </h2>
+              <p className="mt-1 text-xl font-medium text-slate-400">
+                {lot.player.role.replace('_', '-')} • {lot.player.nationality}
+                {lot.player.isOverseas ? ' • overseas' : ''}
+              </p>
+              <BidNumber
+                value={lot.currentBid}
+                className="my-4 block text-[8rem] font-black leading-none tabular-nums text-[#facc15] drop-shadow-xl"
+              />
+              <p className="text-sm text-slate-500">
+                {leader ? `Leading: ${leader.name}` : 'No bids yet'} •{' '}
+                {closed ? lot.status : `next ${formatMoney(nextBid)}`}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-hidden px-10 pt-16">
+            <h2 className="text-5xl font-black tracking-tighter text-white">No lot on the block</h2>
+            <p className="mt-2 text-xl text-slate-500">Load the next player to start bidding.</p>
+          </div>
+        )}
+
+        {/* Team grid */}
+        <div className="mt-auto mb-10 grid shrink-0 grid-cols-5 gap-4 px-10">
+          {snapshot.teams.map((team) => {
+            const leading = team.id === leaderId
+            const blocked = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'No lot on the block'
+            return (
+              <motion.button
+                key={team.id}
+                type="button"
+                data-testid={`bid-${team.shortCode}`}
+                onClick={() => bidFor(team)}
+                disabled={!!blocked}
+                title={blocked ?? `Bid ${formatMoney(nextBid)} for ${team.name}`}
+                animate={{ scale: leading ? 1.02 : 1 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                className={`flex h-24 flex-col justify-between rounded-xl p-4 text-left transition-transform ${
+                  leading
+                    ? 'border-none bg-[#facc15] text-black shadow-[0_0_30px_rgba(250,204,21,0.3)]'
+                    : 'border border-white/5 bg-white/5 text-slate-500 hover:bg-white/10'
+                } ${blocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className={`h-2 w-2 shrink-0 rounded-full ${leading ? 'bg-black/60' : 'bg-slate-700'}`}
+                  />
+                  <span className="text-xs font-bold tracking-widest">{team.shortCode}</span>
+                </span>
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className={`truncate text-xs ${leading ? 'text-black/60' : ''}`}>{team.name}</span>
+                  <span className={`shrink-0 text-xs tabular-nums ${leading ? 'text-black' : 'text-slate-400'}`}>
+                    {formatMoney(team.purseRemaining)} • {team.squadCount}/{team.squadMax}
+                  </span>
+                </span>
+              </motion.button>
+            )
+          })}
+        </div>
+
+        {/* Command plate */}
+        <div className="flex h-24 shrink-0 items-center justify-between border-t border-white/10 bg-[#05080f] px-10">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={!lot || closed || !leaderId}
+              onClick={() => run(() => markSold(roomId))}
+              className="flex items-center gap-2 rounded-lg bg-white/5 px-6 py-3 text-sm font-bold tracking-wide text-slate-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <Check size={16} aria-hidden /> SOLD
+            </button>
+            <button
+              type="button"
+              disabled={!lot || closed}
+              onClick={() => run(() => markUnsold(roomId))}
+              className="flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <X size={16} aria-hidden /> UNSOLD
+            </button>
+            <button
+              type="button"
+              disabled={!lot}
+              onClick={() => run(() => undoLastBid(roomId))}
+              className="flex items-center gap-2 rounded-lg bg-rose-600 px-6 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <Undo2 size={16} aria-hidden /> UNDO
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <TimerButton label="Start timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'start'))}>
+              <Play size={16} aria-hidden />
+            </TimerButton>
+            <TimerButton label="Pause timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'pause'))}>
+              <Pause size={16} aria-hidden />
+            </TimerButton>
+            <TimerButton
+              label="Reset timer to 30s"
+              disabled={!lot}
+              onClick={() => run(() => controlTimer(roomId, 'reset'))}
+            >
+              <RotateCcw size={16} aria-hidden />
+            </TimerButton>
+            <TimerButton label="Add 10 seconds" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'add10'))}>
+              <Plus size={16} aria-hidden />
+            </TimerButton>
+            <span className="ml-1 text-sm tabular-nums text-slate-500">{lot?.timerSeconds ?? 0}s</span>
+          </div>
+
+          <form
+            className="flex flex-row items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const team = snapshot.teams.find((t) => t.id === effectiveJumpTeamId)
+              if (team) bidFor(team, Number(jumpBid))
+            }}
+          >
+            <label htmlFor="jump-bid" className="text-[10px] uppercase tracking-widest text-slate-600">
+              Jump bid
+            </label>
+            <select
+              id="jump-team"
+              aria-label="Jump bid team"
+              value={effectiveJumpTeamId}
+              onChange={(e) => setJumpTeamId(e.target.value)}
+              className="rounded-lg border border-white/10 bg-[#020617] px-3 py-2.5 text-sm text-slate-200"
+            >
+              {snapshot.teams.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.shortCode}
+                </option>
+              ))}
+            </select>
+            <input
+              id="jump-bid"
+              inputMode="numeric"
+              placeholder={String(nextBid)}
+              value={jumpBid}
+              onChange={(e) => setJumpBid(e.target.value.replace(/\D/g, ''))}
+              className="w-24 rounded-lg border border-white/10 bg-[#020617] px-3 py-2.5 text-center text-sm tabular-nums text-slate-200 placeholder:text-slate-600"
+            />
+            <button
+              type="submit"
+              disabled={!lot || closed || !jumpBid}
+              className="rounded-lg bg-blue-600/70 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              Bid
+            </button>
+          </form>
+        </div>
       </section>
-
-      {/* ── Command bar ───────────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 z-30 flex h-20 w-[70vw] items-center gap-4 border-t border-white/10 bg-[#111318] px-6">
-        <button
-          type="button"
-          disabled={!lot || closed || !leaderId}
-          onClick={() => run(() => markSold(roomId))}
-          className="flex items-center gap-2 rounded-lg bg-white/10 px-5 py-2.5 text-sm font-black tracking-wide text-slate-300 transition-colors hover:bg-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Check size={16} aria-hidden /> SOLD
-        </button>
-        <button
-          type="button"
-          disabled={!lot || closed}
-          onClick={() => run(() => markUnsold(roomId))}
-          className="flex items-center gap-2 rounded-lg bg-slate-600 px-5 py-2.5 text-sm font-black tracking-wide text-white transition-colors hover:bg-slate-500 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <X size={16} aria-hidden /> UNSOLD
-        </button>
-        <button
-          type="button"
-          disabled={!lot}
-          onClick={() => run(() => undoLastBid(roomId))}
-          className="flex items-center gap-2 rounded-lg bg-[#e11d48] px-5 py-2.5 text-sm font-black tracking-wide text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <Undo2 size={16} aria-hidden /> UNDO
-        </button>
-
-        <span className="mx-1 h-8 w-px bg-white/10" aria-hidden />
-
-        <IconButton label="Start timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'start'))}>
-          <Play size={15} aria-hidden />
-        </IconButton>
-        <IconButton label="Pause timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'pause'))}>
-          <Pause size={15} aria-hidden />
-        </IconButton>
-        <IconButton label="Reset timer to 30s" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'reset'))}>
-          <RotateCcw size={15} aria-hidden />
-        </IconButton>
-        <IconButton label="Add 10 seconds" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'add10'))}>
-          <Plus size={13} aria-hidden /> 10s
-        </IconButton>
-        <span className="text-sm tabular-nums text-slate-400">{lot?.timerSeconds ?? 0}s</span>
-
-        <form
-          className="ml-auto flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 p-1.5"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const team = snapshot.teams.find((t) => t.id === effectiveJumpTeamId)
-            if (team) bidFor(team, Number(jumpBid))
-          }}
-        >
-          <label htmlFor="jump-bid" className="pl-1 text-xs uppercase tracking-widest text-slate-500">
-            Jump bid
-          </label>
-          <select
-            id="jump-team"
-            aria-label="Jump bid team"
-            value={effectiveJumpTeamId}
-            onChange={(e) => setJumpTeamId(e.target.value)}
-            className="rounded-md border border-white/10 bg-[#1a1d24] px-2 py-1.5 text-sm text-slate-200"
-          >
-            {snapshot.teams.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.shortCode}
-              </option>
-            ))}
-          </select>
-          <input
-            id="jump-bid"
-            inputMode="numeric"
-            placeholder={String(nextBid)}
-            value={jumpBid}
-            onChange={(e) => setJumpBid(e.target.value.replace(/\D/g, ''))}
-            className="w-24 rounded-md border border-white/10 bg-[#1a1d24] px-2 py-1.5 text-center text-sm tabular-nums text-slate-200 placeholder:text-slate-600"
-          />
-          <button
-            type="submit"
-            disabled={!lot || closed || !jumpBid}
-            className="rounded-md bg-brand-blue px-4 py-1.5 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            Bid
-          </button>
-        </form>
-      </div>
 
       {error && (
         <p
           role="alert"
-          className="fixed bottom-24 left-6 z-30 rounded-lg border border-rose-400/40 bg-[#e11d48] px-3 py-2 text-sm font-bold text-white"
+          className="fixed bottom-28 left-10 z-30 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
         >
           {error}
         </p>
       )}
 
-      {/* ── Ledger (30%) ──────────────────────────────────────── */}
-      <aside className="flex w-[30vw] shrink-0 flex-col space-y-6 border-l border-white/10 bg-[#111318] p-4">
-        <div className="flex min-h-0 flex-1 flex-col">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Bid log</h2>
-          <ul className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+      {/* ── Right ledger (30%) ────────────────────────────────── */}
+      <aside className="flex h-full w-[30vw] shrink-0 flex-col border-l border-white/10 bg-[#020617]">
+        <div className="flex min-h-0 flex-[4] flex-col px-6 pt-8">
+          <h2 className="shrink-0 text-xs font-bold uppercase tracking-widest text-slate-500">Bid log</h2>
+          <ul className="scrollbar-thin-dark mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
             <AnimatePresence initial={false}>
               {[...(lot?.bidHistory ?? [])].reverse().map((bid) => (
                 <motion.li
@@ -355,22 +355,22 @@ export function AdminConsole({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 p-3"
+                  className="flex shrink-0 items-center justify-between gap-2 rounded-lg border border-white/5 bg-white/5 px-4 py-3"
                 >
-                  <span className="truncate text-sm font-bold text-white">{bid.teamName}</span>
-                  <span className="shrink-0 text-sm font-black tabular-nums text-brand-yellow">
+                  <span className="truncate text-sm font-semibold text-white">{bid.teamName}</span>
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-[#facc15]">
                     {formatMoney(bid.amount)}
                   </span>
                 </motion.li>
               ))}
             </AnimatePresence>
-            {!lot?.bidHistory.length && <li className="text-sm text-slate-500">No bids on this lot yet.</li>}
+            {!lot?.bidHistory.length && <li className="text-sm text-slate-600">No bids on this lot yet.</li>}
           </ul>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Purse matrix</h2>
-          <ul className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
+        <div className="flex min-h-0 flex-[6] flex-col border-t border-white/10 px-6 pt-6 pb-8">
+          <h2 className="shrink-0 text-xs font-bold uppercase tracking-widest text-slate-500">Purse matrix</h2>
+          <ul className="scrollbar-thin-dark mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-2">
             {snapshot.teams.map((team) => (
               <PurseRow key={team.id} team={team} leading={team.id === leaderId} />
             ))}
@@ -384,16 +384,16 @@ export function AdminConsole({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4"
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="max-w-sm rounded-xl border border-white/10 bg-[#111318] p-6"
+              className="max-w-sm rounded-xl border border-white/10 bg-[#05080f] p-6"
             >
-              <h2 className="text-xl font-black text-white">Are you sure?</h2>
+              <h2 className="text-xl font-bold text-white">Are you sure?</h2>
               <p className="mt-2 text-sm text-slate-400">
                 Ending the auction closes the room for every team. Unsold players stay unsold.
               </p>
@@ -404,14 +404,14 @@ export function AdminConsole({
                     await run(() => setPhase(roomId, 'COMPLETED'))
                     setShowEndConfirm(false)
                   }}
-                  className="rounded-lg bg-[#e11d48] px-4 py-2 text-sm font-bold text-white hover:bg-rose-500"
+                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
                 >
                   End auction
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowEndConfirm(false)}
-                  className="rounded-lg border border-white/15 px-4 py-2 text-sm font-bold text-slate-300 hover:text-white"
+                  className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5"
                 >
                   Cancel
                 </button>
@@ -447,17 +447,17 @@ function PurseRow({ team, leading }: { team: Team; leading: boolean }) {
   return (
     <motion.li
       data-testid={`purse-${team.shortCode}`}
-      animate={{ backgroundColor: hit ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0)' }}
+      animate={{ backgroundColor: hit ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0)' }}
       transition={{ duration: 0.35 }}
-      className={`rounded-lg px-2 py-1.5 ${leading ? 'ring-1 ring-blue-500/60' : ''}`}
+      className={`shrink-0 rounded-md px-1 py-1 ${leading ? 'ring-1 ring-[#facc15]/40' : ''}`}
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-bold text-white">{team.shortCode}</span>
-        <span className="text-sm tabular-nums text-slate-300">{formatMoney(team.purseRemaining)}</span>
+        <span className="text-sm font-semibold tabular-nums text-white">{formatMoney(team.purseRemaining)}</span>
       </div>
-      <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-800">
+      <div className="mt-2 h-1 w-full rounded-full bg-white/10">
         <div
-          className="h-1.5 rounded-full bg-blue-500 transition-[width] duration-500"
+          className="h-1 rounded-full bg-blue-500 transition-[width] duration-500"
           style={{ width: `${percent}%` }}
         />
       </div>

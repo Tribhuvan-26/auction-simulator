@@ -113,18 +113,19 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Deep vinyl: concentric record grooves. Grooves only — the brand pools are a
- * separate layer painted ABOVE this in the console, so nothing washes the
- * accents out. */
-.bg-vinyl {
-  background-color: #1a1d24;
-  background-image: repeating-radial-gradient(
-    circle at 30% 35%,
-    rgba(255, 255, 255, 0.02) 0px,
-    transparent 2px,
-    transparent 12px
-  );
+/* Ultra-thin dark scrollbar for the ledger columns — the default Windows bar
+ * is a light slab that breaks the panel edge. */
+.scrollbar-thin-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
+.scrollbar-thin-dark::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin-dark::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+.scrollbar-thin-dark::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
 
 /* Radial spotlight + dot-grid for the display screen's charcoal background —
  * reads as a lit stage rather than one flat rectangle. */
