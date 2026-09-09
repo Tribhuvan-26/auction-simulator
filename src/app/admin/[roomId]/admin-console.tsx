@@ -333,17 +333,25 @@ export function AdminConsole({
       {error && (
         <p
           role="alert"
-          className="fixed bottom-28 left-10 z-30 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
+          className="fixed bottom-28 left-8 z-30 border-[3px] border-brand-charcoal bg-brand-pink px-4 py-2 text-sm font-bold shadow-brutal"
         >
           {error}
         </p>
       )}
 
       {/* ── Right ledger (30%) ────────────────────────────────── */}
-      <aside className="flex h-full w-[30vw] shrink-0 flex-col border-l border-white/10 bg-[#020617]">
-        <div className="flex min-h-0 flex-[4] flex-col px-6 pt-8">
-          <h2 className="shrink-0 text-xs font-bold uppercase tracking-widest text-slate-500">Bid log</h2>
-          <ul className="scrollbar-thin-dark mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
+      <aside className="flex h-full w-[30vw] shrink-0 flex-col border-l-[3px] border-brand-charcoal bg-brand-white">
+        <SectionHeader>Current Status</SectionHeader>
+        <div className="border-b-[3px] border-brand-charcoal bg-brand-pink px-6 py-4">
+          <p className="font-heading text-xl font-bold">
+            {lot ? `Lot ${lot.player.setNumber}: ${lot.status}` : 'No lot on the block'}
+          </p>
+          <p className="font-heading text-4xl font-black tabular-nums">{lot?.timerSeconds ?? 0}s</p>
+        </div>
+
+        <SectionHeader>Bidding Log</SectionHeader>
+        <div className="flex min-h-0 flex-[4] flex-col px-6 pt-4">
+          <ul className="scrollbar-thin-dark flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
             <AnimatePresence initial={false}>
               {[...(lot?.bidHistory ?? [])].reverse().map((bid) => (
                 <motion.li
