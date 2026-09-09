@@ -393,3 +393,78 @@ describe('placeBid validation', () => {
     await expect(placeBid(roomId, teamId, 55)).rejects.toThrow(/overseas slots full/i)
   })
 })
+
+describe('undoLastBid on a closed lot', () => {
+  let roomId: string, teamId: string, playerId: string, lotId: string
+
+  beforeAll(async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Undo Room', phase: 'LIVE', adminPasscode: '4242' } })
+    roomId = room.id
+    const team = await prisma.team.create({
+      data: { roomId, name: 'Undo Team', shortCode: 'UND', passcode: '9600', purseTotal: 10000, purseRemaining: 9920, squadMax: 25, squadMin: 18, overseasSlotsMax: 8, overseasSlotsUsed: 1 },
+    })
+    teamId = team.id
+    const player = await prisma.player.create({
+      data: { roomId, name: 'Undo Player', role: 'BATTER', basePrice: 20, nationality: 'Australia', isOverseas: true, matches: 10, setNumber: 'Set 1', status: 'SOLD', teamId: team.id, soldPrice: 80 },
+    })
+    playerId = player.id
+    const lot = await prisma.auctionLot.create({
+      data: { roomId, playerId, currentBid: 80, currentBiddingTeamId: team.id, status: 'SOLD', timerSeconds: 30 },
+    })
+    lotId = lot.id
+  })
+
+  afterAll(async () => {
+    await prisma.bid.deleteMany({ where: { lotId } })
+    await prisma.auctionLot.deleteMany({ where: { roomId } })
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.team.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+  })
+
+  it('reverses a sale: refunds the purse, frees the slots, reopens the lot', async () => {
+    const snapshot = await undoLastBid(roomId)
+    expect(snapshot.currentLot?.status).toBe('BIDDING')
+    const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId } })
+    expect(team.purseRemaining).toBe(10000)
+    expect(team.overseasSlotsUsed).toBe(0)
+    const player = await prisma.player.findUniqueOrThrow({ where: { id: playerId } })
+    expect(player.status).toBe('LIVE')
+    expect(player.teamId).toBeNull()
+    expect(player.soldPrice).toBeNull()
+  })
+
+  it('puts an unsold lot back on the block instead of throwing', async () => {
+    await prisma.auctionLot.update({ where: { id: lotId }, data: { status: 'UNSOLD', currentBiddingTeamId: null } })
+    await prisma.player.update({ where: { id: playerId }, data: { status: 'UNSOLD' } })
+    const snapshot = await undoLastBid(roomId)
+    expect(snapshot.currentLot?.status).toBe('QUEUED')
+    const player = await prisma.player.findUniqueOrThrow({ where: { id: playerId } })
+    expect(player.status).toBe('LIVE')
+  })
+})
+
+describe('mutations with no lot on the block', () => {
+  let roomId: string
+
+  beforeAll(async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Empty Room', phase: 'LIVE', adminPasscode: '4243' } })
+    roomId = room.id
+  })
+
+  afterAll(async () => {
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+    await prisma.$disconnect()
+  })
+
+  it('says so in words rather than leaking a Prisma error', async () => {
+    await expect(markSold(roomId)).rejects.toThrow(/no lot on the block/i)
+    await expect(markUnsold(roomId)).rejects.toThrow(/no lot on the block/i)
+    await expect(controlTimer(roomId, 'reset')).rejects.toThrow(/no lot on the block/i)
+  })
+
+  it('undo is a no-op when the room has never had a lot', async () => {
+    const snapshot = await undoLastBid(roomId)
+    expect(snapshot.currentLot).toBeNull()
+  })
+})

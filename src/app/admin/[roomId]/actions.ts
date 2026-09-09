@@ -143,16 +143,27 @@ export async function getPublicSnapshot(roomId: string): Promise<PublicSnapshot>
   return rest
 }
 
+/**
+ * The lot on the block. A closed lot is an ordinary state — the auctioneer has
+ * just called it — so this reports that in words rather than letting Prisma's
+ * "no record was found" surface in the console.
+ */
+async function openLotOrThrow(roomId: string) {
+  const lot = await prisma.auctionLot.findFirst({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    include: { player: true },
+    orderBy: { id: 'desc' },
+  })
+  if (!lot) throw new Error('No lot on the block — load the next player first')
+  return lot
+}
+
 export async function placeBid(roomId: string, teamId: string, amount: number): Promise<AdminSnapshot> {
   // Server Actions are POST endpoints — the PIN gate on the page stops nobody
   // who crafts the request by hand. Authorise before touching the database.
   await assertCanBidAs(roomId, teamId)
 
-  const lot = await prisma.auctionLot.findFirstOrThrow({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    include: { player: true },
-    orderBy: { id: 'desc' },
-  })
+  const lot = await openLotOrThrow(roomId)
   // Scoped to the room: a teamId from another room must not be able to bid on
   // this lot, or markSold would debit a purse in a different auction entirely.
   const team = await prisma.team.findFirstOrThrow({
@@ -199,11 +210,7 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
 export async function markSold(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
-  const lot = await prisma.auctionLot.findFirstOrThrow({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    include: { player: true },
-    orderBy: { id: 'desc' },
-  })
+  const lot = await openLotOrThrow(roomId)
   if (!lot.currentBiddingTeamId) throw new Error('Cannot mark sold with no bidding team')
 
   await prisma.$transaction([
@@ -228,10 +235,7 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
 export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
-  const lot = await prisma.auctionLot.findFirstOrThrow({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    orderBy: { id: 'desc' },
-  })
+  const lot = await openLotOrThrow(roomId)
 
   await prisma.$transaction([
     prisma.auctionLot.update({ where: { id: lot.id }, data: { status: 'UNSOLD' } }),
@@ -245,11 +249,48 @@ export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
 export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
-  const lot = await prisma.auctionLot.findFirstOrThrow({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+  // Undo walks back one step of whatever just happened, so it looks at the
+  // newest lot in the room regardless of status: calling a lot sold or unsold
+  // is the most likely thing to want back.
+  const lot = await prisma.auctionLot.findFirst({
+    where: { roomId },
     include: { player: true },
     orderBy: { id: 'desc' },
   })
+  if (!lot) return getAdminSnapshot(roomId)
+
+  if (lot.status === 'SOLD' && lot.currentBiddingTeamId) {
+    // Put the money back, free the squad and overseas slot, and return the lot
+    // to the block with its bid ladder intact.
+    await prisma.$transaction([
+      prisma.team.update({
+        where: { id: lot.currentBiddingTeamId },
+        data: {
+          purseRemaining: { increment: lot.currentBid },
+          overseasSlotsUsed: { decrement: lot.player.isOverseas ? 1 : 0 },
+        },
+      }),
+      prisma.player.update({
+        where: { id: lot.playerId },
+        data: { status: 'LIVE', teamId: null, soldPrice: null },
+      }),
+      prisma.auctionLot.update({ where: { id: lot.id }, data: { status: 'BIDDING' } }),
+    ])
+    await emitAuctionEvent(roomId, { type: 'UNDO' })
+    return getAdminSnapshot(roomId)
+  }
+
+  if (lot.status === 'UNSOLD') {
+    await prisma.$transaction([
+      prisma.player.update({ where: { id: lot.playerId }, data: { status: 'LIVE' } }),
+      prisma.auctionLot.update({
+        where: { id: lot.id },
+        data: { status: lot.currentBiddingTeamId ? 'BIDDING' : 'QUEUED' },
+      }),
+    ])
+    await emitAuctionEvent(roomId, { type: 'UNDO' })
+    return getAdminSnapshot(roomId)
+  }
 
   const lastBid = await prisma.bid.findFirst({ where: { lotId: lot.id }, orderBy: { timestamp: 'desc' } })
   if (!lastBid) return getAdminSnapshot(roomId)
@@ -267,6 +308,7 @@ export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
       data: {
         currentBid: newHead ? newHead.amount : lot.player.basePrice,
         currentBiddingTeamId: newHead ? newHead.teamId : null,
+        status: newHead ? 'BIDDING' : 'QUEUED',
       },
     }),
   ])
@@ -281,10 +323,7 @@ export async function controlTimer(
 ): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
-  const lot = await prisma.auctionLot.findFirstOrThrow({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    orderBy: { id: 'desc' },
-  })
+  const lot = await openLotOrThrow(roomId)
 
   const timerSeconds =
     action === 'reset' ? TIMER_DEFAULT_SECONDS : action === 'add10' ? lot.timerSeconds + 10 : lot.timerSeconds

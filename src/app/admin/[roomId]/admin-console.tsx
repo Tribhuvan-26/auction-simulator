@@ -204,6 +204,16 @@ export function AdminConsole({
           </div>
         )}
 
+        {/* A closed lot disables every chip, which otherwise looks like a dead
+         * grid. Say what happened and what the two ways out are. */}
+        {lot && closed && (
+          <p className="relative shrink-0 px-10 pb-3 text-sm text-slate-400">
+            <span className="font-bold text-white">{lot.status}</span> — press{' '}
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">Z</kbd> to put this lot back on
+            the block, or load the next player.
+          </p>
+        )}
+
         {/* Team grid */}
         <div className="relative mt-auto mb-10 grid shrink-0 grid-cols-5 gap-4 px-10">
           {snapshot.teams.map((team) => {

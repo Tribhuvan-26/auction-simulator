@@ -1,0 +1,255 @@
+﻿#,Name,Team,Role,Base Price (lakhs),Base Price,Nationality,Overseas,Capped,Set,Photo File,Has Photo
+1,Priyansh Arya,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-priyansh-arya.png,Yes
+2,Pyla Avinash,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-pyla-avinash.png,Yes
+3,Cooper Connolly,Punjab Kings,ALL-ROUNDER,200,2 Cr,Overseas,Yes,Capped,Capped Players,pbks-cooper-connolly.png,Yes
+4,Praveen Dubey,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-praveen-dubey.png,Yes
+5,Harnoor Singh,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-harnoor-singh.png,Yes
+6,Shreyas Iyer,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-shreyas-iyer.png,Yes
+7,Musheer Khan,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-musheer-khan.png,Yes
+8,Vishal Nishad,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-vishal-nishad.png,Yes
+9,Mitch Owen,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-mitch-owen.png,Yes
+10,Suryansh Shedge,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-suryansh-shedge.png,Yes
+11,Shashank Singh,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-shashank-singh.png,Yes
+12,Marcus Stoinis,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-marcus-stoinis.png,Yes
+13,Vishnu Vinod,Punjab Kings,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-vishnu-vinod.png,Yes
+14,Nehal Wadhera,Punjab Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-nehal-wadhera.png,Yes
+15,Arshdeep Singh,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-arshdeep-singh.png,Yes
+16,Xavier Bartlett,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-xavier-bartlett.png,Yes
+17,Harpreet Brar,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-harpreet-brar.png,Yes
+18,Yuzvendra Chahal,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-yuzvendra-chahal.png,Yes
+19,Ben Dwarshuis,Punjab Kings,BOWLER,100,1 Cr,Overseas,Yes,Capped,Capped Players,pbks-ben-dwarshuis.png,Yes
+20,Lockie Ferguson,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-lockie-ferguson.png,Yes
+21,Yash Thakur,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-yash-thakur.png,Yes
+22,Vijaykumar Vyshak,Punjab Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-vijaykumar-vyshak.png,Yes
+23,Azmatullah Omarzai,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-azmatullah-omarzai.png,Yes
+24,Marco Jansen,Punjab Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-marco-jansen.png,Yes
+25,Prabhsimran Singh,Punjab Kings,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,pbks-prabhsimran-singh.png,Yes
+26,Krish Bhagat,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-krish-bhagat.png,Yes
+27,Naman Dhir,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-naman-dhir.png,Yes
+28,Will Jacks,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-will-jacks.png,Yes
+29,Danish Malewar,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-danish-malewar.png,Yes
+30,Robin Minz,Mumbai Indians,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,mi-robin-minz.png,Yes
+31,Mayank Rawat,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-mayank-rawat.png,Yes
+32,Sherfane Rutherford,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-sherfane-rutherford.png,Yes
+33,Rohit Sharma,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-rohit-sharma.png,Yes
+34,Tilak Varma,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-tilak-varma.png,Yes
+35,Suryakumar Yadav,Mumbai Indians,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,mi-suryakumar-yadav.png,Yes
+36,Atharva Ankolekar,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-atharva-ankolekar.png,Yes
+37,Trent Boult,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-trent-boult.png,Yes
+38,Jasprit Bumrah,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-jasprit-bumrah.png,Yes
+39,Deepak Chahar,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-deepak-chahar.png,Yes
+40,AM Ghazanfar,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-am-ghazanfar.png,Yes
+41,Mohammed Izhar,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-mohammed-izhar.png,Yes
+42,Ashwani Kumar,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-ashwani-kumar.png,Yes
+43,Keshav Maharaj,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,,No
+44,Mayank Markande,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-mayank-markande.png,Yes
+45,Raghu Sharma,Mumbai Indians,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,mi-raghu-sharma.png,Yes
+46,Shardul Thakur,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-shardul-thakur.png,Yes
+47,Raj Bawa,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-raj-bawa.png,Yes
+48,Corbin Bosch,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-corbin-bosch.png,Yes
+49,Hardik Pandya,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-hardik-pandya.png,Yes
+50,Mitch Santner,Mumbai Indians,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,mi-mitch-santner.png,Yes
+51,Quinton de Kock,Mumbai Indians,WICKET-KEEPER,100,1 Cr,Overseas,Yes,Capped,Capped Players,mi-quinton-de-kock.png,Yes
+52,Ryan Rickelton,Mumbai Indians,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,mi-ryan-rickelton.png,Yes
+53,Ayush Badoni,Lucknow Super Giants,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-ayush-badoni.png,Yes
+54,Matthew Breetzke,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-matthew-breetzke.png,Yes
+55,Mukul Choudhary,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-mukul-choudhary.png,Yes
+56,Arshin Kulkarni,Lucknow Super Giants,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-arshin-kulkarni.png,Yes
+57,Aiden Markram,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-aiden-markram.png,Yes
+58,Akshat Raghuwanshi,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-akshat-raghuwanshi.png,Yes
+59,Abdul Samad,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-abdul-samad.png,Yes
+60,Himmat Singh,Lucknow Super Giants,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-himmat-singh.png,Yes
+61,Avesh Khan,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-avesh-khan.png,Yes
+62,Mohsin Khan,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-mohsin-khan.png,Yes
+63,Anrich Nortje,Lucknow Super Giants,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,lsg-anrich-nortje.png,Yes
+64,Digvesh Singh Rathi,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-digvesh-singh-rathi.png,Yes
+65,Mohammed Shami,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-mohammed-shami.png,Yes
+66,Manimaran Siddharth,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-manimaran-siddharth.png,Yes
+67,Akash Singh,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-akash-singh.png,Yes
+68,Arjun Tendulkar,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-arjun-tendulkar.png,Yes
+69,Naman Tiwari,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-naman-tiwari.png,Yes
+70,Mayank Yadav,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-mayank-yadav.png,Yes
+71,Prince Yadav,Lucknow Super Giants,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-prince-yadav.png,Yes
+72,Wanindu Hasaranga,Lucknow Super Giants,ALL-ROUNDER,200,2 Cr,Overseas,Yes,Capped,Capped Players,lsg-wanindu-hasaranga.png,Yes
+73,George Linde,Lucknow Super Giants,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-george-linde.png,Yes
+74,Mitch Marsh,Lucknow Super Giants,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-mitch-marsh.png,Yes
+75,Shahbaz Ahmed,Lucknow Super Giants,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-shahbaz-ahmed.png,Yes
+76,Josh Inglis,Lucknow Super Giants,WICKET-KEEPER,200,2 Cr,Overseas,Yes,Capped,Capped Players,lsg-josh-inglis.png,Yes
+77,Rishabh Pant,Lucknow Super Giants,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-rishabh-pant.png,Yes
+78,Nicholas Pooran,Lucknow Super Giants,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,lsg-nicholas-pooran.png,Yes
+79,Finn Allen,Kolkata Knight Riders,BATTER,200,2 Cr,Overseas,Yes,Capped,Capped Players,kkr-finn-allen.png,Yes
+80,Daksh Kamra,Kolkata Knight Riders,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-daksh-kamra.png,Yes
+81,Manish Pandey,Kolkata Knight Riders,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-manish-pandey.png,Yes
+82,Angkrish Raghuvanshi,Kolkata Knight Riders,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-angkrish-raghuvanshi.png,Yes
+83,Ajinkya Rahane,Kolkata Knight Riders,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-ajinkya-rahane.png,Yes
+84,Sarthak Ranjan,Kolkata Knight Riders,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-sarthak-ranjan.png,Yes
+85,Mustafizur Rahman,Kolkata Knight Riders,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,,No
+86,Blessing Muzarabani,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-blessing-muzarabani.png,Yes
+87,Sunil Narine,Kolkata Knight Riders,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-sunil-narine.png,Yes
+88,Matheesha Pathirana,Kolkata Knight Riders,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,kkr-matheesha-pathirana.png,Yes
+89,Harshit Rana,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,,No
+90,Navdeep Saini,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-navdeep-saini.png,Yes
+91,Prashant Solanki,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-prashant-solanki.png,Yes
+92,Kartik Tyagi,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-kartik-tyagi.png,Yes
+93,Umran Malik,Kolkata Knight Riders,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-umran-malik.png,Yes
+94,Rachin Ravindra,Kolkata Knight Riders,ALL-ROUNDER,200,2 Cr,Overseas,Yes,Capped,Capped Players,kkr-rachin-ravindra.png,Yes
+95,Anukul Roy,Kolkata Knight Riders,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-anukul-roy.png,Yes
+96,Tejasvi Dahiya,Kolkata Knight Riders,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,kkr-tejasvi-dahiya.png,Yes
+97,Tim Seifert,Kolkata Knight Riders,WICKET-KEEPER,150,1.5 Cr,Overseas,Yes,Capped,Capped Players,kkr-tim-seifert.png,Yes
+98,Luvnith Sisodia,Kolkata Knight Riders,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,,No
+99,Rehan Ahmed,Delhi Capitals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,dc-rehan-ahmed.png,Yes
+100,David Miller,Delhi Capitals,BATTER,200,2 Cr,Overseas,Yes,Capped,Capped Players,dc-david-miller.png,Yes
+101,Karun Nair,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-karun-nair.png,Yes
+102,Sahil Parakh,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-sahil-parakh.png,Yes
+103,KL Rahul,Delhi Capitals,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,dc-kl-rahul.png,Yes
+104,Nitish Rana,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-nitish-rana.png,Yes
+105,Sameer Rizvi,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-sameer-rizvi.png,Yes
+106,Ashutosh Sharma,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-ashutosh-sharma.png,Yes
+107,Prithvi Shaw,Delhi Capitals,BATTER,75,75 L,India,No,Capped,Capped Players,dc-prithvi-shaw.png,Yes
+108,Pathum Nissanka,Delhi Capitals,BATTER,75,75 L,Overseas,Yes,Capped,Capped Players,dc-pathum-nissanka.png,Yes
+109,Tristan Stubbs,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-tristan-stubbs.png,Yes
+110,Madhav Tiwari,Delhi Capitals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,dc-madhav-tiwari.png,Yes
+111,Dushmantha Chameera,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-dushmantha-chameera.png,Yes
+112,Kyle Jamieson,Delhi Capitals,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,dc-kyle-jamieson.png,Yes
+113,Mukesh Kumar,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-mukesh-kumar.png,Yes
+114,Auqib Nabi,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-auqib-nabi.png,Yes
+115,Thangarasu Natarajan,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-thangarasu-natarajan.png,Yes
+116,Lungi Ngidi,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-lungi-ngidi.png,Yes
+117,Vipraj Nigam,Delhi Capitals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,dc-vipraj-nigam.png,Yes
+118,Mitchell Starc,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-mitchell-starc.png,Yes
+119,Tripurana Vijay,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-tripurana-vijay.png,Yes
+120,Kuldeep Yadav,Delhi Capitals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,dc-kuldeep-yadav.png,Yes
+121,Ajay Mandal,Delhi Capitals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,dc-ajay-mandal.png,Yes
+122,Axar Patel,Delhi Capitals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,dc-axar-patel.png,Yes
+123,Abishek Porel,Delhi Capitals,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,dc-abishek-porel.png,Yes
+124,Tom Banton,Gujarat Titans,WICKET-KEEPER,200,2 Cr,Overseas,Yes,Capped,Capped Players,gt-tom-banton.png,Yes
+125,Shubman Gill,Gujarat Titans,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,gt-shubman-gill.png,Yes
+126,Glenn Phillips,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-glenn-phillips.png,Yes
+127,Sai Sudharsan,Gujarat Titans,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,gt-sai-sudharsan.png,Yes
+128,Shahrukh Khan,Gujarat Titans,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,gt-shahrukh-khan.png,Yes
+129,Nishant Sindhu,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-nishant-sindhu.png,Yes
+130,Rahul Tewatia,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-rahul-tewatia.png,Yes
+131,Arshad Khan,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-arshad-khan.png,Yes
+132,Gurnoor Brar,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-gurnoor-brar.png,Yes
+133,Kulwant Khejroliya,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-kulwant-khejroliya.png,Yes
+134,Prasidh Krishna,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-prasidh-krishna.png,Yes
+135,Yarra Prithviraj,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-yarra-prithviraj.png,Yes
+136,Kagiso Rabada,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-kagiso-rabada.png,Yes
+137,Rashid Khan,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-rashid-khan.png,Yes
+138,Sai Kishore,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-sai-kishore.png,Yes
+139,Ashok Sharma,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-ashok-sharma.png,Yes
+140,Ishant Sharma,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-ishant-sharma.png,Yes
+141,Mohammed Siraj,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-mohammed-siraj.png,Yes
+142,Manav Suthar,Gujarat Titans,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,gt-manav-suthar.png,Yes
+143,Luke Wood,Gujarat Titans,BOWLER,75,75 L,Overseas,Yes,Capped,Capped Players,gt-luke-wood.png,Yes
+144,Jason Holder,Gujarat Titans,ALL-ROUNDER,200,2 Cr,Overseas,Yes,Capped,Capped Players,gt-jason-holder.png,Yes
+145,Washington Sundar,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-washington-sundar.png,Yes
+146,Jayant Yadav,Gujarat Titans,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,gt-jayant-yadav.png,Yes
+147,Jos Buttler,Gujarat Titans,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,gt-jos-buttler.png,Yes
+148,Connor Esterhuizen,Gujarat Titans,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,gt-connor-esterhuizen.png,Yes
+149,Kumar Kushagra,Gujarat Titans,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,gt-kumar-kushagra.png,Yes
+150,Anuj Rawat,Gujarat Titans,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,gt-anuj-rawat.png,Yes
+151,Dewald Brevis,Chennai Super Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,csk-dewald-brevis.png,Yes
+152,Ruturaj Gaikwad,Chennai Super Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,csk-ruturaj-gaikwad.png,Yes
+153,Ramakrishna Ghosh,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-ramakrishna-ghosh.png,Yes
+154,Aman Khan,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-aman-khan.png,Yes
+155,Sarfaraz Khan,Chennai Super Kings,BATTER,75,75 L,India,No,Capped,Capped Players,csk-sarfaraz-khan.png,Yes
+156,Ayush Mhatre,Chennai Super Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,csk-ayush-mhatre.png,Yes
+157,Kartik Sharma,Chennai Super Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,csk-kartik-sharma.png,Yes
+158,Matt Short,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-matt-short.png,Yes
+159,Prashant Veer,Chennai Super Kings,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,csk-prashant-veer.png,Yes
+160,Khaleel Ahmed,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-khaleel-ahmed.png,Yes
+161,Rahul Chahar,Chennai Super Kings,BOWLER,100,1 Cr,India,No,Capped,Capped Players,csk-rahul-chahar.png,Yes
+162,Mukesh Choudhary,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-mukesh-choudhary.png,Yes
+163,Gurjapneet Singh,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-gurjapneet-singh.png,Yes
+164,Matt Henry,Chennai Super Kings,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,csk-matt-henry.png,Yes
+165,Akeal Hosein,Chennai Super Kings,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,csk-akeal-hosein.png,Yes
+166,Spencer Johnson,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-spencer-johnson.png,Yes
+167,Anshul Kamboj,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-anshul-kamboj.png,Yes
+168,Akash Madhwal,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-akash-madhwal.png,Yes
+169,Noor Ahmad,Chennai Super Kings,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,csk-noor-ahmad.png,Yes
+170,Shivam Dube,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-shivam-dube.png,Yes
+171,Zak Foulkes,Chennai Super Kings,ALL-ROUNDER,75,75 L,Overseas,Yes,Capped,Capped Players,csk-zak-foulkes.png,Yes
+172,Shreyas Gopal,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-shreyas-gopal.png,Yes
+173,Jamie Overton,Chennai Super Kings,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,csk-jamie-overton.png,Yes
+174,Mahendra Singh Dhoni,Chennai Super Kings,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,csk-mahendra-singh-dhoni.png,Yes
+175,Urvil Patel,Chennai Super Kings,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,csk-urvil-patel.png,Yes
+176,Sanju Samson,Chennai Super Kings,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,csk-sanju-samson.png,Yes
+177,Travis Head,Sunrisers Hyderabad,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,srh-travis-head.png,Yes
+178,Shivang Kumar,Sunrisers Hyderabad,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,srh-shivang-kumar.png,Yes
+179,Liam Livingstone,Sunrisers Hyderabad,ALL-ROUNDER,200,2 Cr,Overseas,Yes,Capped,Capped Players,srh-liam-livingstone.png,Yes
+180,Kamindu Mendis,Sunrisers Hyderabad,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,srh-kamindu-mendis.png,Yes
+181,Abhishek Sharma,Sunrisers Hyderabad,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,srh-abhishek-sharma.png,Yes
+182,Ravichandran Smaran,Sunrisers Hyderabad,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,srh-ravichandran-smaran.png,Yes
+183,Aniket Verma,Sunrisers Hyderabad,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,srh-aniket-verma.png,Yes
+184,Zeeshan Ansari,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-zeeshan-ansari.png,Yes
+185,Gerald Coetzee,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-gerald-coetzee.png,Yes
+186,Pat Cummins,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-pat-cummins.png,Yes
+187,Eshan Malinga,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-eshan-malinga.png,Yes
+188,Harsh Dubey,Sunrisers Hyderabad,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,srh-harsh-dubey.png,Yes
+189,Krains Fuletra,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-krains-fuletra.png,Yes
+190,Praful Hinge,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-praful-hinge.png,Yes
+191,Amit Kumar,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-amit-kumar.png,Yes
+192,Dilshan Madushanka,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-dilshan-madushanka.png,Yes
+193,Shivam Mavi,Sunrisers Hyderabad,BOWLER,75,75 L,India,No,Capped,Capped Players,srh-shivam-mavi.png,Yes
+194,Harshal Patel,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-harshal-patel.png,Yes
+195,David Payne,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-david-payne.png,Yes
+196,Sakib Hussain,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-sakib-hussain.png,Yes
+197,Onkar Tarmale,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-onkar-tarmale.png,Yes
+198,Jaydev Unadkat,Sunrisers Hyderabad,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,srh-jaydev-unadkat.png,Yes
+199,Brydon Carse,Sunrisers Hyderabad,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,,No
+200,Jack Edwards,Sunrisers Hyderabad,ALL-ROUNDER,50,50 L,Overseas,Yes,Uncapped,Uncapped Players,,No
+201,Nitish Kumar Reddy,Sunrisers Hyderabad,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,srh-nitish-kumar-reddy.png,Yes
+202,Salil Arora,Sunrisers Hyderabad,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,srh-salil-arora.png,Yes
+203,Ishan Kishan,Sunrisers Hyderabad,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,srh-ishan-kishan.png,Yes
+204,Heinrich Klaasen,Sunrisers Hyderabad,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,srh-heinrich-klaasen.png,Yes
+205,Jacob Bethell,Royal Challengers Bengaluru,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-jacob-bethell.png,Yes
+206,Jordan Cox,Royal Challengers Bengaluru,WICKET-KEEPER,75,75 L,Overseas,Yes,Capped,Capped Players,rcb-jordan-cox.png,Yes
+207,Tim David,Royal Challengers Bengaluru,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-tim-david.png,Yes
+208,Venkatesh Iyer,Royal Challengers Bengaluru,ALL-ROUNDER,200,2 Cr,India,No,Capped,Capped Players,rcb-venkatesh-iyer.png,Yes
+209,Virat Kohli,Royal Challengers Bengaluru,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-virat-kohli.png,Yes
+210,Vihaan Malhotra,Royal Challengers Bengaluru,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-vihaan-malhotra.png,Yes
+211,Devdutt Padikkal,Royal Challengers Bengaluru,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-devdutt-padikkal.png,Yes
+212,Rajat Patidar,Royal Challengers Bengaluru,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-rajat-patidar.png,Yes
+213,Phil Salt,Royal Challengers Bengaluru,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-phil-salt.png,Yes
+214,Swapnil Singh,Royal Challengers Bengaluru,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-swapnil-singh.png,Yes
+215,Kanishk Chouhan,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-kanishk-chouhan.png,Yes
+216,Rasikh Dar,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-rasikh-dar.png,Yes
+217,Yash Dayal,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-yash-dayal.png,Yes
+218,Satvik Deswal,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-satvik-deswal.png,Yes
+219,Jacob Duffy,Royal Challengers Bengaluru,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,rcb-jacob-duffy.png,Yes
+220,Josh Hazlewood,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-josh-hazlewood.png,Yes
+221,Vicky Ostwal,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-vicky-ostwal.png,Yes
+222,Suyash Sharma,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-suyash-sharma.png,Yes
+223,Abhinandan Singh,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-abhinandan-singh.png,Yes
+224,Nuwan Thushara,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-nuwan-thushara.png,Yes
+225,Mangesh Yadav,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-mangesh-yadav.png,Yes
+226,Bhuvneshwar Kumar,Royal Challengers Bengaluru,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-bhuvneshwar-kumar.png,Yes
+227,Krunal Pandya,Royal Challengers Bengaluru,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-krunal-pandya.png,Yes
+228,Romario Shepherd,Royal Challengers Bengaluru,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-romario-shepherd.png,Yes
+229,Jitesh Sharma,Royal Challengers Bengaluru,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,rcb-jitesh-sharma.png,Yes
+230,Shubham Dubey,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-shubham-dubey.png,Yes
+231,Donovan Ferreira,Rajasthan Royals,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,rr-donovan-ferreira.png,Yes
+232,Shimron Hetmyer,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-shimron-hetmyer.png,Yes
+233,Yashasvi Jaiswal,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-yashasvi-jaiswal.png,Yes
+234,Aman Rao,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-aman-rao.png,Yes
+235,Lhuan-dré Pretorius,Rajasthan Royals,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,rr-lhuan-dr-pretorius.png,Yes
+236,Yash Punja,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-yash-punja.png,Yes
+237,Vignesh Puthur,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-vignesh-puthur.png,Yes
+238,Ravi Singh,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-ravi-singh.png,Yes
+239,Vaibhav Sooryavanshi,Rajasthan Royals,BATTER,30,30 L,India,No,Uncapped,Uncapped Players,rr-vaibhav-sooryavanshi.png,Yes
+240,Jofra Archer,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-jofra-archer.png,Yes
+241,Ravi Bishnoi,Rajasthan Royals,BOWLER,200,2 Cr,India,No,Capped,Capped Players,rr-ravi-bishnoi.png,Yes
+242,Nandre Burger,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-nandre-burger.png,Yes
+243,Tushar Deshpande,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-tushar-deshpande.png,Yes
+244,Kwena Maphaka,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-kwena-maphaka.png,Yes
+245,Adam Milne,Rajasthan Royals,BOWLER,200,2 Cr,Overseas,Yes,Capped,Capped Players,rr-adam-milne.png,Yes
+246,Sushant Mishra,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-sushant-mishra.png,Yes
+247,Kuldeep Sen,Rajasthan Royals,BOWLER,75,75 L,India,No,Capped,Capped Players,rr-kuldeep-sen.png,Yes
+248,Brijesh Sharma,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-brijesh-sharma.png,Yes
+249,Sandeep Sharma,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-sandeep-sharma.png,Yes
+250,Yudhvir Singh Charak,Rajasthan Royals,BOWLER,30,30 L,India,No,Uncapped,Uncapped Players,rr-yudhvir-singh-charak.png,Yes
+251,Sam Curran,Rajasthan Royals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,,No
+252,Riyan Parag,Rajasthan Royals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rr-riyan-parag.png,Yes
+253,Ravindra Jadeja,Rajasthan Royals,ALL-ROUNDER,30,30 L,India,No,Uncapped,Uncapped Players,rr-ravindra-jadeja.png,Yes
+254,Dhruv Jurel,Rajasthan Royals,WICKET-KEEPER,30,30 L,India,No,Uncapped,Uncapped Players,rr-dhruv-jurel.png,Yes
