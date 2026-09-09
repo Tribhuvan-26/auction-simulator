@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 49 passing, 11 files |
+| Tests | 42 passing, 9 files |
 
 **Contents**
 
@@ -75,7 +75,6 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Client state | Zustand | Present but **unused** — superseded by `useLiveSnapshot`. See part 9. |
 | Tests | Vitest + Testing Library + jsdom | 11 files, 49 tests, hitting a real database. |
 
 ### Where everything lives
@@ -106,9 +105,8 @@ src/components/
   admin/   player-queue · live-lot-control · team-purse-table · bid-log
   ui/      brutal-card · brutal-button · bid-number · countdown-ring
            sold-stamp · confetti-burst · team-chip · player-avatar
-src/hooks/    use-live-snapshot · use-lot-entrance · use-auction-socket*
+src/hooks/    use-live-snapshot · use-lot-entrance
 src/lib/      bid-rules · money · prisma · socket-emitter · fonts · cn
-src/stores/   auction-store*            * = currently unused
 public/players/  247 player photos (~38 MB)
 ```
 
@@ -345,7 +343,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 11 files, 49 tests
+### Tests — 9 files, 42 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -358,7 +356,6 @@ fake.
 | `socket-server.test.ts` | Room join and rebroadcast against an ephemeral server. |
 | `socket-emitter.test.ts` | The fail-open path — a dead relay must not throw. |
 | `admin-console` · `live-lot-control` · `player-queue` · `team-purse-table` · `brutal-card` | Rendering and interaction, via Testing Library. |
-| `auction-store` · `use-auction-socket` | The unused Zustand path (see below). |
 
 ### Running it
 
@@ -380,10 +377,6 @@ Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_P
 
 ### Known gaps
 
-- **Dead code.** `src/stores/auction-store.ts` and `src/hooks/use-auction-socket.ts` implement the
-  older approach — patch client state from socket payloads. Nothing imports them; `useLiveSnapshot`
-  replaced them. They still carry tests, which is why they look alive. Deleting all four files is the
-  honest cleanup.
 - **No career stats.** `matches`, `runs`, `wickets`, `average`, `strikeRate` and `economy` are seeded
   empty. The screens hide them, so the display board's stat row currently reads as four dashes.
   Filling it needs a scrape the squad pages can't supply.
