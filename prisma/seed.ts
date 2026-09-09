@@ -74,12 +74,15 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
   if (unroled.length) throw new Error(`No role in player-roles.json for: ${unroled.join(', ')}`)
   const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
 
+  // One extra PIN for the auctioneer, distinct from every seat's so a table
+  // can't wander into the console with the PIN it was handed.
+  const [adminPasscode, ...passcodes] = generatePasscodes(teamNames.length + 1)
+
   const room = await prisma.auctionRoom.create({
-    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP' },
+    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP', adminPasscode },
   })
 
   const teamIdByName = new Map<string, string>()
-  const passcodes = generatePasscodes(teamNames.length)
   for (const [i, teamName] of teamNames.entries()) {
     const meta = TEAM_META[teamName]
     const team = await prisma.team.create({
@@ -99,7 +102,9 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
     teamIdByName.set(teamName, team.id)
   }
 
-  console.log(`\n${room.name} — team seat PINs, hand one to each table:`)
+  console.log(`\n${room.name}`)
+  console.log(`  ADMIN ${adminPasscode}  auctioneer's console`)
+  console.log('  — team seat PINs, hand one to each table —')
   for (const [i, teamName] of teamNames.entries()) {
     console.log(`  ${TEAM_META[teamName].code.padEnd(5)} ${passcodes[i]}  ${teamName}`)
   }

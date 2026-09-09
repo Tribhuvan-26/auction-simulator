@@ -1,11 +1,19 @@
 import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { getAdminSnapshot, placeBid, markSold, markUnsold, undoLastBid, controlTimer, setPhase, advanceToNextLot } from './actions'
+import { getAdminSnapshot, getPublicSnapshot, placeBid, markSold, markUnsold, undoLastBid, controlTimer, setPhase, advanceToNextLot } from './actions'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 
 vi.mock('@/lib/socket-emitter', () => ({
   emitAuctionEvent: vi.fn(async () => {}),
+}))
+
+// The guards read cookies(), which needs a request scope these tests don't
+// have. Their own behaviour is covered in src/lib/team-auth.test.ts; here we
+// only assert that every mutation calls them.
+vi.mock('@/lib/team-auth', () => ({
+  assertCanBidAs: vi.fn(async () => {}),
+  assertIsAuctioneer: vi.fn(async () => {}),
 }))
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
@@ -62,6 +70,16 @@ describe('getAdminSnapshot', () => {
     expect(snapshot.teams[0]).toMatchObject({ name: 'Test Team', purseRemaining: 9000, squadCount: 0 })
   })
 
+  it('leaves the queue out of the public snapshot but keeps everything else', async () => {
+    const admin = await getAdminSnapshot(roomId)
+    const pub = await getPublicSnapshot(roomId)
+    expect('queue' in pub).toBe(false)
+    expect(admin.queue.length).toBeGreaterThan(0)
+    expect(pub.currentLot).toEqual(admin.currentLot)
+    expect(pub.teams).toEqual(admin.teams)
+    expect(pub.soldLog).toEqual(admin.soldLog)
+  })
+
   it('returns the upcoming-player queue excluding the current lot player', async () => {
     const snapshot = await getAdminSnapshot(roomId)
     expect(snapshot.queue).toHaveLength(1)
@@ -98,6 +116,14 @@ describe('placeBid', () => {
     await prisma.auctionRoom.delete({ where: { id: roomId } })
   })
 
+  it('authorises the bidder before touching the database', async () => {
+    const { assertCanBidAs } = await import('@/lib/team-auth')
+    vi.mocked(assertCanBidAs).mockRejectedValueOnce(new Error('Unauthorized: nope'))
+    await expect(placeBid(roomId, teamId, 25)).rejects.toThrow(/unauthorized/i)
+    expect(await prisma.bid.count({ where: { lotId } })).toBe(0)
+    vi.mocked(assertCanBidAs).mockResolvedValue(undefined)
+  })
+
   // Lot is BIDDING at 20 L, so the ladder's next amount is 25 L.
   it('creates a bid, updates the lot, and returns the fresh snapshot', async () => {
     const snapshot = await placeBid(roomId, teamId, 25)
@@ -105,6 +131,20 @@ describe('placeBid', () => {
     expect(snapshot.currentLot?.currentBiddingTeamId).toBe(teamId)
     expect(snapshot.currentLot?.bidHistory).toHaveLength(1)
     expect(emitAuctionEvent).toHaveBeenCalledWith(roomId, { type: 'BID', teamId, amount: 25 })
+  })
+
+  it('rejects the slower of two bids computed against the same price', async () => {
+    // Both bids see 25 L and both compute 30 L; only one may land.
+    await prisma.auctionLot.update({ where: { id: lotId }, data: { currentBid: 25, status: 'BIDDING' } })
+    const results = await Promise.allSettled([
+      placeBid(roomId, teamId, 30),
+      placeBid(roomId, teamId, 30),
+    ])
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1)
+    expect(results.filter((r) => r.status === 'rejected')).toHaveLength(1)
+    const lot = await prisma.auctionLot.findUniqueOrThrow({ where: { id: lotId } })
+    expect(lot.currentBid).toBe(30)
+    expect(await prisma.bid.count({ where: { lotId, amount: 30 } })).toBe(1)
   })
 })
 

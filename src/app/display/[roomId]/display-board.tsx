@@ -10,7 +10,7 @@ import { BidNumber } from '@/components/ui/bid-number'
 import { TeamChip } from '@/components/ui/team-chip'
 import { SoldStamp } from '@/components/ui/sold-stamp'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
-import { getAdminSnapshot, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { getPublicSnapshot, type PublicSnapshot } from '@/app/admin/[roomId]/actions'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 import { Activity, BarChart3, Target, Percent } from 'lucide-react'
 
@@ -19,7 +19,7 @@ export function DisplayBoard({
   initialSnapshot,
 }: {
   roomId: string
-  initialSnapshot: AdminSnapshot
+  initialSnapshot: PublicSnapshot
 }) {
   // The stamp is driven by the socket event, not by lot status, so it fires once
   // on the transition instead of staying up for as long as the lot sits closed.
@@ -28,7 +28,7 @@ export function DisplayBoard({
   const [bidPulse, setBidPulse] = useState(false)
   const pulseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, (event) => {
+  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
     if (event.type === 'BID') {
       setBidPulse(true)
       clearTimeout(pulseTimer.current)

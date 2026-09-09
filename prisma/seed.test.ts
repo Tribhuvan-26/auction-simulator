@@ -30,6 +30,13 @@ describe('seed', () => {
     expect(new Set(pins).size).toBe(teams.length)
   })
 
+  it('gives the room its own auctioneer PIN, distinct from every seat', async () => {
+    const room = await prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } })
+    const teams = await prisma.team.findMany({ where: { roomId } })
+    expect(room.adminPasscode).toMatch(/^\d{4}$/)
+    expect(teams.map((t) => t.passcode)).not.toContain(room.adminPasscode)
+  })
+
   it('creates exactly 10 teams', async () => {
     const teams = await prisma.team.findMany({ where: { roomId } })
     expect(teams).toHaveLength(10)

@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation'
-import { getAdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { getPublicSnapshot } from '@/app/admin/[roomId]/actions'
 import { hasTeamAccess } from '@/lib/team-auth'
+import { unlockTeam } from '@/lib/pin-actions'
+import { PinGate } from '@/components/ui/pin-gate'
 import { TeamConsole } from './team-console'
-import { TeamGate } from './team-gate'
 
 export default async function TeamPage({
   params,
@@ -12,7 +13,7 @@ export default async function TeamPage({
   searchParams: Promise<{ pin?: string }>
 }) {
   const { roomId, teamId } = await params
-  const initialSnapshot = await getAdminSnapshot(roomId)
+  const initialSnapshot = await getPublicSnapshot(roomId)
   const team = initialSnapshot.teams.find((t) => t.id === teamId)
   if (!team) notFound()
 
@@ -22,12 +23,12 @@ export default async function TeamPage({
   if (!(await hasTeamAccess(teamId))) {
     const { pin } = await searchParams
     return (
-      <TeamGate
-        roomId={roomId}
-        teamId={teamId}
-        teamName={team.name}
-        colorAccent={team.colorAccent}
+      <PinGate
+        title={team.name}
+        accent={team.colorAccent}
+        hint="The auctioneer has the PINs — ask at the desk."
         initialPin={(pin ?? '').replace(/\D/g, '').slice(0, 4)}
+        unlock={unlockTeam.bind(null, roomId, teamId)}
       />
     )
   }

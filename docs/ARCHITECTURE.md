@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 57 passing, 11 files |
+| Tests | 67 passing, 12 files |
 
 **Contents**
 
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 11 files, 57 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 12 files, 67 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -119,7 +119,7 @@ holds the live price; **bids** are the append-only history behind that price.
 
 | Model | Key fields | Role |
 |---|---|---|
-| `AuctionRoom` | `name` · `phase` · `round` | One auction event. `phase` cycles SETUP → LIVE → PAUSED → COMPLETED. |
+| `AuctionRoom` | `name` · `phase` · `round` · `adminPasscode` | One auction event. `phase` cycles SETUP → LIVE → PAUSED → COMPLETED. |
 | `Team` | `shortCode` · `colorAccent` · `purseTotal` · `purseRemaining` · `squadMin/Max` · `overseasSlotsUsed/Max` · `passcode` | A franchise seat. Seeded at ₹120 Cr, 25-player cap, 8 overseas slots. |
 | `Player` | `role` · `basePrice` · `photoUrl` · `isOverseas` · `setNumber` · `status` · `soldPrice` · `teamId` | A lot-in-waiting. `status` is UPCOMING → LIVE → SOLD or UNSOLD. |
 | `AuctionLot` | `playerId` (unique) · `currentBid` · `currentBiddingTeamId` · `status` · `timerSeconds` | The block itself. QUEUED → BIDDING → SOLD / UNSOLD. One lot per player, ever. |
@@ -287,9 +287,26 @@ been outbid" toast. Those are moments, not state, and they'd be gone by the next
 
 **Event vocabulary:** `BID` · `SOLD` · `UNSOLD` · `UNDO` · `TIMER` · `PHASE` · `LOT_CHANGE`
 
+### Two snapshots
+
+`getAdminSnapshot` carries the upcoming queue — every `UPCOMING` player, 254 rows at the start.
+`getPublicSnapshot` is the same shape without it, and skips that query entirely. Only the auctioneer
+picks the next lot, so the team seats and the big screen use the light one; otherwise every bid would
+re-send the whole queue to every screen in the room.
+
 ---
 
 ## 7. The three screens
+
+### Getting in
+
+Both the auctioneer's console and the team seats are PIN-locked, and so are the Server Actions behind
+them — `placeBid` accepts either the seat's own cookie or the auctioneer's, everything else is
+auctioneer-only. The guard runs before any read or write, so a hand-crafted POST gets no further than
+the browser would.
+
+Five wrong PINs from one IP blocks that IP for 15 minutes, correct PIN included; a correct PIN before
+the fifth clears the streak.
 
 ### Taking a team seat
 
@@ -374,7 +391,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 11 files, 57 tests
+### Tests — 12 files, 67 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -415,9 +432,8 @@ Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_P
 - **Timer is a number, not a clock.** `timerSeconds` is stored and nudged by `controlTimer`, but
   nothing counts it down server-side and nothing auto-closes a lot. The countdown ring renders the
   number it is given; the auctioneer is the clock.
-- **Server actions are still open.** The team *page* is behind a PIN, but `placeBid` and the rest of
-  `actions.ts` are Server Action endpoints anyone can POST to with a `teamId`. Closing that needs the
-  admin console authenticated too — it legitimately bids on behalf of every team — so it's a phase of
-  its own.
-- **PINs are 4 digits with no rate limit.** 10,000 guesses is nothing to a script. Fine in a room
-  where everyone can see each other; add throttling before this is reachable from outside one.
+- **Rate limiting is per process, in memory.** The failed-PIN counter lives in a `Map`, so it resets
+  on redeploy and each instance counts separately. Move it to a table before running more than one
+  Next process.
+- **Rooms seeded before `adminPasscode` existed can't be opened.** Their admin PIN is the empty
+  string, which `hasAdminAccess` always refuses. Reseed them.

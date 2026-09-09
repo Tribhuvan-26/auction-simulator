@@ -7,7 +7,7 @@ import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
-import { getAdminSnapshot, placeBid, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { getPublicSnapshot, placeBid, type PublicSnapshot } from '@/app/admin/[roomId]/actions'
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { Gavel, TriangleAlert } from 'lucide-react'
@@ -19,7 +19,7 @@ export function TeamConsole({
 }: {
   roomId: string
   teamId: string
-  initialSnapshot: AdminSnapshot
+  initialSnapshot: PublicSnapshot
 }) {
   const [toastState, setToastState] = useState<{ text: string; tone: 'blue' | 'pink' } | null>(null)
   const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
@@ -28,7 +28,7 @@ export function TeamConsole({
   const { snapshot, setSnapshot } = useLiveSnapshot(
     roomId,
     initialSnapshot,
-    getAdminSnapshot,
+    getPublicSnapshot,
     (event) => {
       if (event.type !== 'BID') return
       const weLead = event.teamId === teamId
