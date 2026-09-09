@@ -36,6 +36,7 @@ export function LiveLotControl({
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(
     snapshot.teams.find((t) => t.id !== lot?.currentBiddingTeamId)?.id ?? snapshot.teams[0]?.id
   )
+  const [error, setError] = useState<string | null>(null)
 
   if (!lot) {
     return (
@@ -52,7 +53,12 @@ export function LiveLotControl({
 
   async function handleIncrement(amount: number) {
     if (!selectedTeamId) return
-    onSnapshot(await placeBid(roomId, selectedTeamId, lot!.currentBid + amount))
+    setError(null)
+    try {
+      onSnapshot(await placeBid(roomId, selectedTeamId, lot!.currentBid + amount))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Bid rejected')
+    }
   }
 
   async function handleTimer(action: 'start' | 'pause' | 'reset' | 'add10') {
@@ -125,6 +131,7 @@ export function LiveLotControl({
             </BrutalButton>
           ))}
         </div>
+        {error && <p className="mt-2 text-sm font-bold text-brand-pink">{error}</p>}
       </div>
 
       <div>

@@ -128,6 +128,7 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
     include: { player: true },
+    orderBy: { id: 'desc' },
   })
   const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId }, include: { players: true } })
 
@@ -156,6 +157,7 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
     include: { player: true },
+    orderBy: { id: 'desc' },
   })
   if (!lot.currentBiddingTeamId) throw new Error('Cannot mark sold with no bidding team')
 
@@ -181,6 +183,7 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
 export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    orderBy: { id: 'desc' },
   })
 
   await prisma.$transaction([
@@ -196,6 +199,7 @@ export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
     include: { player: true },
+    orderBy: { id: 'desc' },
   })
 
   const lastBid = await prisma.bid.findFirst({ where: { lotId: lot.id }, orderBy: { timestamp: 'desc' } })
@@ -228,6 +232,7 @@ export async function controlTimer(
 ): Promise<AdminSnapshot> {
   const lot = await prisma.auctionLot.findFirstOrThrow({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    orderBy: { id: 'desc' },
   })
 
   const timerSeconds =
@@ -248,6 +253,15 @@ export async function setPhase(
 }
 
 export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
+  // A lot already on the block must be closed (SOLD/UNSOLD) before the next
+  // one opens — otherwise two lots end up QUEUED/BIDDING at once and every
+  // other action here (which all query "the" active lot) starts resolving
+  // the wrong one.
+  const alreadyActive = await prisma.auctionLot.findFirst({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+  })
+  if (alreadyActive) return getAdminSnapshot(roomId)
+
   const next = await prisma.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: { id: 'asc' } })
   if (!next) return getAdminSnapshot(roomId)
 

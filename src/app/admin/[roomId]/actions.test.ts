@@ -270,6 +270,9 @@ describe('advanceToNextLot', () => {
     await prisma.player.create({
       data: { roomId, name: 'Next Player', role: 'BATTER', basePrice: 30, nationality: 'India', matches: 10, setNumber: 'Set 1', status: 'UPCOMING' },
     })
+    await prisma.player.create({
+      data: { roomId, name: 'Later Player', role: 'BOWLER', basePrice: 40, nationality: 'India', matches: 10, setNumber: 'Set 1', status: 'UPCOMING' },
+    })
   })
 
   afterAll(async () => {
@@ -283,6 +286,12 @@ describe('advanceToNextLot', () => {
     expect(snapshot.currentLot?.player.name).toBe('Next Player')
     expect(snapshot.currentLot?.currentBid).toBe(30)
     expect(snapshot.currentLot?.status).toBe('QUEUED')
+  })
+
+  it('refuses to open a second lot while one is still on the block', async () => {
+    const snapshot = await advanceToNextLot(roomId)
+    expect(snapshot.currentLot?.player.name).toBe('Next Player')
+    expect(await prisma.auctionLot.count({ where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } } })).toBe(1)
   })
 })
 
