@@ -1,0 +1,2288 @@
+[
+  {
+    "name": "Priyansh Arya",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-priyansh-arya.png"
+  },
+  {
+    "name": "Pyla Avinash",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-pyla-avinash.png"
+  },
+  {
+    "name": "Cooper Connolly",
+    "team": "Punjab Kings",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/pbks-cooper-connolly.png"
+  },
+  {
+    "name": "Praveen Dubey",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-praveen-dubey.png"
+  },
+  {
+    "name": "Harnoor Singh",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-harnoor-singh.png"
+  },
+  {
+    "name": "Shreyas Iyer",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-shreyas-iyer.png"
+  },
+  {
+    "name": "Musheer Khan",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-musheer-khan.png"
+  },
+  {
+    "name": "Vishal Nishad",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-vishal-nishad.png"
+  },
+  {
+    "name": "Mitch Owen",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-mitch-owen.png"
+  },
+  {
+    "name": "Suryansh Shedge",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-suryansh-shedge.png"
+  },
+  {
+    "name": "Shashank Singh",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-shashank-singh.png"
+  },
+  {
+    "name": "Marcus Stoinis",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-marcus-stoinis.png"
+  },
+  {
+    "name": "Vishnu Vinod",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-vishnu-vinod.png"
+  },
+  {
+    "name": "Nehal Wadhera",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-nehal-wadhera.png"
+  },
+  {
+    "name": "Arshdeep Singh",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-arshdeep-singh.png"
+  },
+  {
+    "name": "Xavier Bartlett",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-xavier-bartlett.png"
+  },
+  {
+    "name": "Harpreet Brar",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-harpreet-brar.png"
+  },
+  {
+    "name": "Yuzvendra Chahal",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-yuzvendra-chahal.png"
+  },
+  {
+    "name": "Ben Dwarshuis",
+    "team": "Punjab Kings",
+    "basePrice": 100,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/pbks-ben-dwarshuis.png"
+  },
+  {
+    "name": "Lockie Ferguson",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-lockie-ferguson.png"
+  },
+  {
+    "name": "Yash Thakur",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-yash-thakur.png"
+  },
+  {
+    "name": "Vijaykumar Vyshak",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-vijaykumar-vyshak.png"
+  },
+  {
+    "name": "Azmatullah Omarzai",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-azmatullah-omarzai.png"
+  },
+  {
+    "name": "Marco Jansen",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-marco-jansen.png"
+  },
+  {
+    "name": "Prabhsimran Singh",
+    "team": "Punjab Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/pbks-prabhsimran-singh.png"
+  },
+  {
+    "name": "Krish Bhagat",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-krish-bhagat.png"
+  },
+  {
+    "name": "Naman Dhir",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-naman-dhir.png"
+  },
+  {
+    "name": "Will Jacks",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-will-jacks.png"
+  },
+  {
+    "name": "Danish Malewar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-danish-malewar.png"
+  },
+  {
+    "name": "Robin Minz",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-robin-minz.png"
+  },
+  {
+    "name": "Mayank Rawat",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-mayank-rawat.png"
+  },
+  {
+    "name": "Sherfane Rutherford",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-sherfane-rutherford.png"
+  },
+  {
+    "name": "Rohit Sharma",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-rohit-sharma.png"
+  },
+  {
+    "name": "Tilak Varma",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-tilak-varma.png"
+  },
+  {
+    "name": "Suryakumar Yadav",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-suryakumar-yadav.png"
+  },
+  {
+    "name": "Atharva Ankolekar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-atharva-ankolekar.png"
+  },
+  {
+    "name": "Trent Boult",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-trent-boult.png"
+  },
+  {
+    "name": "Jasprit Bumrah",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-jasprit-bumrah.png"
+  },
+  {
+    "name": "Deepak Chahar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-deepak-chahar.png"
+  },
+  {
+    "name": "AM Ghazanfar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-am-ghazanfar.png"
+  },
+  {
+    "name": "Mohammed Izhar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-mohammed-izhar.png"
+  },
+  {
+    "name": "Ashwani Kumar",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-ashwani-kumar.png"
+  },
+  {
+    "name": "Keshav Maharaj",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Mayank Markande",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-mayank-markande.png"
+  },
+  {
+    "name": "Raghu Sharma",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-raghu-sharma.png"
+  },
+  {
+    "name": "Shardul Thakur",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-shardul-thakur.png"
+  },
+  {
+    "name": "Raj Bawa",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-raj-bawa.png"
+  },
+  {
+    "name": "Corbin Bosch",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-corbin-bosch.png"
+  },
+  {
+    "name": "Hardik Pandya",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-hardik-pandya.png"
+  },
+  {
+    "name": "Mitch Santner",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-mitch-santner.png"
+  },
+  {
+    "name": "Quinton de Kock",
+    "team": "Mumbai Indians",
+    "basePrice": 100,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/mi-quinton-de-kock.png"
+  },
+  {
+    "name": "Ryan Rickelton",
+    "team": "Mumbai Indians",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/mi-ryan-rickelton.png"
+  },
+  {
+    "name": "Ayush Badoni",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-ayush-badoni.png"
+  },
+  {
+    "name": "Matthew Breetzke",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-matthew-breetzke.png"
+  },
+  {
+    "name": "Mukul Choudhary",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-mukul-choudhary.png"
+  },
+  {
+    "name": "Arshin Kulkarni",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-arshin-kulkarni.png"
+  },
+  {
+    "name": "Aiden Markram",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-aiden-markram.png"
+  },
+  {
+    "name": "Akshat Raghuwanshi",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-akshat-raghuwanshi.png"
+  },
+  {
+    "name": "Abdul Samad",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-abdul-samad.png"
+  },
+  {
+    "name": "Himmat Singh",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-himmat-singh.png"
+  },
+  {
+    "name": "Avesh Khan",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-avesh-khan.png"
+  },
+  {
+    "name": "Mohsin Khan",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-mohsin-khan.png"
+  },
+  {
+    "name": "Anrich Nortje",
+    "team": "Lucknow Super Giants",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/lsg-anrich-nortje.png"
+  },
+  {
+    "name": "Digvesh Singh Rathi",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-digvesh-singh-rathi.png"
+  },
+  {
+    "name": "Mohammed Shami",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-mohammed-shami.png"
+  },
+  {
+    "name": "Manimaran Siddharth",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-manimaran-siddharth.png"
+  },
+  {
+    "name": "Akash Singh",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-akash-singh.png"
+  },
+  {
+    "name": "Arjun Tendulkar",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-arjun-tendulkar.png"
+  },
+  {
+    "name": "Naman Tiwari",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-naman-tiwari.png"
+  },
+  {
+    "name": "Mayank Yadav",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-mayank-yadav.png"
+  },
+  {
+    "name": "Prince Yadav",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-prince-yadav.png"
+  },
+  {
+    "name": "Wanindu Hasaranga",
+    "team": "Lucknow Super Giants",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/lsg-wanindu-hasaranga.png"
+  },
+  {
+    "name": "George Linde",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-george-linde.png"
+  },
+  {
+    "name": "Mitch Marsh",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-mitch-marsh.png"
+  },
+  {
+    "name": "Shahbaz Ahmed",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-shahbaz-ahmed.png"
+  },
+  {
+    "name": "Josh Inglis",
+    "team": "Lucknow Super Giants",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/lsg-josh-inglis.png"
+  },
+  {
+    "name": "Rishabh Pant",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-rishabh-pant.png"
+  },
+  {
+    "name": "Nicholas Pooran",
+    "team": "Lucknow Super Giants",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/lsg-nicholas-pooran.png"
+  },
+  {
+    "name": "Finn Allen",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/kkr-finn-allen.png"
+  },
+  {
+    "name": "Daksh Kamra",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-daksh-kamra.png"
+  },
+  {
+    "name": "Manish Pandey",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-manish-pandey.png"
+  },
+  {
+    "name": "Angkrish Raghuvanshi",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-angkrish-raghuvanshi.png"
+  },
+  {
+    "name": "Ajinkya Rahane",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-ajinkya-rahane.png"
+  },
+  {
+    "name": "Sarthak Ranjan",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-sarthak-ranjan.png"
+  },
+  {
+    "name": "Mustafizur Rahman",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": null
+  },
+  {
+    "name": "Blessing Muzarabani",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-blessing-muzarabani.png"
+  },
+  {
+    "name": "Sunil Narine",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-sunil-narine.png"
+  },
+  {
+    "name": "Matheesha Pathirana",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/kkr-matheesha-pathirana.png"
+  },
+  {
+    "name": "Harshit Rana",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Navdeep Saini",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-navdeep-saini.png"
+  },
+  {
+    "name": "Prashant Solanki",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-prashant-solanki.png"
+  },
+  {
+    "name": "Kartik Tyagi",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-kartik-tyagi.png"
+  },
+  {
+    "name": "Umran Malik",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-umran-malik.png"
+  },
+  {
+    "name": "Rachin Ravindra",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/kkr-rachin-ravindra.png"
+  },
+  {
+    "name": "Anukul Roy",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-anukul-roy.png"
+  },
+  {
+    "name": "Tejasvi Dahiya",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/kkr-tejasvi-dahiya.png"
+  },
+  {
+    "name": "Tim Seifert",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 150,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/kkr-tim-seifert.png"
+  },
+  {
+    "name": "Luvnith Sisodia",
+    "team": "Kolkata Knight Riders",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Rehan Ahmed",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-rehan-ahmed.png"
+  },
+  {
+    "name": "David Miller",
+    "team": "Delhi Capitals",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/dc-david-miller.png"
+  },
+  {
+    "name": "Karun Nair",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-karun-nair.png"
+  },
+  {
+    "name": "Sahil Parakh",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-sahil-parakh.png"
+  },
+  {
+    "name": "KL Rahul",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-kl-rahul.png"
+  },
+  {
+    "name": "Nitish Rana",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-nitish-rana.png"
+  },
+  {
+    "name": "Sameer Rizvi",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-sameer-rizvi.png"
+  },
+  {
+    "name": "Ashutosh Sharma",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-ashutosh-sharma.png"
+  },
+  {
+    "name": "Prithvi Shaw",
+    "team": "Delhi Capitals",
+    "basePrice": 75,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/dc-prithvi-shaw.png"
+  },
+  {
+    "name": "Pathum Nissanka",
+    "team": "Delhi Capitals",
+    "basePrice": 75,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/dc-pathum-nissanka.png"
+  },
+  {
+    "name": "Tristan Stubbs",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-tristan-stubbs.png"
+  },
+  {
+    "name": "Madhav Tiwari",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-madhav-tiwari.png"
+  },
+  {
+    "name": "Dushmantha Chameera",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-dushmantha-chameera.png"
+  },
+  {
+    "name": "Kyle Jamieson",
+    "team": "Delhi Capitals",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/dc-kyle-jamieson.png"
+  },
+  {
+    "name": "Mukesh Kumar",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-mukesh-kumar.png"
+  },
+  {
+    "name": "Auqib Nabi",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-auqib-nabi.png"
+  },
+  {
+    "name": "Thangarasu Natarajan",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-thangarasu-natarajan.png"
+  },
+  {
+    "name": "Lungi Ngidi",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-lungi-ngidi.png"
+  },
+  {
+    "name": "Vipraj Nigam",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-vipraj-nigam.png"
+  },
+  {
+    "name": "Mitchell Starc",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-mitchell-starc.png"
+  },
+  {
+    "name": "Tripurana Vijay",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-tripurana-vijay.png"
+  },
+  {
+    "name": "Kuldeep Yadav",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-kuldeep-yadav.png"
+  },
+  {
+    "name": "Ajay Mandal",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-ajay-mandal.png"
+  },
+  {
+    "name": "Axar Patel",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-axar-patel.png"
+  },
+  {
+    "name": "Abishek Porel",
+    "team": "Delhi Capitals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/dc-abishek-porel.png"
+  },
+  {
+    "name": "Tom Banton",
+    "team": "Gujarat Titans",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/gt-tom-banton.png"
+  },
+  {
+    "name": "Shubman Gill",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-shubman-gill.png"
+  },
+  {
+    "name": "Glenn Phillips",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-glenn-phillips.png"
+  },
+  {
+    "name": "Sai Sudharsan",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-sai-sudharsan.png"
+  },
+  {
+    "name": "Shahrukh Khan",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-shahrukh-khan.png"
+  },
+  {
+    "name": "Nishant Sindhu",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-nishant-sindhu.png"
+  },
+  {
+    "name": "Rahul Tewatia",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-rahul-tewatia.png"
+  },
+  {
+    "name": "Arshad Khan",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-arshad-khan.png"
+  },
+  {
+    "name": "Gurnoor Brar",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-gurnoor-brar.png"
+  },
+  {
+    "name": "Kulwant Khejroliya",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-kulwant-khejroliya.png"
+  },
+  {
+    "name": "Prasidh Krishna",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-prasidh-krishna.png"
+  },
+  {
+    "name": "Yarra Prithviraj",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-yarra-prithviraj.png"
+  },
+  {
+    "name": "Kagiso Rabada",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-kagiso-rabada.png"
+  },
+  {
+    "name": "Rashid Khan",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-rashid-khan.png"
+  },
+  {
+    "name": "Sai Kishore",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-sai-kishore.png"
+  },
+  {
+    "name": "Ashok Sharma",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-ashok-sharma.png"
+  },
+  {
+    "name": "Ishant Sharma",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-ishant-sharma.png"
+  },
+  {
+    "name": "Mohammed Siraj",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-mohammed-siraj.png"
+  },
+  {
+    "name": "Manav Suthar",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-manav-suthar.png"
+  },
+  {
+    "name": "Luke Wood",
+    "team": "Gujarat Titans",
+    "basePrice": 75,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/gt-luke-wood.png"
+  },
+  {
+    "name": "Jason Holder",
+    "team": "Gujarat Titans",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/gt-jason-holder.png"
+  },
+  {
+    "name": "Washington Sundar",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-washington-sundar.png"
+  },
+  {
+    "name": "Jayant Yadav",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-jayant-yadav.png"
+  },
+  {
+    "name": "Jos Buttler",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-jos-buttler.png"
+  },
+  {
+    "name": "Connor Esterhuizen",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-connor-esterhuizen.png"
+  },
+  {
+    "name": "Kumar Kushagra",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-kumar-kushagra.png"
+  },
+  {
+    "name": "Anuj Rawat",
+    "team": "Gujarat Titans",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/gt-anuj-rawat.png"
+  },
+  {
+    "name": "Dewald Brevis",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-dewald-brevis.png"
+  },
+  {
+    "name": "Ruturaj Gaikwad",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-ruturaj-gaikwad.png"
+  },
+  {
+    "name": "Ramakrishna Ghosh",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-ramakrishna-ghosh.png"
+  },
+  {
+    "name": "Aman Khan",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-aman-khan.png"
+  },
+  {
+    "name": "Sarfaraz Khan",
+    "team": "Chennai Super Kings",
+    "basePrice": 75,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/csk-sarfaraz-khan.png"
+  },
+  {
+    "name": "Ayush Mhatre",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-ayush-mhatre.png"
+  },
+  {
+    "name": "Kartik Sharma",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-kartik-sharma.png"
+  },
+  {
+    "name": "Matt Short",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-matt-short.png"
+  },
+  {
+    "name": "Prashant Veer",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-prashant-veer.png"
+  },
+  {
+    "name": "Khaleel Ahmed",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-khaleel-ahmed.png"
+  },
+  {
+    "name": "Rahul Chahar",
+    "team": "Chennai Super Kings",
+    "basePrice": 100,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/csk-rahul-chahar.png"
+  },
+  {
+    "name": "Mukesh Choudhary",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-mukesh-choudhary.png"
+  },
+  {
+    "name": "Gurjapneet Singh",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-gurjapneet-singh.png"
+  },
+  {
+    "name": "Matt Henry",
+    "team": "Chennai Super Kings",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/csk-matt-henry.png"
+  },
+  {
+    "name": "Akeal Hosein",
+    "team": "Chennai Super Kings",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/csk-akeal-hosein.png"
+  },
+  {
+    "name": "Spencer Johnson",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-spencer-johnson.png"
+  },
+  {
+    "name": "Anshul Kamboj",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-anshul-kamboj.png"
+  },
+  {
+    "name": "Akash Madhwal",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-akash-madhwal.png"
+  },
+  {
+    "name": "Noor Ahmad",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-noor-ahmad.png"
+  },
+  {
+    "name": "Shivam Dube",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-shivam-dube.png"
+  },
+  {
+    "name": "Zak Foulkes",
+    "team": "Chennai Super Kings",
+    "basePrice": 75,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/csk-zak-foulkes.png"
+  },
+  {
+    "name": "Shreyas Gopal",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-shreyas-gopal.png"
+  },
+  {
+    "name": "Jamie Overton",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-jamie-overton.png"
+  },
+  {
+    "name": "Mahendra Singh Dhoni",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-mahendra-singh-dhoni.png"
+  },
+  {
+    "name": "Urvil Patel",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-urvil-patel.png"
+  },
+  {
+    "name": "Sanju Samson",
+    "team": "Chennai Super Kings",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/csk-sanju-samson.png"
+  },
+  {
+    "name": "Travis Head",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-travis-head.png"
+  },
+  {
+    "name": "Shivang Kumar",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-shivang-kumar.png"
+  },
+  {
+    "name": "Liam Livingstone",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/srh-liam-livingstone.png"
+  },
+  {
+    "name": "Kamindu Mendis",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-kamindu-mendis.png"
+  },
+  {
+    "name": "Abhishek Sharma",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-abhishek-sharma.png"
+  },
+  {
+    "name": "Ravichandran Smaran",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-ravichandran-smaran.png"
+  },
+  {
+    "name": "Aniket Verma",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-aniket-verma.png"
+  },
+  {
+    "name": "Zeeshan Ansari",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-zeeshan-ansari.png"
+  },
+  {
+    "name": "Gerald Coetzee",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-gerald-coetzee.png"
+  },
+  {
+    "name": "Pat Cummins",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-pat-cummins.png"
+  },
+  {
+    "name": "Eshan Malinga",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-eshan-malinga.png"
+  },
+  {
+    "name": "Harsh Dubey",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-harsh-dubey.png"
+  },
+  {
+    "name": "Krains Fuletra",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-krains-fuletra.png"
+  },
+  {
+    "name": "Praful Hinge",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-praful-hinge.png"
+  },
+  {
+    "name": "Amit Kumar",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-amit-kumar.png"
+  },
+  {
+    "name": "Dilshan Madushanka",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-dilshan-madushanka.png"
+  },
+  {
+    "name": "Shivam Mavi",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 75,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/srh-shivam-mavi.png"
+  },
+  {
+    "name": "Harshal Patel",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-harshal-patel.png"
+  },
+  {
+    "name": "David Payne",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-david-payne.png"
+  },
+  {
+    "name": "Sakib Hussain",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-sakib-hussain.png"
+  },
+  {
+    "name": "Onkar Tarmale",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-onkar-tarmale.png"
+  },
+  {
+    "name": "Jaydev Unadkat",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-jaydev-unadkat.png"
+  },
+  {
+    "name": "Brydon Carse",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Jack Edwards",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 50,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Nitish Kumar Reddy",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-nitish-kumar-reddy.png"
+  },
+  {
+    "name": "Salil Arora",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-salil-arora.png"
+  },
+  {
+    "name": "Ishan Kishan",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-ishan-kishan.png"
+  },
+  {
+    "name": "Heinrich Klaasen",
+    "team": "Sunrisers Hyderabad",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/srh-heinrich-klaasen.png"
+  },
+  {
+    "name": "Jacob Bethell",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-jacob-bethell.png"
+  },
+  {
+    "name": "Jordan Cox",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 75,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/rcb-jordan-cox.png"
+  },
+  {
+    "name": "Tim David",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-tim-david.png"
+  },
+  {
+    "name": "Venkatesh Iyer",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 200,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/rcb-venkatesh-iyer.png"
+  },
+  {
+    "name": "Virat Kohli",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-virat-kohli.png"
+  },
+  {
+    "name": "Vihaan Malhotra",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-vihaan-malhotra.png"
+  },
+  {
+    "name": "Devdutt Padikkal",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-devdutt-padikkal.png"
+  },
+  {
+    "name": "Rajat Patidar",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-rajat-patidar.png"
+  },
+  {
+    "name": "Phil Salt",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-phil-salt.png"
+  },
+  {
+    "name": "Swapnil Singh",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-swapnil-singh.png"
+  },
+  {
+    "name": "Kanishk Chouhan",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-kanishk-chouhan.png"
+  },
+  {
+    "name": "Rasikh Dar",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-rasikh-dar.png"
+  },
+  {
+    "name": "Yash Dayal",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-yash-dayal.png"
+  },
+  {
+    "name": "Satvik Deswal",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-satvik-deswal.png"
+  },
+  {
+    "name": "Jacob Duffy",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/rcb-jacob-duffy.png"
+  },
+  {
+    "name": "Josh Hazlewood",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-josh-hazlewood.png"
+  },
+  {
+    "name": "Vicky Ostwal",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-vicky-ostwal.png"
+  },
+  {
+    "name": "Suyash Sharma",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-suyash-sharma.png"
+  },
+  {
+    "name": "Abhinandan Singh",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-abhinandan-singh.png"
+  },
+  {
+    "name": "Nuwan Thushara",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-nuwan-thushara.png"
+  },
+  {
+    "name": "Mangesh Yadav",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-mangesh-yadav.png"
+  },
+  {
+    "name": "Bhuvneshwar Kumar",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-bhuvneshwar-kumar.png"
+  },
+  {
+    "name": "Krunal Pandya",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-krunal-pandya.png"
+  },
+  {
+    "name": "Romario Shepherd",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-romario-shepherd.png"
+  },
+  {
+    "name": "Jitesh Sharma",
+    "team": "Royal Challengers Bengaluru",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rcb-jitesh-sharma.png"
+  },
+  {
+    "name": "Shubham Dubey",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-shubham-dubey.png"
+  },
+  {
+    "name": "Donovan Ferreira",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-donovan-ferreira.png"
+  },
+  {
+    "name": "Shimron Hetmyer",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-shimron-hetmyer.png"
+  },
+  {
+    "name": "Yashasvi Jaiswal",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-yashasvi-jaiswal.png"
+  },
+  {
+    "name": "Aman Rao",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-aman-rao.png"
+  },
+  {
+    "name": "Lhuan-dré Pretorius",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-lhuan-dr-pretorius.png"
+  },
+  {
+    "name": "Yash Punja",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-yash-punja.png"
+  },
+  {
+    "name": "Vignesh Puthur",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-vignesh-puthur.png"
+  },
+  {
+    "name": "Ravi Singh",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-ravi-singh.png"
+  },
+  {
+    "name": "Vaibhav Sooryavanshi",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-vaibhav-sooryavanshi.png"
+  },
+  {
+    "name": "Jofra Archer",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-jofra-archer.png"
+  },
+  {
+    "name": "Ravi Bishnoi",
+    "team": "Rajasthan Royals",
+    "basePrice": 200,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/rr-ravi-bishnoi.png"
+  },
+  {
+    "name": "Nandre Burger",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-nandre-burger.png"
+  },
+  {
+    "name": "Tushar Deshpande",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-tushar-deshpande.png"
+  },
+  {
+    "name": "Kwena Maphaka",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-kwena-maphaka.png"
+  },
+  {
+    "name": "Adam Milne",
+    "team": "Rajasthan Royals",
+    "basePrice": 200,
+    "nationality": "Overseas",
+    "isOverseas": true,
+    "capped": "Capped",
+    "photoUrl": "/players/rr-adam-milne.png"
+  },
+  {
+    "name": "Sushant Mishra",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-sushant-mishra.png"
+  },
+  {
+    "name": "Kuldeep Sen",
+    "team": "Rajasthan Royals",
+    "basePrice": 75,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Capped",
+    "photoUrl": "/players/rr-kuldeep-sen.png"
+  },
+  {
+    "name": "Brijesh Sharma",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-brijesh-sharma.png"
+  },
+  {
+    "name": "Sandeep Sharma",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-sandeep-sharma.png"
+  },
+  {
+    "name": "Yudhvir Singh Charak",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-yudhvir-singh-charak.png"
+  },
+  {
+    "name": "Sam Curran",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": null
+  },
+  {
+    "name": "Riyan Parag",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-riyan-parag.png"
+  },
+  {
+    "name": "Ravindra Jadeja",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-ravindra-jadeja.png"
+  },
+  {
+    "name": "Dhruv Jurel",
+    "team": "Rajasthan Royals",
+    "basePrice": 30,
+    "nationality": "India",
+    "isOverseas": false,
+    "capped": "Uncapped",
+    "photoUrl": "/players/rr-dhruv-jurel.png"
+  }
+]

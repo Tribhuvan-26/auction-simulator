@@ -4,10 +4,13 @@ import { join } from 'path'
 import { PrismaClient, PlayerRole } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-// Real IPL 2026 mega-auction results (prisma/data/ipl-2026-players.csv) — official
-// franchise names, base prices, and winning bids, converted into a fresh queue so
-// the room can re-run the auction live instead of replaying pre-decided results.
-const CSV_PATH = join(__dirname, 'data/ipl-2026-players.csv')
+// Full official IPL 2026 squads (prisma/data/ipl-2026-official-players.json) —
+// scraped from each franchise's official squad page, merged with the real
+// auction CSV (base price / nationality / capped status) wherever a player
+// appears in both. Players not in the auction CSV (backup/domestic squad
+// members who weren't part of the mega-auction) get placeholder base
+// price/nationality — see prisma/data/build note in the extraction script.
+const DATA_PATH = join(__dirname, 'data/ipl-2026-official-players.json')
 
 const TEAM_META: Record<string, { code: string; color: string }> = {
   'Chennai Super Kings': { code: 'CSK', color: '#F9CD05' },
@@ -22,52 +25,28 @@ const TEAM_META: Record<string, { code: string; color: string }> = {
   'Sunrisers Hyderabad': { code: 'SRH', color: '#F26522' },
 }
 
-// The CSV has no role column — round-robin across the four roles so the queue
-// still filters/displays sensibly. Not the players' real roles; swap in real
-// data here if it becomes available.
+// Neither the CSV nor the squad pages carry a role column — round-robin
+// across the four roles so the queue still filters/displays sensibly. Not
+// the players' real roles; swap in real data here if it becomes available.
 const ROLES: PlayerRole[] = ['BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KEEPER']
 
-type CsvPlayer = { name: string; nationality: string; basePrice: number; teamName: string; capped: string }
-
-function parseCsvLine(line: string): string[] {
-  const fields: string[] = []
-  let cur = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
-    if (ch === '"') inQuotes = !inQuotes
-    else if (ch === ',' && !inQuotes) {
-      fields.push(cur)
-      cur = ''
-    } else cur += ch
-  }
-  fields.push(cur)
-  return fields
+type OfficialPlayer = {
+  name: string
+  team: string
+  basePrice: number
+  nationality: string
+  isOverseas: boolean
+  capped: string
+  photoUrl: string | null
 }
 
-// "30,00,000 " (Indian lakh/crore grouping) -> 30 (whole lakhs, matches the
-// scale basePrice/purseTotal already use elsewhere in the schema).
-function parseLakhs(raw: string): number {
-  return Math.round(Number(raw.replace(/["\s,]/g, '')) / 100_000)
-}
-
-function loadCsvPlayers(): CsvPlayer[] {
-  const lines = readFileSync(CSV_PATH, 'utf-8').trim().split('\n').slice(1)
-  return lines.map((line) => {
-    const [, name, nationality, basePrice, , teamName, capped] = parseCsvLine(line)
-    return {
-      name: name.trim(),
-      nationality: nationality.trim(),
-      basePrice: parseLakhs(basePrice),
-      teamName: teamName.trim(),
-      capped: capped.trim(),
-    }
-  })
+function loadOfficialPlayers(): OfficialPlayer[] {
+  return JSON.parse(readFileSync(DATA_PATH, 'utf-8'))
 }
 
 export async function seed(prisma: PrismaClient) {
-  const csvPlayers = loadCsvPlayers()
-  const teamNames = [...new Set(csvPlayers.map((p) => p.teamName))]
+  const officialPlayers = loadOfficialPlayers()
+  const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
 
   const room = await prisma.auctionRoom.create({
     data: { name: 'IPL 2026 Auction', phase: 'SETUP' },
@@ -92,17 +71,17 @@ export async function seed(prisma: PrismaClient) {
     teamIdByName.set(teamName, team.id)
   }
 
-  for (let i = 0; i < csvPlayers.length; i++) {
-    const p = csvPlayers[i]
-    const isOverseas = p.nationality === 'Overseas'
+  for (let i = 0; i < officialPlayers.length; i++) {
+    const p = officialPlayers[i]
     await prisma.player.create({
       data: {
         roomId: room.id,
         name: p.name,
         role: ROLES[i % ROLES.length],
         basePrice: p.basePrice,
-        nationality: isOverseas ? 'Overseas' : 'India',
-        isOverseas,
+        photoUrl: p.photoUrl,
+        nationality: p.nationality,
+        isOverseas: p.isOverseas,
         matches: 0,
         setNumber: p.capped === 'Capped' ? 'Capped Players' : 'Uncapped Players',
         status: 'UPCOMING',
