@@ -167,7 +167,7 @@ function Stat({
         <Icon size={14} aria-hidden />
         {label}
       </dt>
-      <dd className="text-3xl font-bold tabular-nums">{value ?? '—'}</dd>
+      <dd className="text-3xl font-bold tabular-nums">{value || '—'}</dd>
     </div>
   )
 }

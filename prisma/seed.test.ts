@@ -39,6 +39,18 @@ describe('seed', () => {
     expect(roles).toEqual(new Set(['BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KEEPER']))
   })
 
+  it('gives each player their curated role, not a round-robin placeholder', async () => {
+    const players = await prisma.player.findMany({
+      where: { roomId, name: { in: ['Shreyas Iyer', 'Jasprit Bumrah', 'Ravindra Jadeja', 'Mahendra Singh Dhoni'] } },
+    })
+    expect(Object.fromEntries(players.map((p) => [p.name, p.role]))).toEqual({
+      'Shreyas Iyer': 'BATTER',
+      'Jasprit Bumrah': 'BOWLER',
+      'Ravindra Jadeja': 'ALL_ROUNDER',
+      'Mahendra Singh Dhoni': 'WICKET_KEEPER',
+    })
+  })
+
   it('spreads players across at least two sets', async () => {
     const players = await prisma.player.findMany({ where: { roomId } })
     const sets = new Set(players.map((p) => p.setNumber))

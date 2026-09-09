@@ -12,6 +12,11 @@ import { PrismaPg } from '@prisma/adapter-pg'
 // price/nationality — see prisma/data/build note in the extraction script.
 const DATA_PATH = join(__dirname, 'data/ipl-2026-official-players.json')
 
+// Neither the CSV nor the squad pages carry a role column (the iplt20.com
+// squad cards render name + photo only), so roles are curated by hand in
+// prisma/data/player-roles.json — keyed by the exact name in the dataset.
+const ROLES_PATH = join(__dirname, 'data/player-roles.json')
+
 const TEAM_META: Record<string, { code: string; color: string }> = {
   'Chennai Super Kings': { code: 'CSK', color: '#F9CD05' },
   'Delhi Capitals': { code: 'DC', color: '#17479E' },
@@ -24,11 +29,6 @@ const TEAM_META: Record<string, { code: string; color: string }> = {
   'Royal Challengers Bengaluru': { code: 'RCB', color: '#EC1C24' },
   'Sunrisers Hyderabad': { code: 'SRH', color: '#F26522' },
 }
-
-// Neither the CSV nor the squad pages carry a role column — round-robin
-// across the four roles so the queue still filters/displays sensibly. Not
-// the players' real roles; swap in real data here if it becomes available.
-const ROLES: PlayerRole[] = ['BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KEEPER']
 
 type OfficialPlayer = {
   name: string
@@ -44,8 +44,15 @@ function loadOfficialPlayers(): OfficialPlayer[] {
   return JSON.parse(readFileSync(DATA_PATH, 'utf-8'))
 }
 
+function loadRoles(): Record<string, PlayerRole> {
+  return JSON.parse(readFileSync(ROLES_PATH, 'utf-8'))
+}
+
 export async function seed(prisma: PrismaClient) {
   const officialPlayers = loadOfficialPlayers()
+  const rolesByName = loadRoles()
+  const unroled = officialPlayers.filter((p) => !rolesByName[p.name]).map((p) => p.name)
+  if (unroled.length) throw new Error(`No role in player-roles.json for: ${unroled.join(', ')}`)
   const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
 
   const room = await prisma.auctionRoom.create({
@@ -71,13 +78,12 @@ export async function seed(prisma: PrismaClient) {
     teamIdByName.set(teamName, team.id)
   }
 
-  for (let i = 0; i < officialPlayers.length; i++) {
-    const p = officialPlayers[i]
+  for (const p of officialPlayers) {
     await prisma.player.create({
       data: {
         roomId: room.id,
         name: p.name,
-        role: ROLES[i % ROLES.length],
+        role: rolesByName[p.name],
         basePrice: p.basePrice,
         photoUrl: p.photoUrl,
         nationality: p.nationality,

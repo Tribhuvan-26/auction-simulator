@@ -78,7 +78,8 @@ export function LiveLotControl({
             <h2 className="font-heading text-4xl font-bold leading-tight">{lot.player.name}</h2>
             <p className="mt-1 text-sm">
               {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-              {lot.player.isOverseas ? ' · overseas' : ''} · {lot.player.matches} matches
+              {lot.player.isOverseas ? ' · overseas' : ''}
+              {lot.player.matches > 0 ? ` · ${lot.player.matches} matches` : ''}
             </p>
           </div>
         </div>
