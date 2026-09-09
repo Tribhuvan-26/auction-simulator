@@ -97,13 +97,13 @@ export function DisplayBoard({
           </section>
 
           <section className="flex flex-col gap-8">
-            <div className="layer-plate layer-plate-yellow shadow-glow-yellow rounded-3xl border-[6px] border-brand-white bg-brand-white p-6 text-brand-charcoal">
-              <p className="font-heading text-sm font-bold">Current bid</p>
+            <div className="layer-plate layer-plate-yellow shadow-glow-yellow border-[6px] border-brand-charcoal bg-brand-white p-6 text-brand-charcoal">
+              <SectionHeader className="-mx-6 -mt-6 mb-4">Current Bid</SectionHeader>
               <BidNumber value={lot.currentBid} className="block text-[6rem] leading-none xl:text-[8rem]" />
             </div>
 
             <div
-              className={`layer-plate layer-plate-pink shadow-glow-pink flex items-center justify-between gap-4 rounded-3xl border-[6px] border-brand-white px-6 py-5 ${bidPulse ? 'anim-glow-pulse' : ''}`}
+              className={`layer-plate layer-plate-pink shadow-glow-pink flex items-center justify-between gap-4 border-[6px] border-brand-charcoal px-6 py-5 ${bidPulse ? 'anim-glow-pulse' : ''}`}
             >
               <div>
                 <p className="font-heading text-sm font-bold uppercase opacity-80">Leading</p>
@@ -134,8 +134,8 @@ export function DisplayBoard({
       )}
 
       {snapshot.soldLog.length > 0 && (
-        <div className="absolute inset-x-0 bottom-0 overflow-hidden border-t-[3px] border-brand-white/20 bg-brand-charcoal py-3">
-          <div className="anim-marquee flex w-max gap-10 whitespace-nowrap font-heading">
+        <div className="absolute inset-x-0 bottom-0 overflow-hidden border-t-[3px] border-brand-charcoal bg-brand-charcoal py-3">
+          <div className="anim-marquee flex w-max gap-10 whitespace-nowrap font-heading text-brand-white">
             {[...snapshot.soldLog, ...snapshot.soldLog].map((s, i) => (
               <span key={`${s.id}-${i}`} className="text-lg">
                 {s.playerName}
@@ -148,6 +148,14 @@ export function DisplayBoard({
       )}
 
       <AnimatePresence>{stamp && <SoldStamp key={stamp} kind={stamp} />}</AnimatePresence>
+
+      {/* The sold-log ticker already occupies the bottom strip once auctions start;
+       * the telemetry footer only shows before it has anything to display. */}
+      {snapshot.soldLog.length === 0 && (
+        <div className="telemetry-footer absolute inset-x-0 bottom-0">
+          // NEO-GRID POP SYSTEM TELEMETRY v2.1 // DEPLOYED //
+        </div>
+      )}
     </main>
   )
 }
