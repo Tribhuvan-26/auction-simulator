@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 48 passing, 10 files |
+| Tests | 54 passing, 11 files |
 
 **Contents**
 
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 10 files, 48 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 11 files, 54 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -120,7 +120,7 @@ holds the live price; **bids** are the append-only history behind that price.
 | Model | Key fields | Role |
 |---|---|---|
 | `AuctionRoom` | `name` · `phase` · `round` | One auction event. `phase` cycles SETUP → LIVE → PAUSED → COMPLETED. |
-| `Team` | `shortCode` · `colorAccent` · `purseTotal` · `purseRemaining` · `squadMin/Max` · `overseasSlotsUsed/Max` | A franchise seat. Seeded at ₹120 Cr, 25-player cap, 8 overseas slots. |
+| `Team` | `shortCode` · `colorAccent` · `purseTotal` · `purseRemaining` · `squadMin/Max` · `overseasSlotsUsed/Max` · `passcode` | A franchise seat. Seeded at ₹120 Cr, 25-player cap, 8 overseas slots. |
 | `Player` | `role` · `basePrice` · `photoUrl` · `isOverseas` · `setNumber` · `status` · `soldPrice` · `teamId` | A lot-in-waiting. `status` is UPCOMING → LIVE → SOLD or UNSOLD. |
 | `AuctionLot` | `playerId` (unique) · `currentBid` · `currentBiddingTeamId` · `status` · `timerSeconds` | The block itself. QUEUED → BIDDING → SOLD / UNSOLD. One lot per player, ever. |
 | `Bid` | `lotId` · `teamId` · `amount` · `timestamp` | Append-only ladder. Undo deletes the newest row and rolls the lot back to the one beneath. |
@@ -283,6 +283,14 @@ been outbid" toast. Those are moments, not state, and they'd be gone by the next
 
 ## 7. The three screens
 
+### Taking a team seat
+
+Team seats are PIN-locked. `Team.passcode` holds a 4-digit PIN, unique within a room and minted from
+a CSPRNG when the room is seeded — `npx prisma db seed` prints the ten of them for handout. The page
+renders the gate and nothing else until `unlockTeam` swaps a correct PIN for an httpOnly cookie named
+for that one seat, so a browser holding Delhi's seat still faces the gate at Chennai's URL. A `?pin=`
+in a shared link only prefills the box; the cookie is always set by the action.
+
 ### Admin console
 
 Four panels across a charcoal ground: the queue, the live lot control, the team purse table, and the
@@ -358,7 +366,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 10 files, 48 tests
+### Tests — 11 files, 54 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -399,5 +407,9 @@ Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_P
 - **Timer is a number, not a clock.** `timerSeconds` is stored and nudged by `controlTimer`, but
   nothing counts it down server-side and nothing auto-closes a lot. The countdown ring renders the
   number it is given; the auctioneer is the clock.
-- **No auth.** Anyone with a team URL can bid as that team. Fine for a room where everyone is in the
-  room; not fine anywhere else.
+- **Server actions are still open.** The team *page* is behind a PIN, but `placeBid` and the rest of
+  `actions.ts` are Server Action endpoints anyone can POST to with a `teamId`. Closing that needs the
+  admin console authenticated too — it legitimately bids on behalf of every team — so it's a phase of
+  its own.
+- **PINs are 4 digits with no rate limit.** 10,000 guesses is nothing to a script. Fine in a room
+  where everyone can see each other; add throttling before this is reachable from outside one.
