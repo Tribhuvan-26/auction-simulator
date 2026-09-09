@@ -34,7 +34,7 @@ export function BrutalButton({
     <button
       {...props}
       className={cn(
-        'font-heading font-bold border-[3px] border-brand-charcoal shadow-brutal rounded-xl px-4 py-2',
+        'font-heading font-bold border-[3px] border-brand-charcoal shadow-brutal rounded-none px-4 py-2',
         'transition-[transform,box-shadow] duration-75 select-none',
         'hover:-translate-y-[1px]',
         'active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed',

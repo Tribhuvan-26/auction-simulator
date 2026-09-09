@@ -46,7 +46,7 @@ export function PinGate({
     <main className="flex min-h-screen flex-col items-center justify-center bg-brand-charcoal p-6">
       <BrutalCard variant="active" className="w-full max-w-sm">
         <div
-          className="-mx-4 -mt-4 mb-4 flex items-center gap-2 rounded-t-2xl px-4 py-3 text-brand-white"
+          className="-mx-4 -mt-4 mb-4 flex items-center gap-2 px-4 py-3 text-brand-white"
           style={{ background: accent }}
         >
           <Lock size={18} aria-hidden />

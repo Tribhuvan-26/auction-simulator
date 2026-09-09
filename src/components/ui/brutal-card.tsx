@@ -22,7 +22,16 @@ export function BrutalCard({
   children: React.ReactNode
 }) {
   return (
-    <div className={cn('border-2 rounded-2xl p-4', variantClasses[variant], className)}>
+    <div className={cn('border-2 rounded-none p-4', variantClasses[variant], className)}>
+      {children}
+    </div>
+  )
+}
+
+/** Neo-Grid Pop's solid black bar above a panel — "CURRENT STATUS", "BIDDING LOG", etc. */
+export function SectionHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn('bg-brand-charcoal px-3 py-1.5 font-heading text-xs font-bold uppercase tracking-widest text-brand-white', className)}>
       {children}
     </div>
   )

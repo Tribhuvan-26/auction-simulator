@@ -26,7 +26,7 @@ export function TeamChip({
       exit={{ x: -32, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 380, damping: 22 }}
       className={cn(
-        'inline-flex items-center gap-2 rounded-xl border-[3px] border-brand-charcoal px-3 py-2 text-brand-white shadow-brutal',
+        'inline-flex items-center gap-2 rounded-none border-[3px] border-brand-charcoal px-3 py-2 text-brand-white shadow-brutal',
         className
       )}
       style={{ backgroundColor: colorAccent }}
