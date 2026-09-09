@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/money'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
 import { BidNumber } from '@/components/ui/bid-number'
@@ -66,7 +67,7 @@ export function LiveLotControl({
           </p>
         </div>
         <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-2 py-1 font-heading text-sm font-bold">
-          Base {lot.player.basePrice}
+          Base {formatMoney(lot.player.basePrice)}
         </span>
       </div>
 

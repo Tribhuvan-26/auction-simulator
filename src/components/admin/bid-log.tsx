@@ -1,5 +1,6 @@
 import { BrutalCard } from '@/components/ui/brutal-card'
 import type { AdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { formatMoney } from '@/lib/money'
 
 export function BidLog({ bidHistory }: { bidHistory: NonNullable<AdminSnapshot['currentLot']>['bidHistory'] }) {
   return (
@@ -18,7 +19,7 @@ export function BidLog({ bidHistory }: { bidHistory: NonNullable<AdminSnapshot['
               className={`border-[3px] border-brand-charcoal px-2 py-1 text-sm ${i === 0 ? 'bg-brand-yellow' : ''}`}
             >
               <span className="font-heading font-bold">{b.teamName}</span>{' '}
-              <span className="tabular-nums">{b.amount}</span>{' '}
+              <span className="tabular-nums">{formatMoney(b.amount)}</span>{' '}
               <span className="text-xs">{new Date(b.timestamp).toLocaleTimeString()}</span>
             </li>
           ))}

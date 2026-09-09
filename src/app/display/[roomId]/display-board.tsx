@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/money'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
@@ -61,7 +62,7 @@ export function DisplayBoard({
                 </p>
               </div>
               <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-2 font-heading text-xl font-bold">
-                Base {lot.player.basePrice}
+                Base {formatMoney(lot.player.basePrice)}
               </span>
             </div>
 

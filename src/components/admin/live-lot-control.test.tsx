@@ -29,7 +29,7 @@ describe('LiveLotControl', () => {
   it('shows the current player name and bid', () => {
     render(<LiveLotControl roomId="r1" snapshot={snapshotWithTeam} onSnapshot={vi.fn()} />)
     expect(screen.getByText('Test Player')).toBeInTheDocument()
-    expect(screen.getByText('50')).toBeInTheDocument()
+    expect(screen.getByText('50 L')).toBeInTheDocument()
   })
 
   it('disables the SOLD button when no bidding team is set', () => {

@@ -10,7 +10,7 @@ describe('TeamPurseTable', () => {
   it('renders every team with purse and squad count', () => {
     render(<TeamPurseTable teams={teams} activeBiddingTeamId={null} />)
     expect(screen.getByText('Team A')).toBeInTheDocument()
-    expect(screen.getByText('9000')).toBeInTheDocument()
+    expect(screen.getByText('90 Cr')).toBeInTheDocument()
     expect(screen.getByText('Team B')).toBeInTheDocument()
   })
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/money'
 import { useState } from 'react'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
@@ -74,7 +75,7 @@ export function PlayerQueue({
                 <span className="font-heading font-bold">{p.name}</span>
                 <span className="block text-xs">{p.setNumber}</span>
               </span>
-              <span className="shrink-0 font-heading text-sm tabular-nums">{p.basePrice}</span>
+              <span className="shrink-0 font-heading text-sm tabular-nums">{formatMoney(p.basePrice)}</span>
             </li>
           ))}
         </ul>

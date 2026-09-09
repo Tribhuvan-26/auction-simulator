@@ -1,5 +1,6 @@
 'use client'
 
+import { formatMoney } from '@/lib/money'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BrutalCard } from '@/components/ui/brutal-card'
@@ -88,8 +89,8 @@ export function TeamConsole({
           </span>
         </div>
         <div className="mt-3 flex items-baseline gap-2">
-          <span className="font-heading text-4xl font-bold tabular-nums">{team.purseRemaining}</span>
-          <span className="text-sm opacity-90">of {team.purseTotal} left</span>
+          <span className="font-heading text-4xl font-bold tabular-nums">{formatMoney(team.purseRemaining)}</span>
+          <span className="text-sm opacity-90">of {formatMoney(team.purseTotal)} left</span>
         </div>
         <div className="mt-2 h-4 border-[3px] border-brand-charcoal bg-brand-white">
           <div
@@ -122,7 +123,7 @@ export function TeamConsole({
                     </p>
                   </div>
                   <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-2 py-1 font-heading text-sm font-bold">
-                    Base {lot.player.basePrice}
+                    Base {formatMoney(lot.player.basePrice)}
                   </span>
                 </div>
 
@@ -192,11 +193,11 @@ export function TeamConsole({
           className="flex w-full items-center justify-center gap-2 py-5 text-2xl"
         >
           <Gavel size={24} aria-hidden />
-          {leading ? 'You hold this lot' : `Bid ${nextBid}`}
+          {leading ? 'You hold this lot' : `Bid ${formatMoney(nextBid)}`}
         </BrutalButton>
         <p className="mt-2 flex items-center justify-center gap-1 text-center text-sm">
           {!leading && !!rejection && !error && <TriangleAlert size={14} aria-hidden />}
-          {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? `Raises the bid by ${BID_STEP}`))}
+          {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? `Raises the bid by ${formatMoney(BID_STEP)}`))}
         </p>
       </div>
     </main>

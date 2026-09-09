@@ -1,5 +1,6 @@
 import { BrutalCard } from '@/components/ui/brutal-card'
 import type { AdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { formatMoney } from '@/lib/money'
 
 export function TeamPurseTable({
   teams,
@@ -24,7 +25,7 @@ export function TeamPurseTable({
           >
             <div className="flex items-baseline justify-between gap-2">
               <span className="truncate font-heading font-bold">{t.name}</span>
-              <span className="font-heading tabular-nums">{t.purseRemaining}</span>
+              <span className="font-heading tabular-nums">{formatMoney(t.purseRemaining)}</span>
             </div>
             <div className="mt-1 h-2 border-2 border-brand-charcoal bg-brand-white">
               <div

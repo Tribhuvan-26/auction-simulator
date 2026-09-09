@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { cn } from '@/lib/cn'
+import { formatMoney } from '@/lib/money'
 
 /**
  * Ticks from the previous value to the next over ~0.4s instead of snapping —
@@ -32,5 +33,5 @@ export function BidNumber({ value, className }: { value: number; className?: str
     }
   }, [value])
 
-  return <span className={cn('font-heading font-bold tabular-nums', className)}>{display}</span>
+  return <span className={cn('font-heading font-bold tabular-nums', className)}>{formatMoney(display)}</span>
 }
