@@ -253,7 +253,7 @@ function PaddleButton({
         type="button"
         onClick={onClick}
         disabled={!live}
-        className={`font-heading w-full rounded-2xl py-8 text-3xl font-black tracking-tight transition-colors ${PADDLE_CLASS[state]}`}
+        className={`font-heading w-full py-8 text-3xl font-black tracking-tight transition-colors ${PADDLE_CLASS[state]}`}
       >
         <span className="flex items-center justify-center gap-3">
           <Gavel size={26} aria-hidden />
@@ -261,7 +261,7 @@ function PaddleButton({
           {live && <span className="tabular-nums">· {formatMoney(amount)}</span>}
         </span>
       </button>
-      <p className="mt-2 text-center text-xs text-slate-500">
+      <p className="mt-2 text-center text-xs text-brand-charcoal/60">
         {live ? 'Press space to raise' : (hint ?? 'You hold the highest bid')}
       </p>
     </div>
