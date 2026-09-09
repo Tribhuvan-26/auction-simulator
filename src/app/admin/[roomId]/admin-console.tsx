@@ -243,35 +243,35 @@ export function AdminConsole({
         </div>
 
         {/* Command plate */}
-        <div className="relative flex h-24 shrink-0 items-center justify-between border-t border-white/10 bg-[#05080f] px-10">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
+        <div className="relative flex h-24 shrink-0 items-center justify-between border-t-[3px] border-brand-charcoal bg-brand-white px-8">
+          <div className="flex items-center gap-2">
+            <BrutalButton
+              variant="blue"
               disabled={!lot || closed || !leaderId}
               onClick={() => run(() => markSold(roomId))}
-              className="flex items-center gap-2 rounded-lg bg-white/5 px-6 py-3 text-sm font-bold tracking-wide text-slate-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex items-center gap-2 text-sm"
             >
               <Check size={16} aria-hidden /> SOLD
-            </button>
-            <button
-              type="button"
+            </BrutalButton>
+            <BrutalButton
+              variant="pink"
               disabled={!lot || closed}
               onClick={() => run(() => markUnsold(roomId))}
-              className="flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex items-center gap-2 text-sm"
             >
               <X size={16} aria-hidden /> UNSOLD
-            </button>
-            <button
-              type="button"
+            </BrutalButton>
+            <BrutalButton
+              variant="yellow"
               disabled={!lot}
               onClick={() => run(() => undoLastBid(roomId))}
-              className="flex items-center gap-2 rounded-lg bg-rose-600 px-6 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex items-center gap-2 text-sm"
             >
               <Undo2 size={16} aria-hidden /> UNDO
-            </button>
+            </BrutalButton>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <TimerButton label="Start timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'start'))}>
               <Play size={16} aria-hidden />
             </TimerButton>
@@ -288,7 +288,7 @@ export function AdminConsole({
             <TimerButton label="Add 10 seconds" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'add10'))}>
               <Plus size={16} aria-hidden />
             </TimerButton>
-            <span className="ml-1 text-sm tabular-nums text-slate-500">{lot?.timerSeconds ?? 0}s</span>
+            <span className="ml-1 font-heading text-sm font-bold tabular-nums">{lot?.timerSeconds ?? 0}s</span>
           </div>
 
           <form
@@ -299,7 +299,7 @@ export function AdminConsole({
               if (team) bidFor(team, Number(jumpBid))
             }}
           >
-            <label htmlFor="jump-bid" className="text-[10px] uppercase tracking-widest text-slate-600">
+            <label htmlFor="jump-bid" className="font-heading text-[10px] font-bold uppercase tracking-widest">
               Jump bid
             </label>
             <select
@@ -307,7 +307,7 @@ export function AdminConsole({
               aria-label="Jump bid team"
               value={effectiveJumpTeamId}
               onChange={(e) => setJumpTeamId(e.target.value)}
-              className="rounded-lg border border-white/10 bg-[#020617] px-3 py-2.5 text-sm text-slate-200"
+              className="border-[3px] border-brand-charcoal bg-brand-white px-3 py-2 text-sm"
             >
               {snapshot.teams.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -321,15 +321,11 @@ export function AdminConsole({
               placeholder={String(nextBid)}
               value={jumpBid}
               onChange={(e) => setJumpBid(e.target.value.replace(/\D/g, ''))}
-              className="w-24 rounded-lg border border-white/10 bg-[#020617] px-3 py-2.5 text-center text-sm tabular-nums text-slate-200 placeholder:text-slate-600"
+              className="w-24 border-[3px] border-brand-charcoal bg-brand-white px-3 py-2 text-center text-sm tabular-nums"
             />
-            <button
-              type="submit"
-              disabled={!lot || closed || !jumpBid}
-              className="rounded-lg bg-blue-600/70 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-30"
-            >
+            <BrutalButton type="submit" variant="blue" disabled={!lot || closed || !jumpBid} className="text-sm">
               Bid
-            </button>
+            </BrutalButton>
           </form>
         </div>
       </section>
