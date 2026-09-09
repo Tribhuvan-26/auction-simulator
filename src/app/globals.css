@@ -74,7 +74,6 @@
  * every ancestor up to the nearest scroll container. */
 .layer-plate {
   position: relative;
-  isolation: isolate;
 }
 .layer-plate::before {
   content: "";
@@ -98,6 +97,11 @@
  * reads as texture, not noise. */
 .bg-grain {
   position: relative;
+  /* Stacking context for the plates inside: .layer-plate::before sits at
+   * z-index -1 and must NOT be isolated by the card itself, or it paints over
+   * the card's own background instead of behind it. It lands above this
+   * ground's background and below the card. */
+  isolation: isolate;
 }
 .bg-grain::after {
   content: "";
@@ -112,6 +116,7 @@
 /* Radial spotlight + dot-grid for the display screen's charcoal background —
  * reads as a lit stage rather than one flat rectangle. */
 .bg-spotlight {
+  isolation: isolate;
   background-color: var(--color-charcoal);
   background-image:
     radial-gradient(circle at 50% 0%, rgba(32, 116, 213, 0.35), transparent 60%),

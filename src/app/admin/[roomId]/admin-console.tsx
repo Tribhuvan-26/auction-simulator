@@ -62,7 +62,7 @@ export function AdminConsole({
   }
 
   return (
-    <div className="flex min-h-screen flex-col gap-4 bg-brand-charcoal p-4">
+    <div className="bg-grain flex min-h-screen flex-col gap-6 bg-brand-charcoal p-6">
       <BrutalCard className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/" className="font-heading text-xs font-bold underline">

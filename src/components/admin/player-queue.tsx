@@ -25,7 +25,7 @@ export function PlayerQueue({
   )
 
   return (
-    <BrutalCard className="flex w-72 shrink-0 flex-col gap-3">
+    <BrutalCard className="layer-plate layer-plate-blue flex w-72 shrink-0 flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <h2 className="font-heading text-xl font-bold">Queue</h2>
         <span className="font-heading text-sm tabular-nums">{queue.length} left</span>

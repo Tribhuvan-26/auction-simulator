@@ -13,7 +13,7 @@ export function TeamPurseTable({
   activeBiddingTeamId: string | null
 }) {
   return (
-    <BrutalCard className="flex w-72 shrink-0 flex-col gap-2">
+    <BrutalCard className="layer-plate layer-plate-pink flex w-72 shrink-0 flex-col gap-2">
       <h2 className="font-heading text-xl font-bold">Teams</h2>
       {teams.map((t) => {
         const leading = t.id === activeBiddingTeamId

@@ -10,7 +10,7 @@ export function BidLog({
   teams: AdminSnapshot['teams']
 }) {
   return (
-    <BrutalCard>
+    <BrutalCard className="layer-plate layer-plate-yellow">
       <div className="flex items-baseline justify-between">
         <h2 className="font-heading text-xl font-bold">Bid log</h2>
         <span className="text-xs">Undo pops the last entry</span>
