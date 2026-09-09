@@ -42,10 +42,10 @@ describe('LiveLotControl', () => {
     expect(screen.getByRole('button', { name: /^sold$/i })).not.toBeDisabled()
   })
 
-  it('calls placeBid with the current bid plus the quick-increment amount for the first eligible team', async () => {
+  it('raises to the next amount on the ladder for the selected team', async () => {
     const { placeBid } = await import('@/app/admin/[roomId]/actions')
     render(<LiveLotControl roomId="r1" snapshot={snapshotWithTeam} onSnapshot={vi.fn()} />)
-    fireEvent.click(screen.getByRole('button', { name: '+5L' }))
+    fireEvent.click(screen.getByRole('button', { name: /raise to 55 L/i }))
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('r1', 'team-1', 55))
   })
 })

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { formatMoney } from '@/lib/money'
+import { getNextBidAmount } from '@/lib/bid-rules'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
 import { BidNumber } from '@/components/ui/bid-number'
@@ -15,8 +16,6 @@ import {
   controlTimer,
   type AdminSnapshot,
 } from '@/app/admin/[roomId]/actions'
-
-const INCREMENTS = [5, 10, 25, 50]
 
 export function LiveLotControl({
   roomId,
@@ -50,12 +49,15 @@ export function LiveLotControl({
   const closed = lot.status === 'SOLD' || lot.status === 'UNSOLD'
   const leader = snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId)
   const selectedTeam = snapshot.teams.find((t) => t.id === selectedTeamId)
+  // The ladder allows one amount — the server rejects anything else.
+  const nextBid =
+    lot.status === 'BIDDING' ? getNextBidAmount(lot.currentBid, lot.player.basePrice) : lot.currentBid
 
-  async function handleIncrement(amount: number) {
+  async function handleRaise() {
     if (!selectedTeamId) return
     setError(null)
     try {
-      onSnapshot(await placeBid(roomId, selectedTeamId, lot!.currentBid + amount))
+      onSnapshot(await placeBid(roomId, selectedTeamId, nextBid))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bid rejected')
     }
@@ -120,18 +122,14 @@ export function LiveLotControl({
         <p className="mb-2 font-heading text-xs font-bold">
           Raise the bid{selectedTeam ? ` for ${selectedTeam.name}` : ''}
         </p>
-        <div className="flex flex-wrap gap-2">
-          {INCREMENTS.map((inc) => (
-            <BrutalButton
-              key={inc}
-              variant="yellow"
-              onClick={() => handleIncrement(inc)}
-              disabled={closed || !selectedTeamId}
-            >
-              +{inc}L
-            </BrutalButton>
-          ))}
-        </div>
+        <BrutalButton
+          variant="yellow"
+          onClick={handleRaise}
+          disabled={closed || !selectedTeamId}
+          className="w-full"
+        >
+          Raise to {formatMoney(nextBid)}
+        </BrutalButton>
         {error && <p className="mt-2 text-sm font-bold text-brand-pink">{error}</p>}
       </div>
 

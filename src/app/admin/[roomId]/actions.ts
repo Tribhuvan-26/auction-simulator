@@ -2,7 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
-import { bidRejectionReason } from '@/lib/bid-rules'
+import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
+import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 
 export type AdminSnapshot = {
@@ -131,6 +132,16 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
     orderBy: { id: 'desc' },
   })
   const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId }, include: { players: true } })
+
+  // The ladder allows exactly one next amount, so don't take the client's word
+  // for it — recompute and reject anything that doesn't match. A lot that
+  // hasn't opened yet is bid at its current (base) price; once it's BIDDING the
+  // raise has to be the tier increment.
+  const expected =
+    lot.status === 'BIDDING' ? getNextBidAmount(lot.currentBid, lot.player.basePrice) : lot.currentBid
+  if (amount !== expected) {
+    throw new Error(`Off-tier bid: the next bid is ${formatMoney(expected)}, not ${formatMoney(amount)}`)
+  }
 
   // Trust boundary: team consoles are untrusted clients, so re-check here even
   // though the BID button is already disabled with the same reason.

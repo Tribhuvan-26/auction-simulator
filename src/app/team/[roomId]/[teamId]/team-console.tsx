@@ -5,14 +5,12 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
-import { bidRejectionReason } from '@/lib/bid-rules'
+import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getAdminSnapshot, placeBid, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { Gavel, TriangleAlert } from 'lucide-react'
-
-const BID_STEP = 5
 
 export function TeamConsole({
   roomId,
@@ -51,7 +49,11 @@ export function TeamConsole({
 
   const team = snapshot.teams.find((t) => t.id === teamId)!
   const lot = snapshot.currentLot
-  const nextBid = lot ? lot.currentBid + (lot.status === 'BIDDING' ? BID_STEP : 0) : 0
+  const nextBid = lot
+    ? lot.status === 'BIDDING'
+      ? getNextBidAmount(lot.currentBid, lot.player.basePrice)
+      : lot.currentBid
+    : 0
   const leading = lot?.currentBiddingTeamId === teamId
 
   // Who holds the lot, tracked in a ref so the socket callback can tell an
@@ -208,7 +210,7 @@ export function TeamConsole({
           }`}
         >
           {!leading && (!!rejection || !!error) && <TriangleAlert size={14} aria-hidden />}
-          {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? `Raises the bid by ${formatMoney(BID_STEP)}`))}
+          {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? (lot ? `Raises the bid by ${formatMoney(nextBid - lot.currentBid)}` : '')))}
         </p>
       </div>
     </main>

@@ -98,12 +98,13 @@ describe('placeBid', () => {
     await prisma.auctionRoom.delete({ where: { id: roomId } })
   })
 
+  // Lot is BIDDING at 20 L, so the ladder's next amount is 25 L.
   it('creates a bid, updates the lot, and returns the fresh snapshot', async () => {
-    const snapshot = await placeBid(roomId, teamId, 50)
-    expect(snapshot.currentLot?.currentBid).toBe(50)
+    const snapshot = await placeBid(roomId, teamId, 25)
+    expect(snapshot.currentLot?.currentBid).toBe(25)
     expect(snapshot.currentLot?.currentBiddingTeamId).toBe(teamId)
     expect(snapshot.currentLot?.bidHistory).toHaveLength(1)
-    expect(emitAuctionEvent).toHaveBeenCalledWith(roomId, { type: 'BID', teamId, amount: 50 })
+    expect(emitAuctionEvent).toHaveBeenCalledWith(roomId, { type: 'BID', teamId, amount: 25 })
   })
 })
 
@@ -296,7 +297,7 @@ describe('advanceToNextLot', () => {
 })
 
 describe('placeBid validation', () => {
-  let roomId: string, teamId: string, lotId: string
+  let roomId: string, teamId: string, poorTeamId: string, lotId: string
 
   beforeAll(async () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Guard Room', phase: 'LIVE' } })
@@ -305,6 +306,10 @@ describe('placeBid validation', () => {
       data: { roomId, name: 'Broke Team', shortCode: 'BRK', purseTotal: 100, purseRemaining: 100, squadMax: 25, squadMin: 18, overseasSlotsMax: 0 },
     })
     teamId = team.id
+    const poor = await prisma.team.create({
+      data: { roomId, name: 'Poor Team', shortCode: 'POR', purseTotal: 100, purseRemaining: 10, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+    })
+    poorTeamId = poor.id
     const player = await prisma.player.create({
       data: { roomId, name: 'Guard Player', role: 'BATTER', basePrice: 20, nationality: 'Australia', isOverseas: true, matches: 10, setNumber: 'Set 1', status: 'LIVE' },
     })
@@ -322,15 +327,18 @@ describe('placeBid validation', () => {
     await prisma.auctionRoom.delete({ where: { id: roomId } })
   })
 
-  it('rejects a bid at or below the current price', async () => {
-    await expect(placeBid(roomId, teamId, 50)).rejects.toThrow(/below current price/i)
+  // Lot sits at 50 L, so the ladder allows exactly 55 L and nothing else.
+  it('rejects anything but the next amount on the ladder', async () => {
+    await expect(placeBid(roomId, teamId, 50)).rejects.toThrow(/off-tier/i)
+    await expect(placeBid(roomId, teamId, 60)).rejects.toThrow(/off-tier/i)
+    await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/off-tier/i)
   })
 
   it('rejects a bid beyond the purse', async () => {
-    await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/purse insufficient/i)
+    await expect(placeBid(roomId, poorTeamId, 55)).rejects.toThrow(/purse insufficient/i)
   })
 
   it('rejects an overseas player when no overseas slots remain', async () => {
-    await expect(placeBid(roomId, teamId, 60)).rejects.toThrow(/overseas slots full/i)
+    await expect(placeBid(roomId, teamId, 55)).rejects.toThrow(/overseas slots full/i)
   })
 })
