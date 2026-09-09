@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { useLotEntrance } from '@/hooks/use-lot-entrance'
 import { CountdownRing } from '@/components/ui/countdown-ring'
+import { SectionHeader } from '@/components/ui/brutal-card'
 import { BidNumber } from '@/components/ui/bid-number'
 import { TeamChip } from '@/components/ui/team-chip'
 import { SoldStamp } from '@/components/ui/sold-stamp'
@@ -55,10 +56,10 @@ export function DisplayBoard({
   const cardRef = useLotEntrance<HTMLElement>(lot?.id ?? 'none')
 
   return (
-    <main className="relative flex h-screen flex-col overflow-hidden bg-spotlight bg-grain text-brand-white">
-      <div className="relative flex items-center justify-between border-b-[3px] border-brand-white/20 px-8 py-4">
-        <h1 className="font-heading text-2xl font-bold">{snapshot.room.name}</h1>
-        <span className="border-[3px] border-brand-white bg-brand-yellow px-3 py-1 font-heading font-bold text-brand-charcoal rounded-xl">
+    <main className="relative flex h-screen flex-col overflow-hidden bg-grid-paper text-brand-charcoal">
+      <div className="relative flex items-center justify-between border-b-[3px] border-brand-charcoal px-8 py-4">
+        <h1 className="font-heading text-2xl font-black uppercase">IPL Auction: {snapshot.room.name}</h1>
+        <span className="border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-1 font-heading font-bold text-brand-charcoal">
           {snapshot.room.phase}
         </span>
       </div>
@@ -67,9 +68,9 @@ export function DisplayBoard({
         <div className="relative grid flex-1 content-center items-center gap-10 px-8 py-10 lg:grid-cols-[1.4fr_1fr]">
           <section
             ref={cardRef}
-            className="layer-plate layer-plate-blue shadow-glow-blue relative flex flex-col items-center rounded-3xl border-[6px] border-brand-blue bg-brand-white p-8 text-center text-brand-charcoal"
+            className="layer-plate layer-plate-blue shadow-glow-blue relative flex flex-col items-center border-[6px] border-brand-blue bg-brand-white p-8 text-center text-brand-charcoal"
           >
-            <span className="absolute right-6 top-6 shrink-0 rounded-xl border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-2 font-heading text-xl font-bold">
+            <span className="absolute right-6 top-6 shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-2 font-heading text-xl font-bold">
               Base {formatMoney(lot.player.basePrice)}
             </span>
 
