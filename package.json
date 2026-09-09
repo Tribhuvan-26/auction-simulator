@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "socket-server": "tsx server/socket-server.ts"
+    "socket-server": "tsx server/socket-server.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
@@ -22,7 +23,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3"
+    "socket.io-client": "^4.8.3",
+    "tsx": "^4.23.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -39,7 +41,6 @@
     "jsdom": "^29.1.1",
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
-    "tsx": "^4.23.13",
     "typescript": "^5",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"

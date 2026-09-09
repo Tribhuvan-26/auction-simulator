@@ -1,10 +1,14 @@
 import 'dotenv/config'
-import { defineConfig, env } from 'prisma/config'
+import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url: env('DATABASE_URL'),
+    // Plain process.env, not prisma's env() helper: that throws when unset, which
+    // breaks `prisma generate` on builders that have no DATABASE_URL (the socket
+    // service never touches the DB). Commands that need a real URL fail on
+    // connect instead, which is a clearer error anyway.
+    url: process.env.DATABASE_URL ?? '',
   },
   migrations: {
     seed: 'tsx prisma/seed.ts',

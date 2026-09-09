@@ -20,6 +20,7 @@ export function createSocketServer(port: number) {
 }
 
 if (require.main === module) {
-  createSocketServer(Number(process.env.SOCKET_PORT) || 4000)
-  console.log(`Socket.io server listening on port ${process.env.SOCKET_PORT || 4000}`)
+  const port = Number(process.env.PORT || process.env.SOCKET_PORT) || 4000
+  createSocketServer(port)
+  console.log(`Socket.io server listening on port ${port}`)
 }
