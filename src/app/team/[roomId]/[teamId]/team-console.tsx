@@ -125,8 +125,7 @@ export function TeamConsole({
                     <div>
                       <h2 className="font-heading text-3xl font-bold leading-tight">{lot.player.name}</h2>
                       <p className="mt-1 text-sm">
-                        {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-                        {lot.player.isOverseas ? ' · overseas' : ''}
+                        {lot.player.role.replace('_', '-')} · {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
                         {lot.player.matches > 0 ? ` · ${lot.player.matches} matches` : ''}
                       </p>
                     </div>

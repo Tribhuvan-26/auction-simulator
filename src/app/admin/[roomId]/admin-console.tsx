@@ -121,7 +121,12 @@ export function AdminConsole({
   return (
     <div className="font-body flex h-screen w-screen overflow-hidden bg-[#0a0f18] text-slate-200">
       {/* ── Left pane (70%) ───────────────────────────────────── */}
-      <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(ellipse_at_left,_var(--tw-gradient-stops))] from-[#1e293b]/40 via-[#0f172a]/80 to-[#020617]">
+      <section className="bg-brutal-stage relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Hard brand rules, no blur — the frame that makes the ground read as
+         * built rather than lit. */}
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-2 bg-brand-blue" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand-yellow/70" />
+
         {/* Top navigation */}
         <div className="flex w-full shrink-0 items-start justify-between px-10 pt-8">
           <div>
@@ -172,7 +177,7 @@ export function AdminConsole({
             <PlayerAvatar
               name={lot.player.name}
               photoUrl={lot.player.photoUrl}
-              className="h-[240px] w-[240px] shrink-0 rounded-full border border-white/10 text-5xl shadow-[0_0_40px_rgba(0,0,0,0.5)]"
+              className="brutal-offset h-[240px] w-[240px] shrink-0 rounded-full border-[3px] border-white/25 text-5xl"
             />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-500">
@@ -182,8 +187,7 @@ export function AdminConsole({
                 <SplitReveal text={lot.player.name} trigger={lot.id} />
               </h2>
               <p className="mt-1 text-xl font-medium text-slate-400">
-                {lot.player.role.replace('_', '-')} • {lot.player.nationality}
-                {lot.player.isOverseas ? ' • overseas' : ''}
+                {lot.player.role.replace('_', '-')} • {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
               </p>
               <BidNumber
                 value={lot.currentBid}

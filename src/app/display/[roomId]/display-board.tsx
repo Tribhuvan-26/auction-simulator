@@ -84,8 +84,7 @@ export function DisplayBoard({
             <p className="mt-4 font-heading text-sm font-bold">{lot.player.setNumber}</p>
             <h2 className="font-heading text-6xl font-bold leading-[0.95] xl:text-7xl">{lot.player.name}</h2>
             <p className="mt-3 font-heading text-xl">
-              {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-              {lot.player.isOverseas ? ' · overseas' : ''}
+              {lot.player.role.replace('_', '-')} · {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
             </p>
 
             <dl className="mt-8 grid w-full grid-cols-2 gap-x-8 gap-y-2 font-heading md:grid-cols-4">
