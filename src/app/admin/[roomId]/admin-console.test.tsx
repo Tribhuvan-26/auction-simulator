@@ -21,10 +21,24 @@ vi.mock('./actions', () => ({
   advanceToNextLot: vi.fn(async () => baseSnapshot),
 }))
 
+const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
+  id,
+  shortCode,
+  name: `${shortCode} Team`,
+  colorAccent: '#2074D5',
+  purseTotal: 12000,
+  purseRemaining: 12000,
+  squadCount: 0,
+  squadMax: 25,
+  overseasSlotsUsed: 0,
+  overseasSlotsMax: 8,
+  squad: [],
+})
+
 const baseSnapshot: AdminSnapshot = {
   room: { id: 'room-1', name: 'Room One', phase: 'LIVE', round: 1 },
   currentLot: null,
-  teams: [],
+  teams: [team('team-1', 'DC'), team('team-2', 'CSK')],
   queue: [],
   soldLog: [],
 }
@@ -73,5 +87,36 @@ describe('AdminConsole keyboard shortcuts', () => {
     render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
     fireEvent.keyDown(window, { key: 'u' })
     expect(markUnsold).not.toHaveBeenCalled()
+  })
+})
+
+describe('AdminConsole bidding grid', () => {
+  it('bids the next amount on the ladder for the team clicked', async () => {
+    const { placeBid } = await import('./actions')
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    // Lot is BIDDING at 20 L, so the ladder's next rung is 25 L.
+    fireEvent.click(screen.getByTestId('bid-CSK'))
+    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 25))
+  })
+
+  it('disables every team button when no lot is on the block', () => {
+    render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
+    expect(screen.getByTestId('bid-DC')).toBeDisabled()
+    expect(screen.getByTestId('bid-CSK')).toBeDisabled()
+  })
+
+  it('does not fire a shortcut while the jump-bid box has focus', async () => {
+    const { markSold } = await import('./actions')
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    const jump = screen.getByLabelText(/jump bid$/i)
+    jump.focus()
+    fireEvent.keyDown(jump, { key: 's' })
+    expect(markSold).not.toHaveBeenCalled()
+  })
+
+  it('renders a purse row per team', () => {
+    render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
+    expect(screen.getByTestId('purse-DC')).toBeInTheDocument()
+    expect(screen.getByTestId('purse-CSK')).toBeInTheDocument()
   })
 })

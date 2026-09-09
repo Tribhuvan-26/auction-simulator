@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 67 passing, 12 files |
+| Tests | 61 passing, 9 files |
 
 **Contents**
 
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 12 files, 67 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 9 files, 61 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -102,9 +102,9 @@ src/app/
     display-board.tsx      projector view
   globals.css              tokens, plates, grain, keyframes
 src/components/
-  admin/   player-queue · live-lot-control · team-purse-table · bid-log
   ui/      brutal-card · brutal-button · bid-number · countdown-ring
            sold-stamp · confetti-burst · team-chip · player-avatar
+           pin-gate · split-reveal · shiny-text
 src/hooks/    use-live-snapshot · use-lot-entrance
 src/lib/      bid-rules · money · prisma · socket-emitter · fonts · cn
 public/players/  247 player photos (~38 MB)
@@ -318,21 +318,25 @@ in a shared link only prefills the box; the cookie is always set by the action.
 
 ### Admin console
 
-Four panels across a charcoal ground: the queue, the live lot control, the team purse table, and the
-bid log along the bottom. The room header carries the phase badge, pause/resume, and an *End auction*
-confirmation modal.
+One full-screen stage on a vinyl-textured charcoal ground — concentric grooves under pooled brand
+colour, no scrolling. Glass plates (`bg-black/40`, backdrop blur, 4px charcoal borders) rather than
+white cards.
 
-- **Player queue** — search by name, filter by role, photo thumbnails, and the *Load next player*
-  button.
-- **Live lot control** — the player on the block, a *Raise to X* button against a chosen team,
-  timer controls, sold/unsold/undo. Rejected bids surface their reason inline instead of failing
-  silently.
-- **Team purse table** — ten rows, purse remaining, squad count, overseas count, with the team
-  currently holding the lot highlighted.
-- **Bid log** — the ladder for the current lot.
+- **Stage (left 70%)** — the player's photo at 192px with a hard offset shadow, their name and role
+  revealed character by character on every lot change (GSAP `SplitText`, free since 3.13, so no
+  hand-rolled splitter), and the live price in `font-black` yellow, rolling up to each new figure
+  rather than snapping.
+- **Bidding grid** — all ten franchises in a 5×2 grid, idle at half opacity and greyscale. Clicking
+  one bids the ladder's next amount for that team; a team that can't afford it, or has no squad or
+  overseas room, is disabled with the reason on hover. The team holding the lot animates to full
+  colour, `scale: 1.05`, and a blue glow.
+- **Command plate** — fixed bar across the bottom: sold (with a light sweeping over the label),
+  unsold, undo, the four timer controls, and a jump-bid box for naming a team and amount directly.
+- **Ledger (right 30%)** — the bid log, newest sliding in at the top, and a purse matrix that flashes
+  a team's row white the moment their purse drops.
 
 Keyboard: <kbd>Space</kbd> pause/resume · <kbd>S</kbd> sold · <kbd>U</kbd> unsold · <kbd>Z</kbd>
-undo. Suppressed while focus is in an input, select or textarea.
+undo. Suppressed while focus is in an input, select or textarea — the jump-bid box is exactly why.
 
 ### Team seat
 
@@ -391,7 +395,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 12 files, 67 tests
+### Tests — 9 files, 61 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -404,7 +408,7 @@ fake.
 | `seed.test.ts` | 10 teams, 254 players, curated roles, set split. |
 | `socket-server.test.ts` | Room join and rebroadcast against an ephemeral server. |
 | `socket-emitter.test.ts` | The fail-open path — a dead relay must not throw. |
-| `admin-console` · `live-lot-control` · `player-queue` · `team-purse-table` · `brutal-card` | Rendering and interaction, via Testing Library. |
+| `admin-console` · `pin-gate` · `brutal-card` | Rendering and interaction, via Testing Library. |
 
 ### Running it
 
