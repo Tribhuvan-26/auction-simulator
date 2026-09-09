@@ -1,16 +1,24 @@
 'use client'
 
-import { formatMoney } from '@/lib/money'
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { BrutalCard } from '@/components/ui/brutal-card'
-import { BrutalButton } from '@/components/ui/brutal-button'
-import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
-import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
-import { getPublicSnapshot, placeBid, type PublicSnapshot } from '@/app/admin/[roomId]/actions'
+import { motion } from 'framer-motion'
+import { Gavel, TriangleAlert } from 'lucide-react'
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
-import { Gavel, TriangleAlert } from 'lucide-react'
+import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
+import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
+import { formatMoney } from '@/lib/money'
+import { getPublicSnapshot, placeBid, type PublicSnapshot } from '@/app/admin/[roomId]/actions'
+
+/** Ring colour per role, so a squad reads as a shape at a glance. */
+const ROLE_RING: Record<string, string> = {
+  BATTER: '#3b82f6',
+  BOWLER: '#22c55e',
+  ALL_ROUNDER: '#a855f7',
+  WICKET_KEEPER: '#f59e0b',
+}
+
+type PaddleState = 'idle' | 'active' | 'winning' | 'outbid'
 
 export function TeamConsole({
   roomId,
@@ -21,197 +29,256 @@ export function TeamConsole({
   teamId: string
   initialSnapshot: PublicSnapshot
 }) {
-  const [toastState, setToastState] = useState<{ text: string; tone: 'blue' | 'pink' } | null>(null)
-  const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  const { snapshot, setSnapshot } = useLiveSnapshot(
-    roomId,
-    initialSnapshot,
-    getPublicSnapshot,
-    (event) => {
-      if (event.type !== 'BID') return
-      const weLead = event.teamId === teamId
-      if (!weLead && leaderRef.current !== teamId) return
-      setToastState(
-        weLead
-          ? { text: 'You are the highest bidder', tone: 'blue' }
-          : { text: 'Outbid — raise again to take it back', tone: 'pink' }
-      )
-      clearTimeout(toastTimer.current)
-      toastTimer.current = setTimeout(() => setToastState(null), 3200)
-    }
-  )
-
+  const [outbid, setOutbid] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const toast = toastState
+  const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
+  const outbidTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
+    if (event.type !== 'BID') return
+    // Only a team that was actually holding the lot can be outbid by this bid.
+    const weWereLeading = leaderRef.current === teamId
+    const weLead = event.teamId === teamId
+    if (weLead) {
+      setOutbid(false)
+      return
+    }
+    if (!weWereLeading) return
+    setOutbid(true)
+    clearTimeout(outbidTimer.current)
+    outbidTimer.current = setTimeout(() => setOutbid(false), 6000)
+  })
 
   const team = snapshot.teams.find((t) => t.id === teamId)!
   const lot = snapshot.currentLot
+  const closed = lot?.status === 'SOLD' || lot?.status === 'UNSOLD'
+  const leading = lot?.currentBiddingTeamId === teamId
+
   const nextBid = lot
     ? lot.status === 'BIDDING'
       ? getNextBidAmount(lot.currentBid, lot.player.basePrice)
       : lot.currentBid
     : 0
-  const leading = lot?.currentBiddingTeamId === teamId
 
-  // Who holds the lot, tracked in a ref so the socket callback can tell an
-  // "outbid" event (we were leading) from a bid we were never in.
+  const rejection = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'Waiting for the auctioneer'
+  const canBid = !rejection && !leading && !pending
+
+  const paddle: PaddleState = !lot || closed || rejection ? 'idle' : leading ? 'winning' : outbid ? 'outbid' : 'active'
+
   useEffect(() => {
     leaderRef.current = lot?.currentBiddingTeamId ?? null
   }, [lot?.currentBiddingTeamId])
 
-  useEffect(() => () => clearTimeout(toastTimer.current), [])
+  useEffect(() => () => clearTimeout(outbidTimer.current), [])
 
-  const rejection = lot ? bidRejectionReason(team, lot, nextBid) : 'Waiting for the next player'
-  const pursePercent = Math.max(0, Math.round((team.purseRemaining / team.purseTotal) * 100))
-
-  async function handleBid() {
+  async function raisePaddle() {
+    if (!canBid || !lot) return
     setPending(true)
     setError(null)
     try {
-      setSnapshot(await placeBid(roomId, teamId, nextBid))
-    } catch {
-      setError('Bid rejected — someone got there first')
+      await placeBid(roomId, teamId, nextBid)
+      setOutbid(false)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Bid rejected')
     } finally {
       setPending(false)
     }
   }
 
+  // Spacebar is the paddle. Suppressed while a control has focus so a keyboard
+  // user pressing space on a button doesn't bid twice.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== ' ') return
+      const target = e.target as HTMLElement | null
+      if (target && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)) return
+      e.preventDefault()
+      raisePaddle()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  })
+
+  const squadSlots = Array.from({ length: team.squadMax }, (_, i) => team.squad[i] ?? null)
+
   return (
-    <main className="flex-1 bg-brand-white pb-40">
-      <header
-        className="border-b-[3px] border-brand-charcoal px-5 py-4 text-brand-white"
-        style={{ backgroundColor: team.colorAccent }}
-      >
-        <div className="flex items-baseline justify-between gap-3">
-          <h1 className="font-heading text-2xl font-bold leading-tight">{team.name}</h1>
-          <span className="border-[3px] border-brand-white px-2 py-1 font-heading text-sm font-bold">
-            {team.shortCode}
+    <div
+      className="font-body flex h-screen w-screen flex-col overflow-hidden bg-[#0a0f18] text-slate-200"
+      style={{ ['--team-accent' as string]: team.colorAccent }}
+    >
+      {/* Roster header */}
+      <header className="z-50 flex h-20 w-full shrink-0 items-center justify-between border-b border-white/10 bg-black/40 px-10 backdrop-blur-md">
+        <h1
+          className="font-heading border-b-4 pb-1 text-2xl font-black text-white"
+          style={{ borderColor: team.colorAccent, boxShadow: `0 6px 18px -6px ${team.colorAccent}` }}
+        >
+          {team.name}
+        </h1>
+
+        <div className="flex items-center gap-5">
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500">Purse remaining</p>
+            <p className="font-heading text-3xl font-black leading-none tabular-nums text-white">
+              {formatMoney(team.purseRemaining)}
+            </p>
+          </div>
+          <span className="font-heading rounded-full bg-white/10 px-4 py-1 text-sm tabular-nums text-slate-300">
+            Squad {team.squadCount}/{team.squadMax}
+          </span>
+          <span className="font-heading rounded-full bg-white/10 px-4 py-1 text-sm tabular-nums text-slate-300">
+            Overseas {team.overseasSlotsUsed}/{team.overseasSlotsMax}
           </span>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="font-heading text-4xl font-bold tabular-nums">{formatMoney(team.purseRemaining)}</span>
-          <span className="text-sm opacity-90">of {formatMoney(team.purseTotal)} left</span>
-        </div>
-        <div className="mt-2 h-4 rounded-full border-[3px] border-brand-charcoal bg-brand-white">
-          <div
-            className={`h-full rounded-full transition-[width,background-color] duration-500 ${
-              pursePercent <= 15 ? 'bg-brand-pink' : pursePercent <= 40 ? 'bg-brand-yellow' : 'bg-brand-blue'
-            }`}
-            style={{ width: `${pursePercent}%` }}
-          />
-        </div>
-        <p className="mt-2 text-sm opacity-90">
-          Squad {team.squadCount}/{team.squadMax} · Overseas {team.overseasSlotsUsed}/{team.overseasSlotsMax}
-        </p>
       </header>
 
-      <div className="mx-auto max-w-xl px-5 py-6">
-        <AnimatePresence mode="wait">
+      <div className="relative flex min-h-0 flex-1">
+        {/* The team's own colour bleeding into the room, kept faint. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            background: `radial-gradient(circle at top right, ${team.colorAccent} 0%, transparent 40%)`,
+          }}
+        />
+
+        {/* ── Paddle (50%) ──────────────────────────────────── */}
+        <section className="relative flex h-full w-1/2 flex-col justify-center gap-6 p-10">
           {lot ? (
-            <motion.div
-              key={lot.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-            >
-              <BrutalCard variant={leading ? 'active' : 'default'} className="flex flex-col gap-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <PlayerAvatar name={lot.player.name} photoUrl={lot.player.photoUrl} className="h-12 w-12 text-xs" />
-                    <div>
-                      <h2 className="font-heading text-3xl font-bold leading-tight">{lot.player.name}</h2>
-                      <p className="mt-1 text-sm">
-                        {lot.player.role.replace('_', '-')} · {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
-                        {lot.player.matches > 0 ? ` · ${lot.player.matches} matches` : ''}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-2 py-1 font-heading text-sm font-bold">
-                    Base {formatMoney(lot.player.basePrice)}
-                  </span>
-                </div>
-
-                <div className="mt-3 rounded-xl border-[3px] border-brand-charcoal p-3">
-                  <p className="font-heading text-xs font-bold">Current bid</p>
-                  <BidNumber value={lot.currentBid} className="block text-6xl" />
-                  <p className="text-sm">
-                    {lot.currentBiddingTeamId
-                      ? leading
-                        ? 'Yours — you hold the lot'
-                        : `Held by ${snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId)?.name}`
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-lg">
+              <PlayerAvatar
+                name={lot.player.name}
+                photoUrl={lot.player.photoUrl}
+                className="mx-auto h-40 w-40 border border-white/15 text-3xl"
+              />
+              <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-yellow-500">
+                {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
+              </p>
+              <h2 className="font-heading mt-1 text-5xl font-black tracking-tight text-white">{lot.player.name}</h2>
+              <p className="mt-1 text-lg text-slate-400">
+                {lot.player.role.replace('_', '-')} • {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
+              </p>
+              <BidNumber
+                value={lot.currentBid}
+                className="font-heading mt-4 block text-7xl font-black leading-none tabular-nums text-[#facc15]"
+              />
+              <p className="mt-1 text-sm text-slate-500">
+                {closed
+                  ? lot.status
+                  : leading
+                    ? 'You hold this lot'
+                    : lot.currentBiddingTeamId
+                      ? `Held by ${snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId)?.name}`
                       : 'No bids yet'}
-                  </p>
-                </div>
-              </BrutalCard>
-            </motion.div>
+              </p>
+            </div>
           ) : (
-            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <BrutalCard>
-                <h2 className="font-heading text-xl font-bold">Between lots</h2>
-                <p className="mt-1">The auctioneer is loading the next player. Sit tight.</p>
-              </BrutalCard>
-            </motion.div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur-lg">
+              <h2 className="font-heading text-4xl font-black text-white">Between lots</h2>
+              <p className="mt-2 text-slate-400">The auctioneer is loading the next player. Sit tight.</p>
+            </div>
           )}
-        </AnimatePresence>
 
-        <h3 className="mt-8 font-heading text-lg font-bold">Your squad</h3>
-        {team.squad.length === 0 ? (
-          <p className="mt-1 text-sm">Nothing bought yet. Your first buy shows up here.</p>
-        ) : (
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {team.squad.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-2 rounded-xl border-[3px] border-brand-charcoal px-2 py-1 text-sm"
-              >
-                <span className="font-heading font-bold">{p.name}</span>
-                <span className="tabular-nums">{p.price}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+          <PaddleButton state={paddle} amount={nextBid} onClick={raisePaddle} hint={rejection} />
+
+          {error && (
+            <p role="alert" className="flex items-center justify-center gap-2 text-sm font-bold text-rose-400">
+              <TriangleAlert size={14} aria-hidden /> {error}
+            </p>
+          )}
+        </section>
+
+        {/* ── Squad matrix (50%) ────────────────────────────── */}
+        <section className="relative flex h-full w-1/2 flex-col border-l border-white/10 bg-black/20 p-10">
+          <div className="flex shrink-0 items-baseline justify-between">
+            <h2 className="font-heading text-xs font-bold uppercase tracking-widest text-slate-500">Squad matrix</h2>
+            <span className="text-xs tabular-nums text-slate-600">
+              {team.squadCount} signed • {team.squadMax - team.squadCount} slots open
+            </span>
+          </div>
+
+          <div className="scrollbar-thin-dark mt-6 grid min-h-0 flex-1 grid-cols-5 content-start gap-4 overflow-y-auto pr-2">
+            {squadSlots.map((player, i) =>
+              player ? (
+                <motion.div
+                  key={player.id}
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 26 }}
+                  className="flex flex-col items-center gap-1"
+                  title={`${player.name} — ${formatMoney(player.price)}`}
+                >
+                  <PlayerAvatar
+                    name={player.name}
+                    photoUrl={player.photoUrl}
+                    className="aspect-square w-full border-2 text-xs"
+                    style={{
+                      borderColor: ROLE_RING[player.role] ?? '#64748b',
+                      boxShadow: `0 0 14px -2px ${ROLE_RING[player.role] ?? '#64748b'}`,
+                    }}
+                  />
+                  <span className="w-full truncate text-center text-[10px] text-slate-400">{player.name}</span>
+                  <span className="text-[10px] tabular-nums text-slate-600">{formatMoney(player.price)}</span>
+                </motion.div>
+              ) : (
+                <div
+                  key={`empty-${i}`}
+                  className="flex aspect-square items-center justify-center rounded-full border-2 border-[#1e293b] text-xs text-slate-700"
+                >
+                  {i + 1}
+                </div>
+              )
+            )}
+          </div>
+        </section>
       </div>
+    </div>
+  )
+}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed inset-x-4 bottom-32 z-20 border-[3px] border-brand-charcoal px-4 py-3 font-heading font-bold text-brand-white shadow-brutal ${
-              toast.tone === 'blue' ? 'bg-brand-blue' : 'bg-brand-pink'
-            }`}
-            role="status"
-          >
-            {toast.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
+const PADDLE_COPY: Record<PaddleState, string> = {
+  idle: 'Waiting for Auctioneer',
+  active: 'Raise Paddle',
+  winning: 'You hold the bid',
+  outbid: 'Outbid! Click to Counter',
+}
 
-      <div className="fixed inset-x-0 bottom-0 border-t-[3px] border-brand-charcoal bg-brand-white p-4">
-        <BrutalButton
-          variant={leading ? 'yellow' : 'pink'}
-          onClick={handleBid}
-          disabled={!!rejection || pending || leading}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl py-6 text-3xl"
-        >
-          <Gavel size={28} aria-hidden />
-          {leading ? 'You hold this lot' : `Bid ${formatMoney(nextBid)}`}
-        </BrutalButton>
-        <p
-          className={`mt-2 flex items-center justify-center gap-1 text-center text-sm ${
-            !leading && (!!rejection || !!error) ? 'font-bold text-brand-pink' : ''
-          }`}
-        >
-          {!leading && (!!rejection || !!error) && <TriangleAlert size={14} aria-hidden />}
-          {error ?? (leading ? 'Wait for another team to raise' : (rejection ?? (lot ? `Raises the bid by ${formatMoney(nextBid - lot.currentBid)}` : '')))}
-        </p>
-      </div>
-    </main>
+const PADDLE_CLASS: Record<PaddleState, string> = {
+  idle: 'bg-[#111318] text-slate-500 border border-white/5 cursor-not-allowed',
+  active: 'bg-brand-blue text-white shadow-[0_0_40px_rgba(32,116,213,0.4)]',
+  winning: 'bg-yellow-500 text-black pointer-events-none',
+  outbid: 'anim-paddle-alarm bg-rose-600 text-white',
+}
+
+function PaddleButton({
+  state,
+  amount,
+  onClick,
+  hint,
+}: {
+  state: PaddleState
+  amount: number
+  onClick: () => void
+  hint: string | null
+}) {
+  const live = state === 'active' || state === 'outbid'
+  return (
+    <div className="shrink-0">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!live}
+        className={`font-heading w-full rounded-2xl py-8 text-3xl font-black tracking-tight transition-colors ${PADDLE_CLASS[state]}`}
+      >
+        <span className="flex items-center justify-center gap-3">
+          <Gavel size={26} aria-hidden />
+          {PADDLE_COPY[state]}
+          {live && <span className="tabular-nums">· {formatMoney(amount)}</span>}
+        </span>
+      </button>
+      <p className="mt-2 text-center text-xs text-slate-500">
+        {live ? 'Press space to raise' : (hint ?? 'You hold the highest bid')}
+      </p>
+    </div>
   )
 }

@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 61 passing, 9 files |
+| Tests | 73 passing, 10 files |
 
 **Contents**
 
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 9 files, 61 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 10 files, 73 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -342,12 +342,20 @@ undo. Suppressed while focus is in an input, select or textarea — the jump-bid
 
 ### Team seat
 
-Built for one thumb on a phone. A coloured header carries the team name, purse remaining as a figure
-and a bar, and the squad and overseas counts. The lot card sits in the middle; the squad list below
-it. The bottom of the screen is one full-width button that reads **Bid 40 L** — the actual next
-amount, not the increment. When a rule blocks the bid, the button is disabled and wears the reason.
-Toasts announce taking the lead and being outbid, tracked through a ref so a team is only told it was
-outbid if it was actually leading.
+A laptop war room on the same `#0a0f18` ground, split in half, with the team's own colour bled in as a
+faint radial bloom from the top-right corner. A sticky header carries the team name over a glowing
+accent rule, the purse remaining, and pill counters for squad and overseas slots.
+
+The left half is the paddle: a glass card with the player, the live price, and one colossal button
+beneath it whose four states say exactly where the team stands — *Waiting for Auctioneer* when
+nothing can be bid, *Raise Paddle* with the ladder amount when it can, *You hold the bid* locked out
+in yellow when it leads, and *Outbid! Click to Counter* pulsing red when it just lost the lot. That
+last state is tracked through a ref, so a team is only told it was outbid if it was actually leading.
+Spacebar is the paddle.
+
+The right half is the squad matrix: 25 slots in a dense grid, empty ones as hollow rings, filled ones
+as the player's photo ringed in their role's colour — blue batters, green bowlers, purple
+all-rounders, amber keepers.
 
 ### Big screen
 
@@ -397,7 +405,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 9 files, 61 tests
+### Tests — 10 files, 73 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -410,7 +418,7 @@ fake.
 | `seed.test.ts` | 10 teams, 254 players, curated roles, set split. |
 | `socket-server.test.ts` | Room join and rebroadcast against an ephemeral server. |
 | `socket-emitter.test.ts` | The fail-open path — a dead relay must not throw. |
-| `admin-console` · `pin-gate` · `brutal-card` | Rendering and interaction, via Testing Library. |
+| `admin-console` · `team-console` · `pin-gate` · `brutal-card` | Rendering and interaction, via Testing Library. |
 
 ### Running it
 

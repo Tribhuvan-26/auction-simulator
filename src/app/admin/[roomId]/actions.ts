@@ -28,7 +28,7 @@ export type AdminSnapshot = {
     id: string; name: string; shortCode: string; colorAccent: string
     purseTotal: number; purseRemaining: number; squadCount: number; squadMax: number
     overseasSlotsUsed: number; overseasSlotsMax: number
-    squad: { id: string; name: string; role: string; price: number }[]
+    squad: { id: string; name: string; role: string; price: number; photoUrl: string | null }[]
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
@@ -113,7 +113,13 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
       squadMax: t.squadMax,
       overseasSlotsUsed: t.overseasSlotsUsed,
       overseasSlotsMax: t.overseasSlotsMax,
-      squad: t.players.map((p) => ({ id: p.id, name: p.name, role: p.role, price: p.soldPrice ?? 0 })),
+      squad: t.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        price: p.soldPrice ?? 0,
+        photoUrl: p.photoUrl,
+      })),
     })),
     queue: queueRaw.map((p) => ({
       id: p.id,

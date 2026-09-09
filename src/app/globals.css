@@ -62,8 +62,16 @@
 }
 .anim-glow-pulse { animation: glow-pulse 1.4s ease-in-out infinite; }
 
+/* Outbid alarm on the team paddle: a heavy pulse the bidder can't miss from
+ * across a room, not a polite fade. */
+@keyframes paddle-alarm {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.55); }
+  50%      { transform: scale(1.015); box-shadow: 0 0 55px 8px rgba(225, 29, 72, 0.55); }
+}
+.anim-paddle-alarm { animation: paddle-alarm 0.85s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .anim-bid-pop, .anim-marquee, .anim-urgent, .anim-glow-pulse {
+  .anim-bid-pop, .anim-marquee, .anim-urgent, .anim-glow-pulse, .anim-paddle-alarm {
     animation: none !important;
   }
 }

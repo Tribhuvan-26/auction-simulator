@@ -8,10 +8,12 @@ export function PlayerAvatar({
   name,
   photoUrl,
   className,
+  style,
 }: {
   name: string
   photoUrl?: string | null
   className?: string
+  style?: React.CSSProperties
 }) {
   if (photoUrl) {
     return (
@@ -24,6 +26,7 @@ export function PlayerAvatar({
           'shrink-0 rounded-full border-[3px] border-brand-charcoal object-cover shadow-brutal',
           className
         )}
+        style={style}
       />
     )
   }
@@ -42,7 +45,7 @@ export function PlayerAvatar({
         'flex shrink-0 items-center justify-center rounded-full border-[3px] border-brand-charcoal font-heading font-bold text-brand-white shadow-brutal',
         className
       )}
-      style={{ background: 'linear-gradient(135deg, var(--color-blue), var(--color-pink))' }}
+      style={{ background: 'linear-gradient(135deg, var(--color-blue), var(--color-pink))', ...style }}
       aria-hidden
     >
       {initials}
