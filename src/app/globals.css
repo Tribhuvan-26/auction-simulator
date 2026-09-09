@@ -24,6 +24,11 @@
   --shadow-brutal-lg: 8px 8px 0 #282828;
   --shadow-brutal-pressed: 1px 1px 0 #282828;
   --shadow-brutal-white: 4px 4px 0 #FFFFFF;
+  /* Ambient glow: the hard offset shadow stays crisp, this stacks a soft
+   * colored bloom behind it so "important" surfaces read as lit, not flat. */
+  --shadow-glow-blue: 8px 8px 0 #282828, 0 25px 50px -12px rgba(32, 116, 213, 0.45);
+  --shadow-glow-yellow: 8px 8px 0 #282828, 0 25px 50px -12px rgba(249, 212, 123, 0.55);
+  --shadow-glow-pink: 8px 8px 0 #282828, 0 25px 50px -12px rgba(235, 84, 124, 0.5);
 }
 
 /* Court Brutalism motion. The bid-pop pulse, timer urgency pulse, and ticker
@@ -51,10 +56,67 @@
 .anim-marquee { animation: marquee 28s linear infinite; }
 .anim-urgent { animation: urgent-pulse 0.6s ease-in-out infinite; }
 
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: var(--shadow-glow-pink); }
+  50% { box-shadow: 8px 8px 0 #282828, 0 25px 60px -8px rgba(235, 84, 124, 0.8); }
+}
+.anim-glow-pulse { animation: glow-pulse 1.4s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .anim-bid-pop, .anim-marquee, .anim-urgent {
+  .anim-bid-pop, .anim-marquee, .anim-urgent, .anim-glow-pulse {
     animation: none !important;
   }
+}
+
+/* Layered plate: a solid color card offset behind the element via ::before,
+ * so surfaces read as thick stacked cardboard instead of flat cutouts.
+ * Needs `position: relative` (via .layer-plate) and a visible overflow on
+ * every ancestor up to the nearest scroll container. */
+.layer-plate {
+  position: relative;
+  isolation: isolate;
+}
+.layer-plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  border: 3px solid var(--color-charcoal);
+  transform: translate(14px, 14px);
+}
+.layer-plate-blue::before { background: var(--color-blue); }
+.layer-plate-yellow::before { background: var(--color-yellow); }
+.layer-plate-pink::before { background: var(--color-pink); }
+
+.shadow-glow-blue { box-shadow: var(--shadow-glow-blue); }
+.shadow-glow-yellow { box-shadow: var(--shadow-glow-yellow); }
+.shadow-glow-pink { box-shadow: var(--shadow-glow-pink); }
+
+/* Fine grain overlay for large flat charcoal surfaces (the display screen) —
+ * an SVG turbulence filter as a data-uri, blended in at low opacity so it
+ * reads as texture, not noise. */
+.bg-grain {
+  position: relative;
+}
+.bg-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Radial spotlight + dot-grid for the display screen's charcoal background —
+ * reads as a lit stage rather than one flat rectangle. */
+.bg-spotlight {
+  background-color: var(--color-charcoal);
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(32, 116, 213, 0.35), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
+  background-size: auto, 28px 28px;
 }
 
 /* Focus is structural here, not a ring: charcoal outline offset off the hard edge. */

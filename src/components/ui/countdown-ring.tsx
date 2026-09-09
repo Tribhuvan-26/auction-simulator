@@ -12,7 +12,10 @@ export function CountdownRing({ seconds, total }: { seconds: number; total: numb
   const critical = seconds <= 3
 
   return (
-    <div className={`relative h-32 w-32 shrink-0 ${critical ? 'anim-urgent' : ''}`}>
+    <div
+      className={`relative h-32 w-32 shrink-0 rounded-full transition-[filter] duration-300 ${critical ? 'anim-urgent' : ''}`}
+      style={urgent ? { filter: `drop-shadow(0 0 ${critical ? 18 : 10}px ${critical ? 'rgba(235,84,124,0.85)' : 'rgba(249,212,123,0.7)'})` } : undefined}
+    >
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
         <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="#282828" strokeWidth="10" opacity={0.3} />
         <circle

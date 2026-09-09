@@ -26,13 +26,14 @@ export function TeamChip({
       exit={{ x: -32, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 380, damping: 22 }}
       className={cn(
-        'inline-flex items-center gap-2 border-[3px] border-brand-charcoal px-3 py-2 text-brand-white',
+        'inline-flex items-center gap-2 rounded-xl border-[3px] border-brand-charcoal px-3 py-2 text-brand-white shadow-brutal',
         className
       )}
       style={{ backgroundColor: colorAccent }}
     >
-      <span className="font-heading text-xs font-bold opacity-80">{shortCode}</span>
-      <span className="font-heading font-bold">{name}</span>
+      <span className="h-2 w-2 shrink-0 rounded-full bg-brand-white/90" aria-hidden />
+      <span className="font-heading text-xs font-bold tracking-wide opacity-80">{shortCode}</span>
+      <span className="font-heading font-bold tracking-wide">{name}</span>
     </motion.div>
   )
 }
