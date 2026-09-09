@@ -40,7 +40,6 @@ model AuctionRoom {
   name         String
   phase        RoomPhase    @default(SETUP)
   round        Int          @default(1)
-  currentLotId String?
   createdAt    DateTime     @default(now())
   teams        Team[]
   players      Player[]

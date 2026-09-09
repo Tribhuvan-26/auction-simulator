@@ -119,7 +119,7 @@ holds the live price; **bids** are the append-only history behind that price.
 
 | Model | Key fields | Role |
 |---|---|---|
-| `AuctionRoom` | `name` · `phase` · `round` · `currentLotId` | One auction event. `phase` cycles SETUP → LIVE → PAUSED → COMPLETED. |
+| `AuctionRoom` | `name` · `phase` · `round` | One auction event. `phase` cycles SETUP → LIVE → PAUSED → COMPLETED. |
 | `Team` | `shortCode` · `colorAccent` · `purseTotal` · `purseRemaining` · `squadMin/Max` · `overseasSlotsUsed/Max` | A franchise seat. Seeded at ₹120 Cr, 25-player cap, 8 overseas slots. |
 | `Player` | `role` · `basePrice` · `photoUrl` · `isOverseas` · `setNumber` · `status` · `soldPrice` · `teamId` | A lot-in-waiting. `status` is UPCOMING → LIVE → SOLD or UNSOLD. |
 | `AuctionLot` | `playerId` (unique) · `currentBid` · `currentBiddingTeamId` · `status` · `timerSeconds` | The block itself. QUEUED → BIDDING → SOLD / UNSOLD. One lot per player, ever. |
@@ -132,14 +132,12 @@ holds the live price; **bids** are the append-only history behind that price.
 - `LotStatus` — QUEUED · BIDDING · SOLD · UNSOLD
 - `RoomPhase` — SETUP · LIVE · PAUSED · COMPLETED
 
-### Two migrations
+### Three migrations
 
 `20260909065705_init` lays down the schema. `20260909072719_add_fk_indexes_and_cascade` adds the
 foreign-key indexes and makes room deletion cascade, so dropping a test room doesn't strand its teams
-and players.
-
-> `AuctionRoom.currentLotId` exists in the schema but nothing reads or writes it. "The current lot"
-> is derived instead — the newest lot in the room. See part 5.
+and players. `20260909133800_drop_unused_lot_id` drops `AuctionRoom.currentLotId`, which nothing ever
+read — the current lot is derived instead, as the newest lot in the room. See part 5.
 
 ---
 
@@ -385,5 +383,3 @@ Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_P
   number it is given; the auctioneer is the clock.
 - **No auth.** Anyone with a team URL can bid as that team. Fine for a room where everyone is in the
   room; not fine anywhere else.
-- **Unused schema column.** `AuctionRoom.currentLotId` is never read or written. Either wire it up or
-  drop it — right now it's a comment pretending to be a column.
