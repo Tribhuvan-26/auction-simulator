@@ -9,8 +9,10 @@ import { CountdownRing } from '@/components/ui/countdown-ring'
 import { BidNumber } from '@/components/ui/bid-number'
 import { TeamChip } from '@/components/ui/team-chip'
 import { SoldStamp } from '@/components/ui/sold-stamp'
+import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { getAdminSnapshot, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
+import { Activity, BarChart3, Target, Percent } from 'lucide-react'
 
 export function DisplayBoard({
   roomId,
@@ -23,15 +25,29 @@ export function DisplayBoard({
   // on the transition instead of staying up for as long as the lot sits closed.
   const [stamp, setStamp] = useState<'SOLD' | 'UNSOLD' | null>(null)
   const stampTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [bidPulse, setBidPulse] = useState(false)
+  const pulseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, (event) => {
+    if (event.type === 'BID') {
+      setBidPulse(true)
+      clearTimeout(pulseTimer.current)
+      pulseTimer.current = setTimeout(() => setBidPulse(false), 1400)
+      return
+    }
     if (event.type !== 'SOLD' && event.type !== 'UNSOLD') return
     setStamp(event.type)
     clearTimeout(stampTimer.current)
     stampTimer.current = setTimeout(() => setStamp(null), 4000)
   })
 
-  useEffect(() => () => clearTimeout(stampTimer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(stampTimer.current)
+      clearTimeout(pulseTimer.current)
+    },
+    []
+  )
 
   const lot = snapshot.currentLot
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
@@ -39,48 +55,56 @@ export function DisplayBoard({
   const cardRef = useLotEntrance<HTMLElement>(lot?.id ?? 'none')
 
   return (
-    <main className="relative flex-1 overflow-hidden bg-brand-charcoal text-brand-white">
-      <div className="flex items-center justify-between border-b-[3px] border-brand-white/20 px-8 py-4">
+    <main className="relative flex h-screen flex-col overflow-hidden bg-spotlight bg-grain text-brand-white">
+      <div className="relative flex items-center justify-between border-b-[3px] border-brand-white/20 px-8 py-4">
         <h1 className="font-heading text-2xl font-bold">{snapshot.room.name}</h1>
-        <span className="border-[3px] border-brand-white bg-brand-yellow px-3 py-1 font-heading font-bold text-brand-charcoal">
+        <span className="border-[3px] border-brand-white bg-brand-yellow px-3 py-1 font-heading font-bold text-brand-charcoal rounded-xl">
           {snapshot.room.phase}
         </span>
       </div>
 
       {lot ? (
-        <div className="grid gap-8 px-8 py-8 lg:grid-cols-[1.4fr_1fr]">
-          <section ref={cardRef} className="border-[6px] border-brand-blue bg-brand-white p-8 text-brand-charcoal">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-heading text-sm font-bold">{lot.player.setNumber}</p>
-                <h2 className="font-heading text-6xl font-bold leading-[0.95] xl:text-7xl">
-                  {lot.player.name}
-                </h2>
-                <p className="mt-3 font-heading text-xl">
-                  {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-                  {lot.player.isOverseas ? ' · overseas' : ''}
-                </p>
-              </div>
-              <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-2 font-heading text-xl font-bold">
-                Base {formatMoney(lot.player.basePrice)}
-              </span>
-            </div>
+        <div className="relative grid flex-1 content-center items-center gap-10 px-8 py-10 lg:grid-cols-[1.4fr_1fr]">
+          <section
+            ref={cardRef}
+            className="layer-plate layer-plate-blue shadow-glow-blue relative flex flex-col items-center rounded-3xl border-[6px] border-brand-blue bg-brand-white p-8 text-center text-brand-charcoal"
+          >
+            <span className="absolute right-6 top-6 shrink-0 rounded-xl border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-2 font-heading text-xl font-bold">
+              Base {formatMoney(lot.player.basePrice)}
+            </span>
 
-            <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-2 font-heading md:grid-cols-4">
-              <Stat label="Matches" value={lot.player.matches} />
-              <Stat label="Runs" value={lot.player.runs} />
-              <Stat label="Wickets" value={lot.player.wickets} />
-              <Stat label="Average" value={lot.player.average} />
+            {/* Player photo is the focal point — always front-and-center, sized to
+                dominate the card regardless of stats/name length around it. */}
+            <PlayerAvatar
+              name={lot.player.name}
+              photoUrl={lot.player.photoUrl}
+              className="h-56 w-56 shrink-0 text-6xl xl:h-64 xl:w-64"
+            />
+
+            <p className="mt-4 font-heading text-sm font-bold">{lot.player.setNumber}</p>
+            <h2 className="font-heading text-6xl font-bold leading-[0.95] xl:text-7xl">{lot.player.name}</h2>
+            <p className="mt-3 font-heading text-xl">
+              {lot.player.role.replace('_', '-')} · {lot.player.nationality}
+              {lot.player.isOverseas ? ' · overseas' : ''}
+            </p>
+
+            <dl className="mt-8 grid w-full grid-cols-2 gap-x-8 gap-y-2 font-heading md:grid-cols-4">
+              <Stat icon={Activity} label="Matches" value={lot.player.matches} />
+              <Stat icon={BarChart3} label="Runs" value={lot.player.runs} />
+              <Stat icon={Target} label="Wickets" value={lot.player.wickets} />
+              <Stat icon={Percent} label="Average" value={lot.player.average} />
             </dl>
           </section>
 
-          <section className="flex flex-col gap-6">
-            <div className="border-[6px] border-brand-white bg-brand-white p-6 text-brand-charcoal">
+          <section className="flex flex-col gap-8">
+            <div className="layer-plate layer-plate-yellow shadow-glow-yellow rounded-3xl border-[6px] border-brand-white bg-brand-white p-6 text-brand-charcoal">
               <p className="font-heading text-sm font-bold">Current bid</p>
               <BidNumber value={lot.currentBid} className="block text-[6rem] leading-none xl:text-[8rem]" />
             </div>
 
-            <div className="flex items-center justify-between gap-4 border-[6px] border-brand-white px-6 py-5">
+            <div
+              className={`layer-plate layer-plate-pink shadow-glow-pink flex items-center justify-between gap-4 rounded-3xl border-[6px] border-brand-white px-6 py-5 ${bidPulse ? 'anim-glow-pulse' : ''}`}
+            >
               <div>
                 <p className="font-heading text-sm font-bold uppercase opacity-80">Leading</p>
                 <AnimatePresence mode="wait">
@@ -128,10 +152,21 @@ export function DisplayBoard({
   )
 }
 
-function Stat({ label, value }: { label: string; value: number | null }) {
+function Stat({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ size?: number; 'aria-hidden'?: boolean }>
+  label: string
+  value: number | null
+}) {
   return (
     <div className="border-t-[3px] border-brand-charcoal pt-2">
-      <dt className="text-sm font-bold">{label}</dt>
+      <dt className="flex items-center justify-center gap-1 text-sm font-bold">
+        <Icon size={14} aria-hidden />
+        {label}
+      </dt>
       <dd className="text-3xl font-bold tabular-nums">{value ?? '—'}</dd>
     </div>
   )
