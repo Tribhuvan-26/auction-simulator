@@ -23,14 +23,14 @@ describe('seed', () => {
     await prisma.$disconnect()
   })
 
-  it('creates exactly 8 teams', async () => {
+  it('creates exactly 10 teams', async () => {
     const teams = await prisma.team.findMany({ where: { roomId } })
-    expect(teams).toHaveLength(8)
+    expect(teams).toHaveLength(10)
   })
 
-  it('creates exactly 40 players', async () => {
+  it('creates exactly 77 players', async () => {
     const players = await prisma.player.findMany({ where: { roomId } })
-    expect(players).toHaveLength(40)
+    expect(players).toHaveLength(77)
   })
 
   it('covers all four player roles', async () => {
