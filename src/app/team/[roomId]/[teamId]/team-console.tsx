@@ -215,6 +215,8 @@ export function TeamConsole({
           </div>
         </section>
       </div>
+
+      <div className="telemetry-footer shrink-0">// NEO-GRID POP SYSTEM TELEMETRY v2.1 // DEPLOYED //</div>
     </div>
   )
 }
@@ -227,10 +229,10 @@ const PADDLE_COPY: Record<PaddleState, string> = {
 }
 
 const PADDLE_CLASS: Record<PaddleState, string> = {
-  idle: 'bg-[#111318] text-slate-500 border border-white/5 cursor-not-allowed',
-  active: 'bg-brand-blue text-white shadow-[0_0_40px_rgba(32,116,213,0.4)]',
-  winning: 'bg-yellow-500 text-black pointer-events-none',
-  outbid: 'anim-paddle-alarm bg-rose-600 text-white',
+  idle: 'bg-brand-white/60 text-brand-charcoal/40 border-[3px] border-brand-charcoal cursor-not-allowed',
+  active: 'bg-brand-blue text-brand-white border-[3px] border-brand-charcoal shadow-brutal',
+  winning: 'bg-brand-yellow text-brand-charcoal border-[3px] border-brand-charcoal shadow-brutal pointer-events-none',
+  outbid: 'anim-paddle-alarm bg-brand-pink text-brand-charcoal border-[3px] border-brand-charcoal',
 }
 
 function PaddleButton({
