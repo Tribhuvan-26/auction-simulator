@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Gavel, TriangleAlert } from 'lucide-react'
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
+import { SectionHeader } from '@/components/ui/brutal-card'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { formatMoney } from '@/lib/money'
@@ -103,66 +104,49 @@ export function TeamConsole({
   const squadSlots = Array.from({ length: team.squadMax }, (_, i) => team.squad[i] ?? null)
 
   return (
-    <div
-      className="font-body flex h-screen w-screen flex-col overflow-hidden bg-[#0a0f18] text-slate-200"
-      style={{ ['--team-accent' as string]: team.colorAccent }}
-    >
-      {/* Roster header */}
-      <header className="z-50 flex h-20 w-full shrink-0 items-center justify-between border-b border-white/10 bg-black/40 px-10 backdrop-blur-md">
-        <h1
-          className="font-heading border-b-4 pb-1 text-2xl font-black text-white"
-          style={{ borderColor: team.colorAccent, boxShadow: `0 6px 18px -6px ${team.colorAccent}` }}
-        >
-          {team.name}
-        </h1>
+    <div className="font-body flex h-screen w-screen flex-col overflow-hidden bg-grid-paper text-brand-charcoal">
+      <h1 className="shrink-0 border-b-[3px] border-brand-charcoal px-8 pt-4 pb-2 font-heading text-3xl font-black uppercase leading-none tracking-tight md:text-4xl">
+        Team Dashboard: {team.name}
+      </h1>
 
-        <div className="flex items-center gap-5">
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-widest text-slate-500">Purse remaining</p>
-            <p className="font-heading text-3xl font-black leading-none tabular-nums text-white">
-              {formatMoney(team.purseRemaining)}
-            </p>
-          </div>
-          <span className="font-heading rounded-full bg-white/10 px-4 py-1 text-sm tabular-nums text-slate-300">
-            Squad {team.squadCount}/{team.squadMax}
-          </span>
-          <span className="font-heading rounded-full bg-white/10 px-4 py-1 text-sm tabular-nums text-slate-300">
-            Overseas {team.overseasSlotsUsed}/{team.overseasSlotsMax}
-          </span>
+      {/* Roster header */}
+      <header className="z-50 flex h-16 w-full shrink-0 items-center justify-end gap-3 border-b-[3px] border-brand-charcoal bg-brand-white px-8">
+        <div className="border-[3px] border-brand-charcoal bg-brand-pink px-4 py-1 text-right">
+          <p className="font-heading text-[10px] font-bold uppercase tracking-widest">Purse remaining</p>
+          <p className="font-heading text-xl font-black leading-none tabular-nums">
+            {formatMoney(team.purseRemaining)}
+          </p>
         </div>
+        <span className="font-heading text-sm font-bold tabular-nums">
+          Squad {team.squadCount}/{team.squadMax}
+        </span>
+        <span className="font-heading text-sm font-bold tabular-nums">
+          Overseas {team.overseasSlotsUsed}/{team.overseasSlotsMax}
+        </span>
       </header>
 
       <div className="relative flex min-h-0 flex-1">
-        {/* The team's own colour bleeding into the room, kept faint. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
-          style={{
-            background: `radial-gradient(circle at top right, ${team.colorAccent} 0%, transparent 40%)`,
-          }}
-        />
-
         {/* ── Paddle (50%) ──────────────────────────────────── */}
-        <section className="relative flex h-full w-1/2 flex-col justify-center gap-6 p-10">
+        <section className="relative flex h-full w-1/2 flex-col justify-center gap-4 p-8">
           {lot ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-lg">
+            <div className="border-[3px] border-brand-blue bg-brand-white p-6 text-center shadow-brutal">
               <PlayerAvatar
                 name={lot.player.name}
                 photoUrl={lot.player.photoUrl}
-                className="mx-auto h-40 w-40 border border-white/15 text-3xl"
+                className="mx-auto h-36 w-36 border-[3px] border-brand-charcoal text-3xl"
               />
-              <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-yellow-500">
+              <p className="mt-4 font-heading text-xs font-bold uppercase tracking-[0.2em] text-brand-charcoal/60">
                 {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
               </p>
-              <h2 className="font-heading mt-1 text-5xl font-black tracking-tight text-white">{lot.player.name}</h2>
-              <p className="mt-1 text-lg text-slate-400">
+              <h2 className="font-heading mt-1 text-4xl font-black tracking-tight">{lot.player.name}</h2>
+              <p className="mt-1 text-lg text-brand-charcoal/70">
                 {lot.player.role.replace('_', '-')} • {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
               </p>
               <BidNumber
                 value={lot.currentBid}
-                className="font-heading mt-4 block text-7xl font-black leading-none tabular-nums text-[#facc15]"
+                className="font-heading mt-4 inline-block border-[3px] border-brand-charcoal bg-brand-pink px-4 py-1 text-5xl font-black leading-none tabular-nums"
               />
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-brand-charcoal/60">
                 {closed
                   ? lot.status
                   : leading
