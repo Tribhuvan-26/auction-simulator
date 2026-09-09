@@ -8,8 +8,8 @@ vi.mock('@/app/admin/[roomId]/actions', () => ({
 }))
 
 const queue: AdminSnapshot['queue'] = [
-  { id: 'p1', name: 'Alice Batter', role: 'BATTER', basePrice: 20, setNumber: 'Marquee Set', status: 'UPCOMING' },
-  { id: 'p2', name: 'Bob Bowler', role: 'BOWLER', basePrice: 30, setNumber: 'Set 2', status: 'UPCOMING' },
+  { id: 'p1', name: 'Alice Batter', role: 'BATTER', basePrice: 20, setNumber: 'Marquee Set', status: 'UPCOMING', photoUrl: null },
+  { id: 'p2', name: 'Bob Bowler', role: 'BOWLER', basePrice: 30, setNumber: 'Set 2', status: 'UPCOMING', photoUrl: null },
 ]
 
 describe('PlayerQueue', () => {

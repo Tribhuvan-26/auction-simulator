@@ -5,6 +5,7 @@ import { formatMoney } from '@/lib/money'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
 import { BidNumber } from '@/components/ui/bid-number'
+import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { Play, Pause, RotateCcw, Plus, Check, X, Undo2 } from 'lucide-react'
 import {
   placeBid,
@@ -64,13 +65,16 @@ export function LiveLotControl({
       className="flex-1 flex flex-col gap-4"
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-heading text-xs font-bold">{lot.player.setNumber}</p>
-          <h2 className="font-heading text-4xl font-bold leading-tight">{lot.player.name}</h2>
-          <p className="mt-1 text-sm">
-            {lot.player.role.replace('_', '-')} · {lot.player.nationality}
-            {lot.player.isOverseas ? ' · overseas' : ''} · {lot.player.matches} matches
-          </p>
+        <div className="flex items-start gap-3">
+          <PlayerAvatar name={lot.player.name} photoUrl={lot.player.photoUrl} className="h-14 w-14 text-sm" />
+          <div>
+            <p className="font-heading text-xs font-bold">{lot.player.setNumber}</p>
+            <h2 className="font-heading text-4xl font-bold leading-tight">{lot.player.name}</h2>
+            <p className="mt-1 text-sm">
+              {lot.player.role.replace('_', '-')} · {lot.player.nationality}
+              {lot.player.isOverseas ? ' · overseas' : ''} · {lot.player.matches} matches
+            </p>
+          </div>
         </div>
         <span className="shrink-0 border-[3px] border-brand-charcoal bg-brand-yellow px-2 py-1 font-heading text-sm font-bold">
           Base {formatMoney(lot.player.basePrice)}

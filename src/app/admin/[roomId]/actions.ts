@@ -28,7 +28,7 @@ export type AdminSnapshot = {
     overseasSlotsUsed: number; overseasSlotsMax: number
     squad: { id: string; name: string; role: string; price: number }[]
   }[]
-  queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string }[]
+  queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
 }
 
@@ -113,6 +113,7 @@ export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
       basePrice: p.basePrice,
       setNumber: p.setNumber,
       status: p.status,
+      photoUrl: p.photoUrl,
     })),
     soldLog: soldRaw.map((p) => ({
       id: p.id,

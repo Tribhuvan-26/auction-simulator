@@ -118,16 +118,18 @@ export function AdminConsole({
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 flex-wrap items-start gap-4">
+      <div className="flex flex-1 flex-wrap items-start gap-6">
         <PlayerQueue roomId={roomId} queue={snapshot.queue} onSnapshot={setSnapshot} />
+        <div className="hidden w-px self-stretch bg-brand-white/15 lg:block" aria-hidden />
         <LiveLotControl roomId={roomId} snapshot={snapshot} onSnapshot={setSnapshot} />
+        <div className="hidden w-px self-stretch bg-brand-white/15 lg:block" aria-hidden />
         <TeamPurseTable
           teams={snapshot.teams}
           activeBiddingTeamId={snapshot.currentLot?.currentBiddingTeamId ?? null}
         />
       </div>
 
-      <BidLog bidHistory={snapshot.currentLot?.bidHistory ?? []} />
+      <BidLog bidHistory={snapshot.currentLot?.bidHistory ?? []} teams={snapshot.teams} />
     </div>
   )
 }

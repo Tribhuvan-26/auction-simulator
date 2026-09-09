@@ -4,6 +4,7 @@ import { formatMoney } from '@/lib/money'
 import { useState } from 'react'
 import { BrutalCard } from '@/components/ui/brutal-card'
 import { BrutalButton } from '@/components/ui/brutal-button'
+import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { advanceToNextLot, type AdminSnapshot } from '@/app/admin/[roomId]/actions'
 import { Search, ArrowRight } from 'lucide-react'
 
@@ -69,11 +70,14 @@ export function PlayerQueue({
           {filtered.map((p) => (
             <li
               key={p.id}
-              className="flex items-baseline justify-between gap-2 border-[3px] border-brand-charcoal px-2 py-1"
+              className="flex items-center justify-between gap-2 rounded-xl border-[3px] border-brand-charcoal px-2 py-1"
             >
-              <span className="truncate">
-                <span className="font-heading font-bold">{p.name}</span>
-                <span className="block text-xs">{p.setNumber}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <PlayerAvatar name={p.name} photoUrl={p.photoUrl} className="h-8 w-8 text-[10px]" />
+                <span className="truncate">
+                  <span className="font-heading font-bold">{p.name}</span>
+                  <span className="block text-xs">{p.setNumber}</span>
+                </span>
               </span>
               <span className="shrink-0 font-heading text-sm tabular-nums">{formatMoney(p.basePrice)}</span>
             </li>
