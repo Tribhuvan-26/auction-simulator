@@ -10,7 +10,7 @@ purely to tell every screen when to re-read it.
 | Squads | 10 teams |
 | Players | 254 |
 | Photos | 247 |
-| Tests | 42 passing, 9 files |
+| Tests | 48 passing, 10 files |
 
 **Contents**
 
@@ -37,7 +37,7 @@ The software's job is to keep all of those screens agreeing with each other.
 | Seat | Route | What it is |
 |---|---|---|
 | **Admin console** | `/admin/[roomId]` | The auctioneer. Loads the next player, raises bids on behalf of the room, works the timer, calls sold or unsold, undoes mistakes. |
-| **Team seat** | `/team/[roomId]/[teamId]` | One per franchise. Shows the lot, your purse, your squad, and a single big Bid button that raises by 5 lakh. |
+| **Team seat** | `/team/[roomId]/[teamId]` | One per franchise. Shows the lot, your purse, your squad, and a single big Bid button showing the one legal next amount. |
 | **Big screen** | `/display/[roomId]` | Projector view. Player photo, live bid figure, countdown ring, who holds the lot, and the SOLD slam with confetti. |
 
 The landing page at `/` lists every room in the database and hands out the links to all three — it's
@@ -47,8 +47,8 @@ the page you put on screen while people find their seats.
 
 1. Auctioneer hits **Load next player**. The first `UPCOMING` player becomes a `QUEUED` lot at their
    base price.
-2. A team taps **Bid**, or the auctioneer clicks a +5 / +10 / +20 increment. The lot flips to
-   `BIDDING`.
+2. A team taps **Bid**, or the auctioneer raises on their behalf. There is exactly one legal
+   amount — the ladder in part 5 sets it. The lot flips to `BIDDING`.
 3. Every raise writes a `Bid` row and pushes the lot's `currentBid` and holder forward.
 4. Going once, going twice — the auctioneer presses <kbd>S</kbd> for sold or <kbd>U</kbd> for unsold.
 5. Sold debits the winning team's purse, files the player into their squad, and burns an overseas
@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 9 files, 42 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 10 files, 48 tests, hitting a real database. |
 
 ### Where everything lives
 
@@ -213,6 +213,23 @@ clients, so the button being disabled is a courtesy, not a guarantee.
 - **Squad full** — `squadCount >= squadMax`.
 - **Overseas slots full** — an overseas player when `overseasSlotsUsed >= overseasSlotsMax`.
 
+### The bid ladder
+
+`getNextBidAmount(currentBid, basePrice)` returns the one amount a team may bid next, in whole lakhs:
+
+| Current bid | Next raise |
+|---|---|
+| below base price | opens *at* the base price |
+| under ₹1 Cr (< 100) | +5 L |
+| ₹1 Cr to under ₹2 Cr | +10 L |
+| ₹2 Cr to under ₹5 Cr | +20 L |
+| ₹5 Cr and above | +25 L |
+
+`placeBid` recomputes this from the lot's own row and throws on any mismatch, *before* the rules
+above run — checking an arbitrary client amount against a purse is meaningless until the amount
+itself is known legal. Both consoles render that same amount, so the button always says what the
+server will accept.
+
 ### Which lot is "the" lot
 
 There is no pointer column in play, so every action resolves the current lot by query: the newest lot
@@ -274,7 +291,7 @@ confirmation modal.
 
 - **Player queue** — search by name, filter by role, photo thumbnails, and the *Load next player*
   button.
-- **Live lot control** — the player on the block, +5 / +10 / +20 increments against a chosen team,
+- **Live lot control** — the player on the block, a *Raise to X* button against a chosen team,
   timer controls, sold/unsold/undo. Rejected bids surface their reason inline instead of failing
   silently.
 - **Team purse table** — ten rows, purse remaining, squad count, overseas count, with the team
@@ -341,7 +358,7 @@ yellow / pink / plain / dark, with a real physical press) · `BidNumber` · `Cou
 
 ## 9. Tests, ops & gaps
 
-### Tests — 9 files, 42 tests
+### Tests — 10 files, 48 tests
 
 The action and seed tests run against a **real Postgres database**, creating and tearing down their
 own rooms. There are no Prisma mocks, so a broken query fails the suite rather than passing against a
@@ -349,7 +366,8 @@ fake.
 
 | Suite | Covers |
 |---|---|
-| `actions.test.ts` | Snapshot shape, every mutation, bid rejection, the one-open-lot invariant. |
+| `actions.test.ts` | Snapshot shape, every mutation, off-tier and rule rejection, the one-open-lot invariant. |
+| `bid-rules.test.ts` | Every rung of the bid ladder, including the tier boundaries. |
 | `seed.test.ts` | 10 teams, 254 players, curated roles, set split. |
 | `socket-server.test.ts` | Room join and rebroadcast against an ephemeral server. |
 | `socket-emitter.test.ts` | The fail-open path — a dead relay must not throw. |
