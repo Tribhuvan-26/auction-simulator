@@ -28,3 +28,7 @@ npm run build      # next build
 ```
 
 Copy `.env.example` to `.env` and adjust `DATABASE_URL`, `NEXT_PUBLIC_SOCKET_URL`, and `SOCKET_PORT` as needed.
+
+## Architecture
+
+Full teardown of the system, in nine parts: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
