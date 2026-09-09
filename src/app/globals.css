@@ -113,50 +113,17 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Deep vinyl: concentric record grooves cut into the charcoal, with the three
- * brand hues pooled on top at full saturation. The grooves are a low-contrast
- * white repeat so they read as texture; the color washes sit ABOVE them in the
- * background-image stack, so nothing desaturates the brand palette. */
+/* Deep vinyl: concentric record grooves. Grooves only — the brand pools are a
+ * separate layer painted ABOVE this in the console, so nothing washes the
+ * accents out. */
 .bg-vinyl {
-  background-color: var(--color-charcoal);
-  background-image:
-    radial-gradient(circle at 12% 8%, rgba(32, 116, 213, 0.55), transparent 42%),
-    radial-gradient(circle at 88% 92%, rgba(235, 84, 124, 0.4), transparent 45%),
-    radial-gradient(circle at 78% 4%, rgba(249, 212, 123, 0.28), transparent 38%),
-    repeating-radial-gradient(
-      circle at 30% 40%,
-      rgba(255, 255, 255, 0.045) 0 1px,
-      transparent 1px 5px
-    );
-}
-
-/* Sweep of light across a label, for the button the auctioneer must not miss. */
-@keyframes shine-sweep {
-  from { background-position: -220% 0; }
-  to   { background-position: 220% 0; }
-}
-.shiny-text {
-  position: relative;
-  display: inline-block;
-}
-.shiny-text__sweep {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(
-    100deg,
-    transparent 42%,
-    rgba(255, 255, 255, 0.95) 50%,
-    transparent 58%
+  background-color: #1a1d24;
+  background-image: repeating-radial-gradient(
+    circle at 30% 35%,
+    rgba(255, 255, 255, 0.02) 0px,
+    transparent 2px,
+    transparent 12px
   );
-  background-size: 220% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shine-sweep 2.6s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shiny-text__sweep { display: none; }
 }
 
 /* Radial spotlight + dot-grid for the display screen's charcoal background —

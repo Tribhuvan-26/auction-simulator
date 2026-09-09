@@ -104,7 +104,7 @@ src/app/
 src/components/
   ui/      brutal-card · brutal-button · bid-number · countdown-ring
            sold-stamp · confetti-burst · team-chip · player-avatar
-           pin-gate · split-reveal · shiny-text
+           pin-gate · split-reveal
 src/hooks/    use-live-snapshot · use-lot-entrance
 src/lib/      bid-rules · money · prisma · socket-emitter · fonts · cn
 public/players/  247 player photos (~38 MB)
@@ -318,20 +318,22 @@ in a shared link only prefills the box; the cookie is always set by the action.
 
 ### Admin console
 
-One full-screen stage on a vinyl-textured charcoal ground — concentric grooves under pooled brand
-colour, no scrolling. Glass plates (`bg-black/40`, backdrop blur, 4px charcoal borders) rather than
-white cards.
+A broadcast-grade command centre on `#1a1d24`, split 70/30 and never scrolling. The left pane carries
+concentric vinyl grooves with the brand colours pooled in a layer *above* them, so the accents stay
+saturated rather than sitting under a scrim. Surfaces are recessed glass — `bg-white/5`,
+`border-white/10` — not cards.
 
 - **Stage (left 70%)** — the player's photo at 192px with a hard offset shadow, their name and role
   revealed character by character on every lot change (GSAP `SplitText`, free since 3.13, so no
   hand-rolled splitter), and the live price in `font-black` yellow, rolling up to each new figure
   rather than snapping.
-- **Bidding grid** — all ten franchises in a 5×2 grid, idle at half opacity and greyscale. Clicking
-  one bids the ladder's next amount for that team; a team that can't afford it, or has no squad or
-  overseas room, is disabled with the reason on hover. The team holding the lot animates to full
-  colour, `scale: 1.05`, and a blue glow.
-- **Command plate** — fixed bar across the bottom: sold (with a light sweeping over the label),
-  unsold, undo, the four timer controls, and a jump-bid box for naming a team and amount directly.
+- **Bidding grid** — all ten franchises in a 5×2 grid, recessed glass with a muted accent dot, their
+  purse and squad count on the chip. Clicking one bids the ladder's next amount for that team; a team
+  that can't afford it, or has no squad or overseas room, is disabled with the reason on hover. The
+  team holding the lot flips to a yellow chip with a blue border and a 30px blue glow at
+  `scale: 1.05`.
+- **Command bar** — fixed `h-20` strip on `#111318`: sold, unsold, a vivid undo, four white
+  icon buttons for the timer, and a jump-bid box for naming a team and amount directly.
 - **Ledger (right 30%)** — the bid log, newest sliding in at the top, and a purse matrix that flashes
   a team's row white the moment their purse drops.
 
