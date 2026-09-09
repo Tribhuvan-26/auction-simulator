@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seed } from './seed'
+import { seed, generatePasscodes } from './seed'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -21,6 +21,13 @@ describe('seed', () => {
     await prisma.team.deleteMany({ where: { roomId } })
     await prisma.auctionRoom.delete({ where: { id: roomId } })
     await prisma.$disconnect()
+  })
+
+  it('gives every team a distinct 4-digit PIN', async () => {
+    const teams = await prisma.team.findMany({ where: { roomId } })
+    const pins = teams.map((t) => t.passcode)
+    expect(pins.every((p) => /^\d{4}$/.test(p))).toBe(true)
+    expect(new Set(pins).size).toBe(teams.length)
   })
 
   it('creates exactly 10 teams', async () => {
@@ -55,5 +62,14 @@ describe('seed', () => {
     const players = await prisma.player.findMany({ where: { roomId } })
     const sets = new Set(players.map((p) => p.setNumber))
     expect(sets.size).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('generatePasscodes', () => {
+  it('returns the asked-for number of distinct 4-digit PINs', () => {
+    const pins = generatePasscodes(10)
+    expect(pins).toHaveLength(10)
+    expect(new Set(pins).size).toBe(10)
+    expect(pins.every((p) => /^\d{4}$/.test(p))).toBe(true)
   })
 })

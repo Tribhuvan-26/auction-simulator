@@ -1,4 +1,5 @@
 // prisma/seed.ts
+import { randomInt } from 'crypto'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { PrismaClient, PlayerRole } from '@prisma/client'
@@ -48,6 +49,17 @@ function loadRoles(): Record<string, PlayerRole> {
   return JSON.parse(readFileSync(ROLES_PATH, 'utf-8'))
 }
 
+/**
+ * One 4-digit PIN per team seat, drawn from a CSPRNG and distinct within the
+ * room (the schema enforces that too). Sequential or name-derived PINs would
+ * let anyone holding one seat guess the rest.
+ */
+export function generatePasscodes(count: number): string[] {
+  const pins = new Set<string>()
+  while (pins.size < count) pins.add(String(randomInt(0, 10000)).padStart(4, '0'))
+  return [...pins]
+}
+
 export async function seed(prisma: PrismaClient) {
   const officialPlayers = loadOfficialPlayers()
   const rolesByName = loadRoles()
@@ -60,7 +72,8 @@ export async function seed(prisma: PrismaClient) {
   })
 
   const teamIdByName = new Map<string, string>()
-  for (const teamName of teamNames) {
+  const passcodes = generatePasscodes(teamNames.length)
+  for (const [i, teamName] of teamNames.entries()) {
     const meta = TEAM_META[teamName]
     const team = await prisma.team.create({
       data: {
@@ -73,10 +86,17 @@ export async function seed(prisma: PrismaClient) {
         squadMax: 25,
         squadMin: 18,
         overseasSlotsMax: 8,
+        passcode: passcodes[i],
       },
     })
     teamIdByName.set(teamName, team.id)
   }
+
+  console.log('\nTeam seat PINs — hand one to each table:')
+  for (const [i, teamName] of teamNames.entries()) {
+    console.log(`  ${TEAM_META[teamName].code.padEnd(5)} ${passcodes[i]}  ${teamName}`)
+  }
+  console.log()
 
   for (const p of officialPlayers) {
     await prisma.player.create({

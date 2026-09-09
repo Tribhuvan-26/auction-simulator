@@ -60,9 +60,11 @@ model Team {
   squadMin          Int
   overseasSlotsMax  Int
   overseasSlotsUsed Int          @default(0)
+  passcode          String
   players           Player[]
   bids              Bid[]
 
+  @@unique([roomId, passcode])
   @@index([roomId])
 }
 

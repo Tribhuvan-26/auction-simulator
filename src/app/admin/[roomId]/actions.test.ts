@@ -21,7 +21,7 @@ describe('getAdminSnapshot', () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Test Room', phase: 'LIVE' } })
     roomId = room.id
     const team = await prisma.team.create({
-      data: { roomId, name: 'Test Team', shortCode: 'TST', purseTotal: 10000, purseRemaining: 9000, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+      data: { roomId, name: 'Test Team', shortCode: 'TST', purseTotal: 10000, purseRemaining: 9000, squadMax: 25, squadMin: 18, passcode: '9001', overseasSlotsMax: 8 },
     })
     teamId = team.id
     const player = await prisma.player.create({
@@ -78,7 +78,7 @@ describe('placeBid', () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Bid Room', phase: 'LIVE' } })
     roomId = room.id
     const team = await prisma.team.create({
-      data: { roomId, name: 'Bid Team', shortCode: 'BID', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+      data: { roomId, name: 'Bid Team', shortCode: 'BID', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, passcode: '9002', overseasSlotsMax: 8 },
     })
     teamId = team.id
     const player = await prisma.player.create({
@@ -115,7 +115,7 @@ describe('markSold', () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Sold Room', phase: 'LIVE' } })
     roomId = room.id
     const team = await prisma.team.create({
-      data: { roomId, name: 'Sold Team', shortCode: 'SLD', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+      data: { roomId, name: 'Sold Team', shortCode: 'SLD', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, passcode: '9003', overseasSlotsMax: 8 },
     })
     teamId = team.id
     const player = await prisma.player.create({
@@ -185,7 +185,7 @@ describe('undoLastBid', () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Undo Room', phase: 'LIVE' } })
     roomId = room.id
     const team = await prisma.team.create({
-      data: { roomId, name: 'Undo Team', shortCode: 'UND', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+      data: { roomId, name: 'Undo Team', shortCode: 'UND', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, passcode: '9004', overseasSlotsMax: 8 },
     })
     teamId = team.id
     const player = await prisma.player.create({
@@ -303,11 +303,11 @@ describe('placeBid validation', () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Guard Room', phase: 'LIVE' } })
     roomId = room.id
     const team = await prisma.team.create({
-      data: { roomId, name: 'Broke Team', shortCode: 'BRK', purseTotal: 100, purseRemaining: 100, squadMax: 25, squadMin: 18, overseasSlotsMax: 0 },
+      data: { roomId, name: 'Broke Team', shortCode: 'BRK', purseTotal: 100, purseRemaining: 100, squadMax: 25, squadMin: 18, passcode: '9005', overseasSlotsMax: 0 },
     })
     teamId = team.id
     const poor = await prisma.team.create({
-      data: { roomId, name: 'Poor Team', shortCode: 'POR', purseTotal: 100, purseRemaining: 10, squadMax: 25, squadMin: 18, overseasSlotsMax: 8 },
+      data: { roomId, name: 'Poor Team', shortCode: 'POR', purseTotal: 100, purseRemaining: 10, squadMax: 25, squadMin: 18, passcode: '9006', overseasSlotsMax: 8 },
     })
     poorTeamId = poor.id
     const player = await prisma.player.create({
