@@ -30,8 +30,10 @@ export type AdminSnapshot = {
 export async function getAdminSnapshot(roomId: string): Promise<AdminSnapshot> {
   const room = await prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } })
 
+  // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
+  // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
   const lot = await prisma.auctionLot.findFirst({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    where: { roomId },
     include: { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } },
     orderBy: { id: 'desc' },
   })
@@ -113,5 +115,119 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   ])
 
   await emitAuctionEvent(roomId, { type: 'BID', teamId, amount })
+  return getAdminSnapshot(roomId)
+}
+
+export async function markSold(roomId: string): Promise<AdminSnapshot> {
+  const lot = await prisma.auctionLot.findFirstOrThrow({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+  })
+  if (!lot.currentBiddingTeamId) throw new Error('Cannot mark sold with no bidding team')
+
+  await prisma.$transaction([
+    prisma.auctionLot.update({ where: { id: lot.id }, data: { status: 'SOLD' } }),
+    prisma.player.update({
+      where: { id: lot.playerId },
+      data: { status: 'SOLD', teamId: lot.currentBiddingTeamId, soldPrice: lot.currentBid },
+    }),
+    prisma.team.update({
+      where: { id: lot.currentBiddingTeamId },
+      data: { purseRemaining: { decrement: lot.currentBid } },
+    }),
+  ])
+
+  await emitAuctionEvent(roomId, { type: 'SOLD' })
+  return getAdminSnapshot(roomId)
+}
+
+export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
+  const lot = await prisma.auctionLot.findFirstOrThrow({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+  })
+
+  await prisma.$transaction([
+    prisma.auctionLot.update({ where: { id: lot.id }, data: { status: 'UNSOLD' } }),
+    prisma.player.update({ where: { id: lot.playerId }, data: { status: 'UNSOLD' } }),
+  ])
+
+  await emitAuctionEvent(roomId, { type: 'UNSOLD' })
+  return getAdminSnapshot(roomId)
+}
+
+export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
+  const lot = await prisma.auctionLot.findFirstOrThrow({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+    include: { player: true },
+  })
+
+  const lastBid = await prisma.bid.findFirst({ where: { lotId: lot.id }, orderBy: { timestamp: 'desc' } })
+  if (!lastBid) return getAdminSnapshot(roomId)
+
+  const remaining = await prisma.bid.findMany({
+    where: { lotId: lot.id, id: { not: lastBid.id } },
+    orderBy: { timestamp: 'desc' },
+  })
+  const newHead = remaining[0]
+
+  await prisma.$transaction([
+    prisma.bid.delete({ where: { id: lastBid.id } }),
+    prisma.auctionLot.update({
+      where: { id: lot.id },
+      data: {
+        currentBid: newHead ? newHead.amount : lot.player.basePrice,
+        currentBiddingTeamId: newHead ? newHead.teamId : null,
+      },
+    }),
+  ])
+
+  await emitAuctionEvent(roomId, { type: 'UNDO' })
+  return getAdminSnapshot(roomId)
+}
+
+const TIMER_DEFAULT_SECONDS = 30
+
+export async function controlTimer(
+  roomId: string,
+  action: 'start' | 'pause' | 'reset' | 'add10'
+): Promise<AdminSnapshot> {
+  const lot = await prisma.auctionLot.findFirstOrThrow({
+    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+  })
+
+  const timerSeconds =
+    action === 'reset' ? TIMER_DEFAULT_SECONDS : action === 'add10' ? lot.timerSeconds + 10 : lot.timerSeconds
+
+  await prisma.auctionLot.update({ where: { id: lot.id }, data: { timerSeconds } })
+  await emitAuctionEvent(roomId, { type: 'TIMER', action, timerSeconds })
+  return getAdminSnapshot(roomId)
+}
+
+export async function setPhase(
+  roomId: string,
+  phase: 'LIVE' | 'PAUSED' | 'COMPLETED'
+): Promise<AdminSnapshot> {
+  await prisma.auctionRoom.update({ where: { id: roomId }, data: { phase } })
+  await emitAuctionEvent(roomId, { type: 'PHASE', phase })
+  return getAdminSnapshot(roomId)
+}
+
+export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
+  const next = await prisma.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: { id: 'asc' } })
+  if (!next) return getAdminSnapshot(roomId)
+
+  await prisma.$transaction([
+    prisma.player.update({ where: { id: next.id }, data: { status: 'LIVE' } }),
+    prisma.auctionLot.create({
+      data: {
+        roomId,
+        playerId: next.id,
+        currentBid: next.basePrice,
+        status: 'QUEUED',
+        timerSeconds: TIMER_DEFAULT_SECONDS,
+      },
+    }),
+  ])
+
+  await emitAuctionEvent(roomId, { type: 'LOT_CHANGE', playerId: next.id })
   return getAdminSnapshot(roomId)
 }
