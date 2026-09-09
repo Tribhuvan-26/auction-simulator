@@ -24,11 +24,12 @@
   --shadow-brutal-lg: 8px 8px 0 #282828;
   --shadow-brutal-pressed: 1px 1px 0 #282828;
   --shadow-brutal-white: 4px 4px 0 #FFFFFF;
-  /* Ambient glow: the hard offset shadow stays crisp, this stacks a soft
-   * colored bloom behind it so "important" surfaces read as lit, not flat. */
-  --shadow-glow-blue: 8px 8px 0 #282828, 0 25px 50px -12px rgba(32, 116, 213, 0.45);
-  --shadow-glow-yellow: 8px 8px 0 #282828, 0 25px 50px -12px rgba(249, 212, 123, 0.55);
-  --shadow-glow-pink: 8px 8px 0 #282828, 0 25px 50px -12px rgba(235, 84, 124, 0.5);
+  /* Neo-Grid Pop spec calls for flat hard-edge panels only, no diffuse glow —
+   * these keep the old names (still referenced everywhere) but are now just
+   * a bigger hard offset, same family as --shadow-brutal-lg. */
+  --shadow-glow-blue: 10px 10px 0 #282828;
+  --shadow-glow-yellow: 10px 10px 0 #282828;
+  --shadow-glow-pink: 10px 10px 0 #282828;
 }
 
 /* Court Brutalism motion. The bid-pop pulse, timer urgency pulse, and ticker
@@ -58,7 +59,7 @@
 
 @keyframes glow-pulse {
   0%, 100% { box-shadow: var(--shadow-glow-pink); }
-  50% { box-shadow: 8px 8px 0 #282828, 0 25px 60px -8px rgba(235, 84, 124, 0.8); }
+  50% { box-shadow: 14px 14px 0 #282828; }
 }
 .anim-glow-pulse { animation: glow-pulse 1.4s ease-in-out infinite; }
 
@@ -156,4 +157,24 @@
 :focus-visible {
   outline: 3px solid var(--color-blue);
   outline-offset: 2px;
+}
+
+/* Faint graph-paper ground for the light Neo-Grid Pop panels (admin/team seat). */
+.bg-grid-paper {
+  background-color: var(--color-white);
+  background-image:
+    linear-gradient(rgba(40, 40, 40, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(40, 40, 40, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Neo-Grid Pop telemetry footer strip, shared by all 3 interfaces. */
+.telemetry-footer {
+  background: var(--color-charcoal);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 4px 0;
 }
