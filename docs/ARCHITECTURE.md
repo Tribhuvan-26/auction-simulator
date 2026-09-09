@@ -104,7 +104,7 @@ src/app/
 src/components/
   ui/      brutal-card · brutal-button · bid-number · countdown-ring
            sold-stamp · confetti-burst · team-chip · player-avatar
-           pin-gate · split-reveal
+           pin-gate · split-reveal · squares-bg
 src/hooks/    use-live-snapshot · use-lot-entrance
 src/lib/      bid-rules · money · prisma · socket-emitter · fonts · cn
 public/players/  247 player photos (~38 MB)
@@ -318,10 +318,11 @@ in a shared link only prefills the box; the cookie is always set by the action.
 
 ### Admin console
 
-A broadcast-grade command centre on `#0a0f18`, split 70/30 and never scrolling. Depth comes from a
-single large radial gradient across the left pane rather than borders; surfaces are recessed glass —
-`bg-white/5` over `border-white/5` — not cards. The ledger sits on `#020617`, the command plate on
-`#05080f`.
+A broadcast-grade command centre on `#0a0f18`, split 70/30 and never scrolling. Behind the stage sits
+a drifting square grid on canvas (`SquaresBg`, modelled on React Bits' Squares — that library ships
+by copy-paste and its registry doesn't resolve, so the component is local), masked into the ground at
+the edges. Surfaces are recessed glass — `bg-white/5` over `border-white/5` — not cards. The ledger
+sits on `#020617`, the command plate on `#05080f`.
 
 - **Stage (left 70%)** — the player's photo at 240px in a thin-bordered circle, their name and role
   revealed character by character on every lot change (GSAP `SplitText`, free since 3.13, so no

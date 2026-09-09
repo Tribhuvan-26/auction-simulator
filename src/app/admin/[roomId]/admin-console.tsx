@@ -7,6 +7,7 @@ import { Pause, Play, Octagon, ArrowRight, Check, X, Undo2, RotateCcw, Plus } fr
 import { BidNumber } from '@/components/ui/bid-number'
 import { PlayerAvatar } from '@/components/ui/player-avatar'
 import { SplitReveal } from '@/components/ui/split-reveal'
+import { SquaresBg } from '@/components/ui/squares-bg'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
@@ -121,14 +122,11 @@ export function AdminConsole({
   return (
     <div className="font-body flex h-screen w-screen overflow-hidden bg-[#0a0f18] text-slate-200">
       {/* ── Left pane (70%) ───────────────────────────────────── */}
-      <section className="bg-brutal-stage relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* Hard brand rules, no blur — the frame that makes the ground read as
-         * built rather than lit. */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-2 bg-brand-blue" />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-brand-yellow/70" />
+      <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#0a0f18]">
+        <SquaresBg className="pointer-events-none absolute inset-0 h-full w-full" />
 
         {/* Top navigation */}
-        <div className="flex w-full shrink-0 items-start justify-between px-10 pt-8">
+        <div className="relative flex w-full shrink-0 items-start justify-between px-10 pt-8">
           <div>
             <Link
               href="/"
@@ -173,7 +171,7 @@ export function AdminConsole({
 
         {/* Cinematic stage */}
         {lot ? (
-          <div className="flex min-h-0 flex-1 items-center gap-10 overflow-hidden px-10 pt-8">
+          <div className="relative flex min-h-0 flex-1 items-center gap-10 overflow-hidden px-10 pt-8">
             <PlayerAvatar
               name={lot.player.name}
               photoUrl={lot.player.photoUrl}
@@ -200,14 +198,14 @@ export function AdminConsole({
             </div>
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-hidden px-10 pt-16">
+          <div className="relative min-h-0 flex-1 overflow-hidden px-10 pt-16">
             <h2 className="text-5xl font-black tracking-tighter text-white">No lot on the block</h2>
             <p className="mt-2 text-xl text-slate-500">Load the next player to start bidding.</p>
           </div>
         )}
 
         {/* Team grid */}
-        <div className="mt-auto mb-10 grid shrink-0 grid-cols-5 gap-4 px-10">
+        <div className="relative mt-auto mb-10 grid shrink-0 grid-cols-5 gap-4 px-10">
           {snapshot.teams.map((team) => {
             const leading = team.id === leaderId
             const blocked = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'No lot on the block'
@@ -246,7 +244,7 @@ export function AdminConsole({
         </div>
 
         {/* Command plate */}
-        <div className="flex h-24 shrink-0 items-center justify-between border-t border-white/10 bg-[#05080f] px-10">
+        <div className="relative flex h-24 shrink-0 items-center justify-between border-t border-white/10 bg-[#05080f] px-10">
           <div className="flex items-center gap-3">
             <button
               type="button"
