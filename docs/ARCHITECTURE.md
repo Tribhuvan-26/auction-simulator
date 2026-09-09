@@ -75,7 +75,7 @@ side in development: the Next app on `:3000` and a standalone Socket.io server o
 | Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
-| Tests | Vitest + Testing Library + jsdom | 11 files, 49 tests, hitting a real database. |
+| Tests | Vitest + Testing Library + jsdom | 9 files, 42 tests, hitting a real database. |
 
 ### Where everything lives
 
