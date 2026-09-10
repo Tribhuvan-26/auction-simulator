@@ -1,6 +1,7 @@
 import { io as ioClient, Socket } from 'socket.io-client'
 import { createSocketServer } from '../../server/socket-server'
 import type { Server as HttpServer } from 'http'
+import type { AddressInfo } from 'net'
 import { emitAuctionEvent, __setSocketPortForTests } from './socket-emitter'
 
 describe('socket-emitter', () => {
@@ -11,7 +12,7 @@ describe('socket-emitter', () => {
   beforeAll(async () => {
     server = createSocketServer(0)
     await new Promise<void>((resolve) => server.listen(() => resolve()))
-    port = (server.address() as any).port
+    port = (server.address() as AddressInfo).port
     __setSocketPortForTests(port)
   })
 
