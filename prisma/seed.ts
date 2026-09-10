@@ -31,6 +31,10 @@ const TEAM_META: Record<string, { code: string; color: string }> = {
   'Sunrisers Hyderabad': { code: 'SRH', color: '#F26522' },
 }
 
+// Files live in public/logos/<code>.svg, lowercase — dropped in by hand,
+// see public/logos/ for the current set.
+const logoUrl = (code: string) => `/logos/${code.toLowerCase()}.svg`
+
 type OfficialPlayer = {
   name: string
   team: string
@@ -91,6 +95,7 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
         name: teamName,
         shortCode: meta.code,
         colorAccent: meta.color,
+        logoUrl: logoUrl(meta.code),
         purseTotal: 12000,
         purseRemaining: 12000,
         squadMax: 25,
