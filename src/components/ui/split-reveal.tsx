@@ -62,8 +62,12 @@ export function SplitReveal({
     }
   }, [trigger, text, blur, delay])
 
+  // SplitText replaces the span's children with per-character nodes, so React
+  // can no longer patch the text in place — a later text change would write to
+  // a detached node and split.revert() would restore the OLD name. Keying on
+  // the text remounts the span instead, giving SplitText a clean node.
   return (
-    <span ref={ref} className={cn('inline-block', className)}>
+    <span key={text} ref={ref} className={cn('inline-block', className)}>
       {text}
     </span>
   )

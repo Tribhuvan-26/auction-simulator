@@ -19,6 +19,7 @@ const team = (over: Partial<PublicSnapshot['teams'][number]> = {}): PublicSnapsh
   name: 'Delhi Capitals',
   shortCode: 'DC',
   colorAccent: '#17479E',
+  logoUrl: null,
   purseTotal: 12000,
   purseRemaining: 12000,
   squadCount: 0,
@@ -34,6 +35,7 @@ function snapshot(over: Partial<PublicSnapshot> = {}, teamOver = {}): PublicSnap
     room: { id: 'room-1', name: 'Room One', phase: 'LIVE', round: 1 },
     currentLot: {
       id: 'lot-1',
+      lotNumber: 4,
       status: 'BIDDING',
       currentBid: 20,
       currentBiddingTeamId: null,
@@ -55,15 +57,15 @@ function renderConsole(s: PublicSnapshot) {
   return render(<TeamConsole roomId="room-1" teamId="team-1" initialSnapshot={s} />)
 }
 
-describe('TeamConsole paddle', () => {
+describe('TeamConsole bidding control panel', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('reads "Raise Paddle" and bids the ladder amount when another team can be beaten', async () => {
+  it('bids the ladder amount when another team can be beaten', async () => {
     const { placeBid } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
-    const paddle = screen.getByRole('button', { name: /raise paddle/i })
-    expect(paddle).not.toBeDisabled()
-    fireEvent.click(paddle)
+    const bid = screen.getByRole('button', { name: /^bid$/i })
+    expect(bid).not.toBeDisabled()
+    fireEvent.click(bid)
     // Lot is BIDDING at 20 L, so the ladder's next rung is 25 L.
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 25))
   })
@@ -72,24 +74,26 @@ describe('TeamConsole paddle', () => {
     const s = snapshot()
     s.currentLot!.currentBiddingTeamId = 'team-1'
     renderConsole(s)
-    expect(screen.getByRole('button', { name: /you hold the bid/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
+    expect(screen.getByText(/you hold the highest bid/i)).toBeInTheDocument()
   })
 
-  it('waits when there is no lot on the block', () => {
+  it('locks out when there is no lot on the block', () => {
     renderConsole(snapshot({ currentLot: null }))
-    expect(screen.getByRole('button', { name: /waiting for auctioneer/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
+    expect(screen.getByText(/waiting for the auctioneer/i)).toBeInTheDocument()
   })
 
-  it('waits when the lot has been called', () => {
+  it('locks out when the lot has been called', () => {
     const s = snapshot()
     s.currentLot!.status = 'SOLD'
     renderConsole(s)
-    expect(screen.getByRole('button', { name: /waiting for auctioneer/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
   })
 
   it('locks out and explains when the purse cannot cover the next bid', () => {
     renderConsole(snapshot({}, { purseRemaining: 10 }))
-    expect(screen.getByRole('button', { name: /waiting for auctioneer/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
     expect(screen.getByText(/purse insufficient/i)).toBeInTheDocument()
   })
 
@@ -99,23 +103,35 @@ describe('TeamConsole paddle', () => {
     fireEvent.keyDown(window, { key: ' ' })
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 25))
   })
+
+  it('passing sits the lot out until the auctioneer loads the next one', () => {
+    renderConsole(snapshot())
+    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
+    expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
+  })
+
+  it('cannot withdraw a placed bid', () => {
+    renderConsole(snapshot())
+    expect(screen.getByRole('button', { name: /^withdraw$/i })).toBeDisabled()
+  })
 })
 
-describe('TeamConsole squad matrix', () => {
-  it('shows an empty ring per unfilled slot', () => {
+describe('TeamConsole team status', () => {
+  it('shows an empty slot per unfilled squad place', () => {
     renderConsole(snapshot())
-    expect(screen.getByText('25')).toBeInTheDocument()
-    expect(screen.getByText(/0 signed • 25 slots open/i)).toBeInTheDocument()
+    expect(screen.getByText('Slot 1')).toBeInTheDocument()
+    expect(screen.getByText('Slot 25')).toBeInTheDocument()
   })
 
   it('shows signed players with their price', () => {
     renderConsole(
       snapshot({}, {
         squadCount: 1,
-        squad: [{ id: 'p9', name: 'KL Rahul', role: 'WICKET_KEEPER', price: 1400, photoUrl: null }],
+        squad: [{ id: 'p9', name: 'KL Rahul', role: 'WICKET_KEEPER', price: 1400, photoUrl: null, isOverseas: false }],
       })
     )
-    expect(screen.getByText('KL Rahul')).toBeInTheDocument()
+    expect(screen.getByText(/KL Rahul/)).toBeInTheDocument()
     expect(screen.getByText('14 Cr')).toBeInTheDocument()
   })
 })
