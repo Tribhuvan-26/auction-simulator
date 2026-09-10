@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Pause, Play, Octagon, ArrowRight, Check, X, Undo2, RotateCcw, Plus } from 'lucide-react'
-import { BidNumber } from '@/components/ui/bid-number'
-import { PlayerAvatar } from '@/components/ui/player-avatar'
-import { SplitReveal } from '@/components/ui/split-reveal'
+import { Check, Octagon, Pause, Play, RotateCcw, Undo2, X } from 'lucide-react'
 import { BrutalButton } from '@/components/ui/brutal-button'
-import { SectionHeader } from '@/components/ui/brutal-card'
+import {
+  BiddingLog,
+  CurrentStatus,
+  NeoPanel,
+  PlayerAuctionCard,
+  TeamBidTracker,
+} from '@/components/ui/neo-grid'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
@@ -20,37 +23,12 @@ import {
   undoLastBid,
   controlTimer,
   placeBid,
+  forceBid,
   advanceToNextLot,
   type AdminSnapshot,
 } from './actions'
 
 type Team = AdminSnapshot['teams'][number]
-
-/** Square transport control for the timer. */
-function TimerButton({
-  label,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string
-  onClick: () => void
-  disabled?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      disabled={disabled}
-      className="flex h-12 w-12 items-center justify-center border-[3px] border-brand-charcoal bg-brand-yellow text-brand-charcoal shadow-brutal transition-transform hover:-translate-y-[1px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed disabled:cursor-not-allowed disabled:opacity-30"
-    >
-      {children}
-    </button>
-  )
-}
 
 export function AdminConsole({
   roomId,
@@ -64,12 +42,18 @@ export function AdminConsole({
   const [error, setError] = useState<string | null>(null)
   const [jumpBid, setJumpBid] = useState('')
   const [jumpTeamId, setJumpTeamId] = useState('')
+  // A second bid fired before the first one's response lands would compute
+  // its amount off the same stale currentBid — the server rejects it as
+  // off-tier, which reads as "that team can't bid" when it's really just a
+  // click that needs retrying. Lock the grid for the round trip instead.
+  const [pending, setPending] = useState(false)
 
   const lot = snapshot.currentLot
   const effectiveJumpTeamId = jumpTeamId || snapshot.teams[0]?.id || ''
   const leaderId = lot?.currentBiddingTeamId ?? null
   const leader = snapshot.teams.find((t) => t.id === leaderId)
   const closed = lot?.status === 'SOLD' || lot?.status === 'UNSOLD'
+  const paused = snapshot.room.phase === 'PAUSED'
 
   // The ladder allows exactly one amount; the server rejects anything else.
   const nextBid = lot
@@ -78,17 +62,27 @@ export function AdminConsole({
       : lot.currentBid
     : 0
 
+  // Distinct teams that have bid on this lot, in the order they joined —
+  // the tracker only highlights the current leader, so a second team just
+  // sitting one rung back otherwise looks like it dropped out.
+  const biddingTeamCodes = lot
+    ? [...new Map(lot.bidHistory.map((b) => [b.teamId, snapshot.teams.find((t) => t.id === b.teamId)?.shortCode ?? b.teamName])).values()]
+    : []
+
   async function run(action: () => Promise<AdminSnapshot>) {
     setError(null)
+    setPending(true)
     try {
       setSnapshot(await action())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Rejected')
+    } finally {
+      setPending(false)
     }
   }
 
   async function bidFor(team: Team, amount = nextBid) {
-    if (!lot || closed) return
+    if (!lot || closed || pending) return
     const reason = bidRejectionReason(team, lot, amount)
     if (reason) {
       setError(`${team.shortCode}: ${reason}`)
@@ -122,264 +116,234 @@ export function AdminConsole({
 
   return (
     <div className="font-body flex h-screen w-screen flex-col overflow-hidden bg-grid-paper text-brand-charcoal">
-      <h1 className="shrink-0 border-b-[3px] border-brand-charcoal px-8 pt-4 pb-2 font-heading text-3xl font-black uppercase leading-none tracking-tight md:text-4xl">
-        Admin Super-Control Panel: {snapshot.room.name}
-      </h1>
-
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-      {/* ── Left pane (70%) ───────────────────────────────────── */}
-      <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* Top navigation */}
-        <div className="relative flex w-full shrink-0 items-start justify-between px-8 pt-6">
-          <div>
-            <Link
-              href="/"
-              className="font-heading text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60 hover:text-brand-charcoal"
-            >
-              All rooms
-            </Link>
-            <p className="mt-1 font-heading text-sm font-bold text-brand-charcoal/70">
-              Round {snapshot.room.round} • {snapshot.queue.length} players left
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="border-[3px] border-brand-charcoal bg-brand-pink px-4 py-2 font-heading text-xs font-bold tracking-widest text-brand-charcoal">
-              {snapshot.room.phase}
-            </span>
-            <BrutalButton variant="blue" onClick={() => run(() => advanceToNextLot(roomId))} className="flex items-center gap-2 text-sm">
-              Load next player <ArrowRight size={15} aria-hidden />
-            </BrutalButton>
-            <BrutalButton
-              variant="plain"
-              onClick={() => run(() => setPhase(roomId, snapshot.room.phase === 'LIVE' ? 'PAUSED' : 'LIVE'))}
-              className="flex items-center gap-2 text-sm"
-            >
-              {snapshot.room.phase === 'LIVE' ? <Pause size={15} aria-hidden /> : <Play size={15} aria-hidden />}
-              {snapshot.room.phase === 'LIVE' ? 'Pause' : 'Resume'}
-            </BrutalButton>
-            <BrutalButton variant="plain" onClick={() => setShowEndConfirm(true)} className="flex items-center gap-2 text-sm">
-              <Octagon size={15} aria-hidden /> End auction
-            </BrutalButton>
-          </div>
+      <div className="flex shrink-0 items-baseline justify-between gap-4 border-b-[3px] border-brand-charcoal px-6 pt-3 pb-2">
+        <h1 className="font-heading text-3xl font-black uppercase leading-none tracking-tight">
+          Admin Super-Control Panel: {snapshot.room.name}
+        </h1>
+        <div className="flex shrink-0 items-baseline gap-3">
+          <span className="font-heading text-[10px] font-bold uppercase tracking-widest">{snapshot.room.phase}</span>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60">
+            Round {snapshot.room.round} • {snapshot.queue.length} players left
+          </span>
+          <Link
+            href="/"
+            className="font-heading text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60 hover:text-brand-charcoal"
+          >
+            All rooms
+          </Link>
         </div>
+      </div>
 
-        {/* Cinematic stage */}
-        {lot ? (
-          <div className="relative flex min-h-0 flex-1 items-start gap-6 overflow-hidden px-10 pt-6">
-            <PlayerAvatar
-              name={lot.player.name}
-              photoUrl={lot.player.photoUrl}
-              className="h-[170px] w-[170px] shrink-0 border-[3px] border-brand-charcoal text-5xl"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-brand-charcoal/60">
-                {lot.player.setNumber} • BASE {formatMoney(lot.player.basePrice)}
-              </p>
-              <h2 className="mt-1 font-heading text-5xl font-black tracking-tight">
-                <SplitReveal text={lot.player.name} trigger={lot.id} />
-              </h2>
-              <p className="mt-1 text-lg font-medium text-brand-charcoal/70">
-                {lot.player.role.replace('_', '-')} • {lot.player.isOverseas ? 'Overseas' : lot.player.nationality}
-              </p>
-              <BidNumber
-                value={lot.currentBid}
-                className="my-2 inline-block border-[3px] border-brand-charcoal bg-brand-pink px-4 py-1 text-4xl font-black leading-none tabular-nums"
-              />
-              <p className="text-sm text-brand-charcoal/60">
-                {leader ? `Leading: ${leader.name}` : 'No bids yet'} •{' '}
-                {closed ? lot.status : `next ${formatMoney(nextBid)}`}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="relative min-h-0 flex-1 overflow-hidden px-8 pt-16">
-            <h2 className="font-heading text-5xl font-black tracking-tight">No lot on the block</h2>
-            <p className="mt-2 text-xl text-brand-charcoal/60">Load the next player to start bidding.</p>
-          </div>
-        )}
-
-        {/* A closed lot disables every chip, which otherwise looks like a dead
-         * grid. Say what happened and what the two ways out are. */}
-        {lot && closed && (
-          <p className="relative shrink-0 px-8 pb-3 text-sm text-brand-charcoal/70">
-            <span className="font-bold">{lot.status}</span> — press{' '}
-            <kbd className="border border-brand-charcoal px-1.5 py-0.5 text-xs">Z</kbd> to put this lot back on
-            the block, or load the next player.
-          </p>
-        )}
-
-        {/* Team grid */}
-        <SectionHeader className="mt-auto shrink-0 mx-8">Bidding Control Panel</SectionHeader>
-        <div className="relative mb-8 grid shrink-0 grid-cols-5 gap-3 px-8 pt-3">
-          {snapshot.teams.map((team) => {
-            const leading = team.id === leaderId
-            const blocked = lot && !closed ? bidRejectionReason(team, lot, nextBid) : 'No lot on the block'
-            return (
-              <motion.button
-                key={team.id}
-                type="button"
-                data-testid={`bid-${team.shortCode}`}
-                onClick={() => bidFor(team)}
-                disabled={!!blocked}
-                title={blocked ?? `Bid ${formatMoney(nextBid)} for ${team.name}`}
-                animate={{ scale: leading ? 1.02 : 1 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                style={{ backgroundColor: leading ? team.colorAccent ?? undefined : undefined }}
-                className={`flex h-24 flex-col justify-between border-[3px] border-brand-charcoal p-3 text-left transition-transform ${
-                  leading ? 'text-brand-white shadow-brutal' : 'bg-brand-white/60 text-brand-charcoal/60 hover:bg-brand-white'
-                } ${blocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-              >
-                <span className="font-heading text-xs font-bold tracking-widest">{team.shortCode}</span>
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-xs">{team.name}</span>
-                  <span className="shrink-0 text-xs tabular-nums">
-                    {formatMoney(team.purseRemaining)} • {team.squadCount}/{team.squadMax}
-                  </span>
-                </span>
-              </motion.button>
-            )
-          })}
-        </div>
-
-        {/* Command plate */}
-        <div className="relative flex h-24 shrink-0 items-center justify-between border-t-[3px] border-brand-charcoal bg-brand-white px-8">
-          <div className="flex items-center gap-2">
+      <div className="grid min-h-0 flex-1 grid-cols-[24%_1fr_26%] grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
+        {/* ── Row 1, left: command plate ─────────────────────── */}
+        <div className="flex min-h-0 flex-col gap-3">
+          <NeoPanel title="Lot Resolution" className="min-h-0 flex-1" bodyClassName="flex flex-col gap-1.5 p-1.5">
             <BrutalButton
               variant="blue"
               disabled={!lot || closed || !leaderId}
               onClick={() => run(() => markSold(roomId))}
-              className="flex items-center gap-2 text-sm"
+              className="flex shrink-0 items-center justify-between gap-2 px-3 py-1.5 text-base"
             >
-              <Check size={16} aria-hidden /> SOLD
+              SOLD <Check size={16} aria-hidden />
             </BrutalButton>
             <BrutalButton
               variant="pink"
-              disabled={!lot || closed}
+              disabled={!lot || closed || !!leaderId}
               onClick={() => run(() => markUnsold(roomId))}
-              className="flex items-center gap-2 text-sm"
+              className="flex shrink-0 items-center justify-between gap-2 px-3 py-1.5 text-base"
             >
-              <X size={16} aria-hidden /> UNSOLD
+              UNSOLD <X size={16} aria-hidden />
             </BrutalButton>
             <BrutalButton
               variant="yellow"
               disabled={!lot}
               onClick={() => run(() => undoLastBid(roomId))}
-              className="flex items-center gap-2 text-sm"
+              className="flex shrink-0 items-center justify-between gap-2 px-3 py-1.5 text-base"
             >
-              <Undo2 size={16} aria-hidden /> UNDO
+              UNDO BID <Undo2 size={16} aria-hidden />
             </BrutalButton>
-          </div>
+          </NeoPanel>
 
-          <div className="flex items-center gap-2">
-            <TimerButton label="Start timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'start'))}>
-              <Play size={16} aria-hidden />
-            </TimerButton>
-            <TimerButton label="Pause timer" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'pause'))}>
-              <Pause size={16} aria-hidden />
-            </TimerButton>
-            <TimerButton
-              label="Reset timer to 30s"
-              disabled={!lot}
-              onClick={() => run(() => controlTimer(roomId, 'reset'))}
+          <NeoPanel title="Jump Bid" className="shrink-0" bodyClassName="flex flex-col gap-2 p-2">
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={(e) => {
+                e.preventDefault()
+                // The auctioneer's call overrides the ladder and purse checks —
+                // forceBid, not the team-seat placeBid path bidFor uses.
+                if (lot && !closed && !pending && jumpBid) run(() => forceBid(roomId, effectiveJumpTeamId, Number(jumpBid)))
+              }}
             >
-              <RotateCcw size={16} aria-hidden />
-            </TimerButton>
-            <TimerButton label="Add 10 seconds" disabled={!lot} onClick={() => run(() => controlTimer(roomId, 'add10'))}>
-              <Plus size={16} aria-hidden />
-            </TimerButton>
-            <span className="ml-1 font-heading text-sm font-bold tabular-nums">{lot?.timerSeconds ?? 0}s</span>
-          </div>
-
-          <form
-            className="flex flex-row items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault()
-              const team = snapshot.teams.find((t) => t.id === effectiveJumpTeamId)
-              if (team) bidFor(team, Number(jumpBid))
-            }}
-          >
-            <label htmlFor="jump-bid" className="font-heading text-[10px] font-bold uppercase tracking-widest">
-              Jump bid
-            </label>
-            <select
-              id="jump-team"
-              aria-label="Jump bid team"
-              value={effectiveJumpTeamId}
-              onChange={(e) => setJumpTeamId(e.target.value)}
-              className="border-[3px] border-brand-charcoal bg-brand-white px-3 py-2 text-sm"
-            >
-              {snapshot.teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.shortCode}
-                </option>
-              ))}
-            </select>
-            <input
-              id="jump-bid"
-              inputMode="numeric"
-              placeholder={String(nextBid)}
-              value={jumpBid}
-              onChange={(e) => setJumpBid(e.target.value.replace(/\D/g, ''))}
-              className="w-24 border-[3px] border-brand-charcoal bg-brand-white px-3 py-2 text-center text-sm tabular-nums"
-            />
-            <BrutalButton type="submit" variant="blue" disabled={!lot || closed || !jumpBid} className="text-sm">
-              Bid
-            </BrutalButton>
-          </form>
+              <label htmlFor="jump-team" className="font-heading text-[10px] font-bold uppercase tracking-widest">
+                Team
+              </label>
+              <select
+                id="jump-team"
+                aria-label="Jump bid team"
+                value={effectiveJumpTeamId}
+                onChange={(e) => setJumpTeamId(e.target.value)}
+                className="border-[3px] border-brand-charcoal bg-brand-white px-2 py-1.5 text-sm"
+              >
+                {snapshot.teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.shortCode}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="jump-bid" className="font-heading text-[10px] font-bold uppercase tracking-widest">
+                Amount
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="jump-bid"
+                  inputMode="numeric"
+                  placeholder={String(nextBid)}
+                  value={jumpBid}
+                  onChange={(e) => setJumpBid(e.target.value.replace(/\D/g, ''))}
+                  className="min-w-0 flex-1 border-[3px] border-brand-charcoal bg-brand-white px-2 py-1.5 text-center text-sm tabular-nums"
+                />
+                <BrutalButton
+                  type="submit"
+                  variant="blue"
+                  disabled={!lot || closed || pending || !jumpBid}
+                  className="shrink-0 text-sm"
+                >
+                  Bid
+                </BrutalButton>
+              </div>
+            </form>
+          </NeoPanel>
         </div>
-      </section>
+
+        {/* ── Row 1, centre: the lot on the block ────────────── */}
+        {lot ? (
+          <PlayerAuctionCard
+            player={lot.player}
+            currentBid={lot.currentBid}
+            leaderShortCode={leader?.shortCode ?? null}
+            purseLabel="Purse"
+            purseValue={leader?.purseRemaining ?? 0}
+            className="min-h-0"
+          />
+        ) : (
+          <section className="flex min-h-0 flex-col items-center justify-center border-[3px] border-brand-charcoal bg-brand-white">
+            <h2 className="font-heading text-4xl font-black uppercase tracking-tight">No lot on the block</h2>
+            <p className="font-heading mt-2 text-sm font-bold uppercase tracking-widest text-brand-charcoal/60">
+              Load the next player to start bidding
+            </p>
+          </section>
+        )}
+
+        {/* ── Row 1, right: status + operator controls ───────── */}
+        <div className="flex min-h-0 flex-col gap-3">
+          <CurrentStatus
+            lotLabel={lot ? `Lot ${lot.lotNumber}` : 'No lot'}
+            state={lot ? lot.status : 'AWAITING LOT'}
+            seconds={lot ? lot.timerSeconds : null}
+            className="shrink-0"
+          />
+
+          {biddingTeamCodes.length > 0 && (
+            <p className="font-heading shrink-0 text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/70">
+              In the fight: {biddingTeamCodes.join(', ')}
+            </p>
+          )}
+
+          <p className="font-heading shrink-0 text-right text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60">
+            System security: admin access only
+          </p>
+
+          <NeoPanel
+            title="Admin Simulation Controls"
+            className="min-h-0 flex-1"
+            bodyClassName="flex flex-col gap-1.5 p-1.5"
+          >
+            <div className="flex shrink-0 gap-1.5">
+              <BrutalButton
+                variant="yellow"
+                onClick={() => run(() => advanceToNextLot(roomId))}
+                className="min-w-0 flex-1 px-3 py-1.5 text-sm"
+              >
+                [START LOT]
+              </BrutalButton>
+              <BrutalButton
+                variant="yellow"
+                onClick={() => run(() => setPhase(roomId, paused ? 'LIVE' : 'PAUSED'))}
+                className="flex min-w-0 flex-1 items-center justify-center gap-1 px-3 py-1.5 text-sm"
+              >
+                {paused ? <Play size={14} aria-hidden /> : <Pause size={14} aria-hidden />}
+                {paused ? '[RESUME]' : '[PAUSE]'}
+              </BrutalButton>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              <BrutalButton
+                variant="yellow"
+                disabled={!lot}
+                onClick={() => run(() => controlTimer(roomId, 'reset'))}
+                className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2 py-1.5 text-xs leading-tight"
+              >
+                <RotateCcw size={12} aria-hidden /> [RESET TIMER]
+              </BrutalButton>
+              {/* A dispute is resolved by rolling the lot back to the previous
+               * bid — the same server action the Z shortcut uses. */}
+              <BrutalButton
+                variant="yellow"
+                disabled={!lot}
+                onClick={() => run(() => undoLastBid(roomId))}
+                className="min-w-0 flex-1 px-2 py-1.5 text-xs leading-tight"
+              >
+                [DISPUTE]
+              </BrutalButton>
+            </div>
+
+            <BrutalButton
+              variant="yellow"
+              onClick={() => setShowEndConfirm(true)}
+              className="mt-auto flex shrink-0 items-center justify-between gap-2 px-3 py-1.5 text-base"
+            >
+              END AUCTION <Octagon size={16} aria-hidden />
+            </BrutalButton>
+          </NeoPanel>
+        </div>
+
+        {/* ── Row 2: tracker (doubles as the bid grid) + log ─── */}
+        <TeamBidTracker
+          teams={snapshot.teams}
+          leaderId={leaderId}
+          className="col-span-2 h-[30vh]"
+          onPick={(team) => bidFor(snapshot.teams.find((t) => t.id === team.id)!)}
+          pickBlocked={(team) => {
+            if (!lot || closed) return 'No lot on the block'
+            if (pending) return 'Processing previous bid…'
+            const full = snapshot.teams.find((t) => t.id === team.id)!
+            return bidRejectionReason(full, lot, nextBid)
+          }}
+        />
+
+        <BiddingLog
+          className="h-[30vh]"
+          rows={[...(lot?.bidHistory ?? [])].reverse().map((bid) => ({
+            key: `${bid.teamId}-${bid.timestamp}`,
+            label: snapshot.teams.find((t) => t.id === bid.teamId)?.shortCode ?? bid.teamName,
+            amount: bid.amount,
+          }))}
+        />
+      </div>
+
+      {lot && closed && (
+        <p className="font-heading shrink-0 border-t-[3px] border-brand-charcoal bg-brand-yellow px-6 py-1 text-[11px] font-bold uppercase tracking-widest">
+          {lot.status} — press Z to put this lot back on the block, or start the next lot
+        </p>
+      )}
 
       {error && (
         <p
           role="alert"
-          className="fixed bottom-28 left-8 z-30 border-[3px] border-brand-charcoal bg-brand-pink px-4 py-2 text-sm font-bold shadow-brutal"
+          className="fixed bottom-10 left-1/2 z-30 -translate-x-1/2 border-[3px] border-brand-charcoal bg-brand-pink px-5 py-2 font-heading text-sm font-black uppercase tracking-widest shadow-brutal"
         >
           {error}
         </p>
       )}
-
-      {/* ── Right ledger (30%) ────────────────────────────────── */}
-      <aside className="flex h-full w-[30vw] shrink-0 flex-col border-l-[3px] border-brand-charcoal bg-brand-white">
-        <SectionHeader>Current Status</SectionHeader>
-        <div className="border-b-[3px] border-brand-charcoal bg-brand-pink px-6 py-4">
-          <p className="font-heading text-xl font-bold">
-            {lot ? `Lot ${lot.player.setNumber}: ${lot.status}` : 'No lot on the block'}
-          </p>
-          <p className="font-heading text-4xl font-black tabular-nums">{lot?.timerSeconds ?? 0}s</p>
-        </div>
-
-        <SectionHeader>Bidding Log</SectionHeader>
-        <div className="flex min-h-0 flex-[4] flex-col px-6 pt-4">
-          <ul className="scrollbar-thin-dark flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
-            <AnimatePresence initial={false}>
-              {[...(lot?.bidHistory ?? [])].reverse().map((bid) => (
-                <motion.li
-                  key={`${bid.teamId}-${bid.timestamp}`}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                  className="flex shrink-0 items-center justify-between gap-2 border-2 border-brand-charcoal px-4 py-3"
-                >
-                  <span className="truncate text-sm font-semibold">{bid.teamName}</span>
-                  <span className="shrink-0 text-sm font-bold tabular-nums">{formatMoney(bid.amount)}</span>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-            {!lot?.bidHistory.length && <li className="text-sm text-brand-charcoal/50">No bids on this lot yet.</li>}
-          </ul>
-        </div>
-
-        <SectionHeader>Team Bid Tracker</SectionHeader>
-        <div className="flex min-h-0 flex-[6] flex-col px-6 pt-4 pb-8">
-          <ul className="scrollbar-thin-dark flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-2">
-            {snapshot.teams.map((team) => (
-              <PurseRow key={team.id} team={team} leading={team.id === leaderId} />
-            ))}
-          </ul>
-        </div>
-      </aside>
 
       <AnimatePresence>
         {showEndConfirm && (
@@ -418,46 +382,10 @@ export function AdminConsole({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="telemetry-footer shrink-0">
+        {`// NEO-GRID POP SYSTEM TELEMETRY v2.1 // DEPLOYED // NEXT ${formatMoney(nextBid)} //`}
       </div>
-      <div className="telemetry-footer shrink-0">// NEO-GRID POP SYSTEM TELEMETRY v2.1 // DEPLOYED //</div>
     </div>
-  )
-}
-
-/**
- * One team's budget. Flashes white the moment purseRemaining drops, so the
- * financial hit of a sale is visible without reading the number.
- */
-function PurseRow({ team, leading }: { team: Team; leading: boolean }) {
-  const previous = useRef(team.purseRemaining)
-  const [hit, setHit] = useState(false)
-
-  useEffect(() => {
-    if (team.purseRemaining < previous.current) {
-      setHit(true)
-      const timer = setTimeout(() => setHit(false), 900)
-      previous.current = team.purseRemaining
-      return () => clearTimeout(timer)
-    }
-    previous.current = team.purseRemaining
-  }, [team.purseRemaining])
-
-  const percent = Math.max(0, Math.min(100, Math.round((team.purseRemaining / team.purseTotal) * 100)))
-
-  return (
-    <motion.li
-      data-testid={`purse-${team.shortCode}`}
-      animate={{ backgroundColor: hit ? 'rgba(32,116,213,0.12)' : 'rgba(255,255,255,0)' }}
-      transition={{ duration: 0.35 }}
-      className={`shrink-0 border-2 border-brand-charcoal px-2 py-1.5 ${leading ? 'shadow-brutal' : ''}`}
-    >
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-bold">{team.shortCode}</span>
-        <span className="text-sm font-semibold tabular-nums">{formatMoney(team.purseRemaining)}</span>
-      </div>
-      <div className="mt-2 h-2 w-full border border-brand-charcoal bg-brand-white">
-        <div className="h-full bg-brand-blue transition-[width] duration-500" style={{ width: `${percent}%` }} />
-      </div>
-    </motion.li>
   )
 }

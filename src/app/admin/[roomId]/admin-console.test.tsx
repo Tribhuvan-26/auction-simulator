@@ -18,6 +18,7 @@ vi.mock('./actions', () => ({
   undoLastBid: vi.fn(async () => baseSnapshot),
   controlTimer: vi.fn(async () => baseSnapshot),
   placeBid: vi.fn(async () => baseSnapshot),
+  forceBid: vi.fn(async () => baseSnapshot),
   advanceToNextLot: vi.fn(async () => baseSnapshot),
 }))
 
@@ -26,6 +27,7 @@ const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => 
   shortCode,
   name: `${shortCode} Team`,
   colorAccent: '#2074D5',
+  logoUrl: null,
   purseTotal: 12000,
   purseRemaining: 12000,
   squadCount: 0,
@@ -46,7 +48,7 @@ const baseSnapshot: AdminSnapshot = {
 const liveSnapshot: AdminSnapshot = {
   ...baseSnapshot,
   currentLot: {
-    id: 'lot-1', status: 'BIDDING', currentBid: 20, currentBiddingTeamId: 'team-1', timerSeconds: 30, bidHistory: [],
+    id: 'lot-1', lotNumber: 4, status: 'BIDDING', currentBid: 20, currentBiddingTeamId: 'team-1', timerSeconds: 30, bidHistory: [],
     player: { id: 'p1', name: 'X', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 1, runs: null, wickets: null, average: null, strikeRate: null, economy: null, isOverseas: false, setNumber: 'Set 1' },
   },
 }
@@ -99,6 +101,16 @@ describe('AdminConsole bidding grid', () => {
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 25))
   })
 
+  it('jump bid sends the entered amount straight to forceBid, off the ladder and unblocked by placeBid', async () => {
+    const { forceBid, placeBid } = await import('./actions')
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    // Ladder's next rung is 25 L; 999 is deliberately off-tier.
+    fireEvent.change(screen.getByLabelText(/^amount$/i), { target: { value: '999' } })
+    fireEvent.click(screen.getByRole('button', { name: /^bid$/i }))
+    await vi.waitFor(() => expect(forceBid).toHaveBeenCalledWith('room-1', 'team-1', 999))
+    expect(placeBid).not.toHaveBeenCalled()
+  })
+
   it('disables every team button when no lot is on the block', () => {
     render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
     expect(screen.getByTestId('bid-DC')).toBeDisabled()
@@ -108,7 +120,7 @@ describe('AdminConsole bidding grid', () => {
   it('does not fire a shortcut while the jump-bid box has focus', async () => {
     const { markSold } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
-    const jump = screen.getByLabelText(/jump bid$/i)
+    const jump = screen.getByLabelText(/^amount$/i)
     jump.focus()
     fireEvent.keyDown(jump, { key: 's' })
     expect(markSold).not.toHaveBeenCalled()

@@ -11,6 +11,7 @@ export type AdminSnapshot = {
   room: { id: string; name: string; phase: string; round: number }
   currentLot: {
     id: string
+    lotNumber: number
     status: string
     currentBid: number
     currentBiddingTeamId: string | null
@@ -25,10 +26,10 @@ export type AdminSnapshot = {
     }
   } | null
   teams: {
-    id: string; name: string; shortCode: string; colorAccent: string
+    id: string; name: string; shortCode: string; colorAccent: string; logoUrl: string | null
     purseTotal: number; purseRemaining: number; squadCount: number; squadMax: number
     overseasSlotsUsed: number; overseasSlotsMax: number
-    squad: { id: string; name: string; role: string; price: number; photoUrl: string | null }[]
+    squad: { id: string; name: string; role: string; price: number; photoUrl: string | null; isOverseas: boolean }[]
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
@@ -53,6 +54,10 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
     orderBy: { id: 'desc' },
   })
 
+  // Lot number is "how many lots this room has called", which is what the
+  // status module shows — not the player's set name.
+  const lotCount = await prisma.auctionLot.count({ where: { roomId } })
+
   const teamsRaw = await prisma.team.findMany({
     where: { roomId },
     include: { players: true },
@@ -74,6 +79,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
     currentLot: lot
       ? {
           id: lot.id,
+          lotNumber: lotCount,
           status: lot.status,
           currentBid: lot.currentBid,
           currentBiddingTeamId: lot.currentBiddingTeamId,
@@ -107,6 +113,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
       name: t.name,
       shortCode: t.shortCode,
       colorAccent: t.colorAccent,
+      logoUrl: t.logoUrl,
       purseTotal: t.purseTotal,
       purseRemaining: t.purseRemaining,
       squadCount: t.players.length,
@@ -119,6 +126,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
         role: p.role,
         price: p.soldPrice ?? 0,
         photoUrl: p.photoUrl,
+        isOverseas: p.isOverseas,
       })),
     })),
     queue: queueRaw.map((p) => ({
@@ -213,6 +221,32 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   return getAdminSnapshot(roomId)
 }
 
+/**
+ * Auctioneer-only override: sets the lot to any amount for any team, skipping
+ * the tier ladder and the purse/squad/overseas checks placeBid enforces for
+ * team seats. Used by the admin console's Jump Bid — the auctioneer calling
+ * out a number is the source of truth, not the ladder.
+ */
+export async function forceBid(roomId: string, teamId: string, amount: number): Promise<AdminSnapshot> {
+  await assertIsAuctioneer(roomId)
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error('Bid must be a positive amount')
+
+  const lot = await openLotOrThrow(roomId)
+  const team = await prisma.team.findFirstOrThrow({ where: { id: teamId, roomId } })
+
+  await prisma.$transaction(async (tx) => {
+    const { count } = await tx.auctionLot.updateMany({
+      where: { id: lot.id, currentBid: lot.currentBid },
+      data: { currentBid: amount, currentBiddingTeamId: team.id, status: 'BIDDING' },
+    })
+    if (count === 0) throw new Error('Bid already updated by another team')
+    await tx.bid.create({ data: { lotId: lot.id, teamId: team.id, amount } })
+  })
+
+  await emitAuctionEvent(roomId, { type: 'BID', teamId: team.id, amount })
+  return getAdminSnapshot(roomId)
+}
+
 export async function markSold(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
@@ -242,6 +276,7 @@ export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   const lot = await openLotOrThrow(roomId)
+  if (lot.currentBiddingTeamId) throw new Error('Cannot mark unsold once a team has bid — undo the bid first')
 
   await prisma.$transaction([
     prisma.auctionLot.update({ where: { id: lot.id }, data: { status: 'UNSOLD' } }),
