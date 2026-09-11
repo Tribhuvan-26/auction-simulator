@@ -7,9 +7,7 @@ import { BrutalButton } from '@/components/ui/brutal-button'
 import { TeamCrest } from '@/components/ui/team-crest'
 import {
   BiddingLog,
-  CurrentStatus,
   NeoPanel,
-  PaletteReference,
   PlayerAuctionCard,
 } from '@/components/ui/neo-grid'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
@@ -102,15 +100,6 @@ export function TeamConsole({
   })
 
   const squadSlots = Array.from({ length: team.squadMax }, (_, i) => team.squad[i] ?? null)
-  const bidState = closed
-    ? (lot?.status ?? 'IDLE')
-    : leading
-      ? 'YOU HOLD'
-      : outbid
-        ? 'OUTBID'
-        : lot
-          ? lot.status
-          : 'AWAITING LOT'
 
   return (
     <div className="font-body flex h-screen w-screen flex-col overflow-hidden bg-grid-paper text-brand-charcoal">
@@ -119,27 +108,24 @@ export function TeamConsole({
       </h1>
 
       <div className="grid min-h-0 flex-1 grid-cols-[24%_46%_1fr] grid-rows-[1fr_auto] gap-3 p-3">
-        {/* ── Row 1, left: reference + franchise identity ────── */}
-        <div className="flex min-h-0 flex-col gap-3">
-          <PaletteReference className="shrink-0" />
-          <NeoPanel title="Franchise" className="min-h-0 flex-1" bodyClassName="flex flex-col p-2">
-            <div className="flex min-h-0 flex-1 items-center justify-center border-[3px] border-brand-charcoal p-1">
-              <TeamCrest
-                shortCode={team.shortCode}
-                name={team.name}
-                colorAccent={team.colorAccent}
-                logoUrl={team.logoUrl}
-                className="h-full max-h-full w-auto"
-              />
-            </div>
-            <dl className="mt-2 grid shrink-0 grid-cols-2 gap-2">
-              <MiniStat label="Purse" value={formatMoney(team.purseRemaining)} />
-              <MiniStat label="Squad" value={`${team.squadCount}/${team.squadMax}`} />
-              <MiniStat label="Overseas" value={`${team.overseasSlotsUsed}/${team.overseasSlotsMax}`} />
-              <MiniStat label="Round" value={String(snapshot.room.round)} />
-            </dl>
-          </NeoPanel>
-        </div>
+        {/* ── Row 1, left: franchise identity ────────────────── */}
+        <NeoPanel title="Franchise" className="min-h-0" bodyClassName="flex flex-col p-2">
+          <div className="flex min-h-0 flex-1 items-center justify-center border-[3px] border-brand-charcoal p-1">
+            <TeamCrest
+              shortCode={team.shortCode}
+              name={team.name}
+              colorAccent={team.colorAccent}
+              logoUrl={team.logoUrl}
+              className="h-full max-h-full w-auto"
+            />
+          </div>
+          <dl className="mt-2 grid shrink-0 grid-cols-2 gap-2">
+            <MiniStat label="Purse" value={formatMoney(team.purseRemaining)} />
+            <MiniStat label="Squad" value={`${team.squadCount}/${team.squadMax}`} />
+            <MiniStat label="Overseas" value={`${team.overseasSlotsUsed}/${team.overseasSlotsMax}`} />
+            <MiniStat label="Round" value={String(snapshot.room.round)} />
+          </dl>
+        </NeoPanel>
 
         {/* ── Row 1, centre: the lot on the block ────────────── */}
         {lot ? (
@@ -162,13 +148,6 @@ export function TeamConsole({
 
         {/* ── Row 1, right: status + bidding controls ────────── */}
         <div className="flex min-h-0 flex-col gap-3">
-          <CurrentStatus
-            lotLabel={lot ? `Lot ${lot.lotNumber}` : 'No lot'}
-            state={bidState}
-            seconds={lot ? lot.timerSeconds : null}
-            className="shrink-0"
-          />
-
           <NeoPanel
             title="Bidding Control Panel"
             className="min-h-0 flex-1"
