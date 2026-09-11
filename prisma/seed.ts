@@ -67,31 +67,25 @@ export function generatePasscodes(count: number): string[] {
 export const DEFAULT_ROOM_NAME = 'IPL 2026 Auction'
 
 /**
- * Seeds one room. Several sessions can run at once, so name each one — the
- * landing page lists every room and the name is all an operator has to tell
- * them apart when pointing people to their seats.
+ * Populates an existing room with the full official team + player set — the
+ * half of `seed()` that doesn't touch AuctionRoom. Used by `seed()` for a
+ * fresh room, and by the restore script for a room whose teams/players were
+ * wiped but whose room row (and passcode) survived.
  */
-export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM_NAME) {
+export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscodes?: string[]) {
   const officialPlayers = loadOfficialPlayers()
   const rolesByName = loadRoles()
   const unroled = officialPlayers.filter((p) => !rolesByName[p.name]).map((p) => p.name)
   if (unroled.length) throw new Error(`No role in player-roles.json for: ${unroled.join(', ')}`)
   const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
-
-  // One extra PIN for the auctioneer, distinct from every seat's so a table
-  // can't wander into the console with the PIN it was handed.
-  const [adminPasscode, ...passcodes] = generatePasscodes(teamNames.length + 1)
-
-  const room = await prisma.auctionRoom.create({
-    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP', adminPasscode },
-  })
+  const passcodes = teamPasscodes ?? generatePasscodes(teamNames.length)
 
   const teamIdByName = new Map<string, string>()
   for (const [i, teamName] of teamNames.entries()) {
     const meta = TEAM_META[teamName]
     const team = await prisma.team.create({
       data: {
-        roomId: room.id,
+        roomId,
         name: teamName,
         shortCode: meta.code,
         colorAccent: meta.color,
@@ -107,18 +101,10 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
     teamIdByName.set(teamName, team.id)
   }
 
-  console.log(`\n${room.name}`)
-  console.log(`  ADMIN ${adminPasscode}  auctioneer's console`)
-  console.log('  — team seat PINs, hand one to each table —')
-  for (const [i, teamName] of teamNames.entries()) {
-    console.log(`  ${TEAM_META[teamName].code.padEnd(5)} ${passcodes[i]}  ${teamName}`)
-  }
-  console.log()
-
   for (const p of officialPlayers) {
     await prisma.player.create({
       data: {
-        roomId: room.id,
+        roomId,
         name: p.name,
         role: rolesByName[p.name],
         basePrice: p.basePrice,
@@ -131,6 +117,29 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
       },
     })
   }
+
+  return { teamNames, passcodes }
+}
+
+export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM_NAME) {
+  // Team seat PINs plus one extra for the auctioneer, drawn from the same
+  // distinct pool so the admin PIN can never collide with a seat's.
+  const officialTeamCount = Object.keys(TEAM_META).length
+  const [adminPasscode, ...reservedTeamPasscodes] = generatePasscodes(officialTeamCount + 1)
+
+  const room = await prisma.auctionRoom.create({
+    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP', adminPasscode },
+  })
+
+  const { teamNames, passcodes } = await seedInto(prisma, room.id, reservedTeamPasscodes)
+
+  console.log(`\n${room.name}`)
+  console.log(`  ADMIN ${adminPasscode}  auctioneer's console`)
+  console.log('  — team seat PINs, hand one to each table —')
+  for (const [i, teamName] of teamNames.entries()) {
+    console.log(`  ${TEAM_META[teamName].code.padEnd(5)} ${passcodes[i]}  ${teamName}`)
+  }
+  console.log()
 
   return room
 }

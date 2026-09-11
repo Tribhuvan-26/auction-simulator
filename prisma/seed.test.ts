@@ -13,13 +13,18 @@ describe('seed', () => {
   beforeAll(async () => {
     const room = await seed(prisma)
     roomId = room.id
-  })
+  }, 20_000)
 
   afterAll(async () => {
-    await prisma.auctionLot.deleteMany({ where: { roomId } })
-    await prisma.player.deleteMany({ where: { roomId } })
-    await prisma.team.deleteMany({ where: { roomId } })
-    await prisma.auctionRoom.delete({ where: { id: roomId } })
+    // roomId is only set once the setup `it` finishes — if it times out or
+    // throws first, `where: { roomId: undefined }` is Prisma's spelling of
+    // "no filter", which deletes every row in the table instead of none.
+    if (roomId) {
+      await prisma.auctionLot.deleteMany({ where: { roomId } })
+      await prisma.player.deleteMany({ where: { roomId } })
+      await prisma.team.deleteMany({ where: { roomId } })
+      await prisma.auctionRoom.delete({ where: { id: roomId } })
+    }
     await prisma.$disconnect()
   })
 
@@ -85,17 +90,23 @@ describe('seed room naming', () => {
   let roomId: string
 
   afterAll(async () => {
-    await prisma.player.deleteMany({ where: { roomId } })
-    await prisma.team.deleteMany({ where: { roomId } })
-    await prisma.auctionRoom.delete({ where: { id: roomId } })
+    if (roomId) {
+      await prisma.player.deleteMany({ where: { roomId } })
+      await prisma.team.deleteMany({ where: { roomId } })
+      await prisma.auctionRoom.delete({ where: { id: roomId } })
+    }
     await prisma.$disconnect()
   })
 
-  it('names the room as asked, so parallel sessions are told apart', async () => {
-    const room = await seed(prisma, 'Saturday 10am - Batch A')
-    roomId = room.id
-    expect(room.name).toBe('Saturday 10am - Batch A')
-  })
+  it(
+    'names the room as asked, so parallel sessions are told apart',
+    async () => {
+      const room = await seed(prisma, 'Saturday 10am - Batch A')
+      roomId = room.id
+      expect(room.name).toBe('Saturday 10am - Batch A')
+    },
+    20_000
+  )
 
   it('falls back to the default name when given blank', async () => {
     expect(DEFAULT_ROOM_NAME).toBe('IPL 2026 Auction')
