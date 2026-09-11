@@ -183,7 +183,7 @@ export function PlayerAuctionCard({
               <p className="font-heading text-4xl font-black leading-none tabular-nums">{formatMoney(currentBid)}</p>
             </div>
             <dl className="mt-3 grid shrink-0 grid-cols-2 border-[3px] border-brand-charcoal">
-              <Cell label="Team" value={leaderShortCode ?? '—'} />
+              <Cell label="Team" value={leaderShortCode ?? 'Waiting for bid'} />
               <Cell label="Role" value={player.role.replace('_', '-')} border />
               <Cell label="Base" value={formatMoney(player.basePrice)} top />
               <Cell label={purseLabel} value={formatMoney(purseValue)} top border />
