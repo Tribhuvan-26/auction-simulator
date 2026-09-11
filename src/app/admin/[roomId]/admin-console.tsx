@@ -7,7 +7,6 @@ import { Check, Octagon, Pause, Play, RotateCcw, Undo2, X } from 'lucide-react'
 import { BrutalButton } from '@/components/ui/brutal-button'
 import {
   BiddingLog,
-  CurrentStatus,
   NeoPanel,
   PlayerAuctionCard,
   TeamBidTracker,
@@ -236,13 +235,6 @@ export function AdminConsole({
 
         {/* ── Row 1, right: status + operator controls ───────── */}
         <div className="flex min-h-0 flex-col gap-3">
-          <CurrentStatus
-            lotLabel={lot ? `Lot ${lot.lotNumber}` : 'No lot'}
-            state={lot ? lot.status : 'AWAITING LOT'}
-            seconds={lot ? lot.timerSeconds : null}
-            className="shrink-0"
-          />
-
           {biddingTeamCodes.length > 0 && (
             <p className="font-heading shrink-0 text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/70">
               In the fight: {biddingTeamCodes.join(', ')}
