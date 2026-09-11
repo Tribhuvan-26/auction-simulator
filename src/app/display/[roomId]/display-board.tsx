@@ -7,9 +7,7 @@ import { useLotEntrance } from '@/hooks/use-lot-entrance'
 import { SoldStamp } from '@/components/ui/sold-stamp'
 import {
   BiddingLog,
-  CurrentStatus,
   NeoPanel,
-  PaletteReference,
   PlayerAuctionCard,
   TeamBidTracker,
 } from '@/components/ui/neo-grid'
@@ -62,20 +60,17 @@ export function DisplayBoard({
       </h1>
 
       <div className="grid min-h-0 flex-1 grid-cols-[24%_1fr_26%] grid-rows-[1fr_auto] gap-3 p-3">
-        {/* ── Row 1, left: palette + room state ──────────────── */}
-        <div className="flex min-h-0 flex-col gap-3">
-          <PaletteReference className="shrink-0" />
-          <NeoPanel title="Auction State" className="min-h-0 flex-1" bodyClassName="flex flex-col gap-2 p-2">
-            <Readout label="Phase" value={snapshot.room.phase} />
-            <Readout label="Round" value={String(snapshot.room.round)} />
-            <Readout label="Players sold" value={String(snapshot.soldLog.length)} />
-            <Readout
-              label="Leading"
-              value={leader ? leader.shortCode : '—'}
-              accent={leader?.colorAccent}
-            />
-          </NeoPanel>
-        </div>
+        {/* ── Row 1, left: room state ─────────────────────────── */}
+        <NeoPanel title="Auction State" className="min-h-0" bodyClassName="flex flex-col gap-2 p-2">
+          <Readout label="Phase" value={snapshot.room.phase} />
+          <Readout label="Round" value={String(snapshot.room.round)} />
+          <Readout label="Players sold" value={String(snapshot.soldLog.length)} />
+          <Readout
+            label="Leading"
+            value={leader ? leader.shortCode : '—'}
+            accent={leader?.colorAccent}
+          />
+        </NeoPanel>
 
         {/* ── Row 1, centre: the lot on the block ────────────── */}
         <div ref={cardRef} className={`flex min-h-0 flex-col ${bidPulse ? 'anim-bid-pop' : ''}`}>
@@ -97,12 +92,6 @@ export function DisplayBoard({
 
         {/* ── Row 1, right: live state + the room's running ledger ── */}
         <div className="flex min-h-0 flex-col gap-3">
-          <CurrentStatus
-            lotLabel={lot ? `Lot ${lot.lotNumber}` : 'No lot'}
-            state={lot ? lot.status : 'AWAITING LOT'}
-            seconds={lot ? lot.timerSeconds : null}
-            className="shrink-0"
-          />
           <NeoPanel title="Sold Ledger" className="min-h-0 flex-1" bodyClassName="overflow-hidden p-2">
             <ul className="scrollbar-thin-dark flex h-full flex-col gap-1.5 overflow-y-auto pr-1">
               {snapshot.soldLog.map((s) => (
