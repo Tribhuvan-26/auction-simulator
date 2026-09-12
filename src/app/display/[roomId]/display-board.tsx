@@ -79,8 +79,7 @@ export function DisplayBoard({
               player={lot.player}
               currentBid={lot.currentBid}
               leaderShortCode={leader?.shortCode ?? null}
-              purseLabel="Purse"
-              purseValue={leader?.purseRemaining ?? 0}
+              leaderTeam={leader}
               className="min-h-0 flex-1"
             />
           ) : (
