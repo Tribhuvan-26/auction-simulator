@@ -153,6 +153,7 @@ export function PlayerAuctionCard({
   player,
   currentBid,
   leaderShortCode,
+  leaderTeam,
   purseLabel,
   purseValue,
   className,
@@ -160,6 +161,7 @@ export function PlayerAuctionCard({
   player: CardPlayer
   currentBid: number
   leaderShortCode: string | null
+  leaderTeam?: { name: string; colorAccent: string; logoUrl?: string | null } | null
   purseLabel?: string
   purseValue?: number
   className?: string
@@ -169,11 +171,23 @@ export function PlayerAuctionCard({
       <PhotoPlate name={player.name} photoUrl={player.photoUrl} className="mr-3 w-[34%] shrink-0" />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="shrink-0 border-[3px] border-brand-charcoal bg-brand-blue px-3 py-2 text-brand-white">
-          <h2 className="font-heading truncate text-3xl font-black leading-none tracking-tight">{player.name}</h2>
-          <p className="font-heading mt-1 truncate text-xs font-bold uppercase tracking-widest">
-            {leaderShortCode ?? player.setNumber} • {player.role.replace('_', '-')}
-          </p>
+        <div className="flex shrink-0 items-center justify-between gap-2 border-[3px] border-brand-charcoal bg-brand-blue px-3 py-2 text-brand-white">
+          <div className="min-w-0">
+            <h2 className="font-heading truncate text-3xl font-black leading-none tracking-tight">{player.name}</h2>
+            <p className="font-heading mt-1 truncate text-xs font-bold uppercase tracking-widest">
+              {leaderShortCode ?? player.setNumber} • {player.role.replace('_', '-')}
+            </p>
+          </div>
+          {leaderTeam && leaderShortCode && (
+            <TeamCrest
+              shortCode={leaderShortCode}
+              name={leaderTeam.name}
+              colorAccent={leaderTeam.colorAccent}
+              logoUrl={leaderTeam.logoUrl}
+              mark
+              className="h-14 w-14 shrink-0"
+            />
+          )}
         </div>
 
         <div className="mt-3 flex min-h-0 flex-1 gap-3">
