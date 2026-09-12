@@ -1,85 +1,148 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { BrutalCard } from '@/components/ui/brutal-card'
 
-export const dynamic = 'force-dynamic'
+// Keep copy easy to swap without touching layout.
+const CONTENT = {
+  eyebrow: 'IPL AUCTION SIMULATOR',
+  title: 'AUCTION',
+  tagline: 'BUILD YOUR DREAM SQUAD',
+  description:
+    'Step into the IPL auction arena, where\nstrategy meets passion. Pick your team,\nbid for the best, and build a champion.',
+  cta: 'START AUCTION',
+  stats: ['10 TEAMS', '250+ PLAYERS', 'UNLIMITED POSSIBILITIES'],
+}
 
-export default async function Home() {
-  const rooms = await prisma.auctionRoom.findMany({
-    include: { teams: { orderBy: { name: 'asc' } }, _count: { select: { players: true } } },
-    orderBy: { createdAt: 'desc' },
-  })
+const STRIP_TEAMS = ['mi', 'csk', 'rcb', 'kkr', 'dc', 'rr', 'srh', 'gt']
 
+// Hero frame geometry, lifted directly off the reference screenshot
+// (1536x1024) so the composition matches rather than being eyeballed.
+const GEOMETRY = {
+  '--hero-left': '4%',
+  '--hero-right': '6%',
+  '--hero-top': '18%',
+  '--hero-bottom': '8%',
+  '--hero-radius': '28px',
+  '--content-width': '46%',
+  '--glass-opacity': '0.03',
+} as React.CSSProperties
+
+export default function Landing() {
   return (
-    <main className="flex-1 bg-spotlight bg-grain px-6 py-10 md:px-12">
-      <header className="relative mb-10 max-w-4xl">
-        <h1 className="font-heading text-5xl font-bold leading-[0.95] text-brand-white md:text-7xl">
-          Auction
-          <span className="ml-3 inline-block rounded-xl border-[3px] border-brand-white bg-brand-yellow px-3 text-brand-charcoal shadow-brutal-white">
-            Live
-          </span>
-        </h1>
-        <p className="mt-4 max-w-md text-brand-white/80">
-          Pick a room, then open the seat you need. Run the auction from the console, bid from a team
-          seat, or put the display on the big screen.
-        </p>
-      </header>
+    <main className="relative h-screen w-full overflow-hidden bg-[#05070c] text-white" style={GEOMETRY}>
+      {/* The reference screenshot's own photograph, cropped to just the
+          stadium/batter/ball region (no baked-in text) so it stays
+          photographic instead of redrawn as vector/illustration art. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- static hero photo, no next/image domain config needed */}
+      <img
+        src="/hero-photo.webp"
+        alt=""
+        aria-hidden
+        className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[30%_18%]"
+      />
 
-      {rooms.length === 0 && (
-        <BrutalCard className="max-w-lg">
-          <h2 className="font-heading text-xl font-bold">No rooms yet</h2>
-          <p className="mt-2">
-            Seed the demo data to get 8 teams and 40 players: run{' '}
-            <code className="rounded border-2 border-brand-charcoal bg-brand-yellow px-1">npx prisma db seed</code>.
-          </p>
-        </BrutalCard>
-      )}
+      {/* Dark navy backdrop + left-to-right fade so the crop blends into a
+          full-bleed scene instead of reading as a pasted rectangle. */}
+      <div className="absolute inset-0 -z-10 bg-[#050a12]" />
+      <div className="absolute inset-0 bg-[linear-gradient(100deg,#05070c_0%,#05070c_42%,rgba(5,7,12,0.45)_54%,rgba(5,7,12,0.08)_66%,transparent_78%)]" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#05070c] to-transparent" />
 
-      <div className="relative flex flex-col gap-14">
-        {rooms.map((room) => (
-          <BrutalCard key={room.id} variant="active" className="max-w-5xl">
-            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b-[3px] border-brand-charcoal pb-3">
-              <h2 className="font-heading text-3xl font-bold">{room.name}</h2>
-              <span className="rounded-xl border-[3px] border-brand-charcoal bg-brand-yellow px-3 py-1 font-heading font-bold">
-                {room.phase}
-              </span>
-              <span className="text-sm">
-                {room.teams.length} teams · {room._count.players} players · round {room.round}
-              </span>
+      {/* ── Foreground content ── */}
+      <div className="relative z-10 h-full">
+        <nav className="absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-8 md:px-12">
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static logo asset, no next/image domain config needed */}
+            <img src="/ipl-mark.png" alt="" aria-hidden className="h-6 w-auto" />
+            <span className="font-heading text-xl font-light tracking-[0.1em]">IPL</span>
+          </div>
+        </nav>
+
+        {/* Glass hero container — bounds come from the CSS vars above.
+            Absolutely positioned so top/bottom percentages resolve against
+            height (margin percentages resolve against width for every box,
+            including margin-top/bottom — that was the alignment bug). No
+            border stroke — the reference's own card outline is baked into
+            its photo, not a real border, so drawing our own just doubled it.
+            No backdrop-blur either — it sat on the same box as all the text/
+            button/logo children, and browsers can blur that whole composited
+            layer (not just what's behind it) at fractional zoom, which is
+            why everything but the background photo looked soft on zoom. */}
+        <div
+          className="absolute overflow-hidden rounded-[var(--hero-radius)] bg-white/[var(--glass-opacity)]"
+          style={{
+            left: 'var(--hero-left)',
+            right: 'var(--hero-right)',
+            top: 'var(--hero-top)',
+            bottom: 'var(--hero-bottom)',
+          }}
+        >
+          <div className="flex h-full flex-col px-8 py-8 md:px-12 md:py-10">
+            <div style={{ maxWidth: 'var(--content-width)', minWidth: 280 }}>
+              <p className="font-body text-[12px] font-light uppercase tracking-[0.35em] text-white/70">
+                {CONTENT.eyebrow}
+              </p>
+
+              <h1
+                className="mt-2 text-[clamp(3.5rem,10.5vw,9rem)] font-medium uppercase leading-[0.92] tracking-tight"
+                style={{
+                  fontFamily: 'var(--font-luxury)',
+                  backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #dce7f7 40%, #93a8c4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                  WebkitTextStroke: '1px rgba(255,255,255,0.9)',
+                  textShadow: '0 0 40px rgba(200,220,255,0.35), 0 0 2px rgba(255,255,255,0.4)',
+                }}
+              >
+                {CONTENT.title}
+              </h1>
+
+              <p className="mt-4 flex items-center gap-3 font-body text-xs font-light uppercase tracking-[0.3em] text-white/85">
+                <span className="h-px w-7 bg-white/40" />
+                {CONTENT.tagline}
+                <span className="h-px w-7 bg-white/40" />
+              </p>
+
+              <p className="mt-5 max-w-[24rem] whitespace-pre-line font-body text-[15px] font-light leading-relaxed text-white/60">
+                {CONTENT.description}
+              </p>
+
+              <Link
+                href="/rooms"
+                className="group mt-7 inline-flex h-[60px] w-[240px] items-center justify-center gap-3 rounded-full border border-white/35 bg-white/[0.02] font-body text-xs font-light uppercase tracking-[0.28em] text-white shadow-[0_0_0_0_rgba(140,190,255,0)] transition hover:border-white/70 hover:shadow-[0_0_28px_2px_rgba(140,190,255,0.3)]"
+              >
+                {CONTENT.cta}
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </Link>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Link
-                href={`/admin/${room.id}`}
-                className="rounded-xl border-[3px] border-brand-charcoal bg-brand-blue px-4 py-2 font-heading font-bold text-brand-white shadow-brutal transition-transform hover:-translate-y-[2px] hover:shadow-glow-blue active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
-              >
-                Admin console
-              </Link>
-              <Link
-                href={`/display/${room.id}`}
-                className="rounded-xl border-[3px] border-brand-charcoal bg-brand-charcoal px-4 py-2 font-heading font-bold text-brand-white shadow-brutal transition-transform hover:-translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
-              >
-                Big screen
-              </Link>
-            </div>
-
-            <h3 className="mt-6 font-heading text-sm font-bold uppercase">Team seats</h3>
-            <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
-              {room.teams.map((t) => (
-                <li key={t.id}>
-                  <Link
-                    href={`/team/${room.id}/${t.id}`}
-                    className="flex items-center justify-between gap-2 rounded-xl border-[3px] border-brand-charcoal px-3 py-2 shadow-brutal transition-transform hover:-translate-y-[2px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-pressed"
-                    style={{ borderLeftColor: t.colorAccent, borderLeftWidth: 10 }}
-                  >
-                    <span className="truncate font-heading font-bold">{t.name}</span>
-                    <span className="font-heading text-xs">{t.shortCode}</span>
-                  </Link>
-                </li>
+            {/* Bottom-left stats */}
+            <div className="mt-auto flex flex-wrap items-center gap-3 font-body text-[12px] font-light uppercase tracking-[0.22em] text-white/70">
+              {CONTENT.stats.map((s, i) => (
+                <span key={s} className="flex items-center gap-3">
+                  {i > 0 && <span className="h-3 w-px bg-white/25" aria-hidden />}
+                  {s}
+                </span>
               ))}
-            </ul>
-          </BrutalCard>
-        ))}
+            </div>
+          </div>
+
+          {/* Team logo strip — the app's own official team logo SVGs
+              (public/logos), not a raster crop. */}
+          <div className="absolute bottom-7 right-7 hidden items-center rounded-2xl border border-white/15 bg-black/55 px-3 py-2.5 shadow-lg md:flex">
+            {STRIP_TEAMS.map((code, i) => (
+              <div key={code} className="flex items-center">
+                {i > 0 && <span className="mx-3 h-9 w-px bg-white/15" aria-hidden />}
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/90 p-1 transition-transform duration-300 hover:scale-110">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- static logo asset, no next/image domain config needed */}
+                  <img
+                    src={`/logos/${code}.svg`}
+                    alt={code.toUpperCase()}
+                    className="h-full w-full object-contain opacity-90 transition hover:opacity-100"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   )
