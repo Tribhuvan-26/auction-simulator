@@ -44,35 +44,35 @@ export type AdminSnapshot = {
 export type PublicSnapshot = Omit<AdminSnapshot, 'queue'>
 
 async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<AdminSnapshot> {
-  const room = await prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } })
-
-  // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
-  // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
-  const lot = await prisma.auctionLot.findFirst({
-    where: { roomId },
-    include: { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } },
-    orderBy: { id: 'desc' },
-  })
-
-  // Lot number is "how many lots this room has called", which is what the
-  // status module shows — not the player's set name.
-  const lotCount = await prisma.auctionLot.count({ where: { roomId } })
-
-  const teamsRaw = await prisma.team.findMany({
-    where: { roomId },
-    include: { players: true },
-  })
-
-  const queueRaw = includeQueue
-    ? await prisma.player.findMany({ where: { roomId, status: 'UPCOMING' }, orderBy: { id: 'asc' } })
-    : []
-
-  const soldRaw = await prisma.player.findMany({
-    where: { roomId, status: 'SOLD' },
-    include: { team: true },
-    orderBy: { id: 'desc' },
-    take: 12,
-  })
+  // These five reads are independent of each other, so they run in parallel —
+  // this function is called on every client's refetch after every bid, and
+  // the DB round-trip latency here is the room's actual lag budget.
+  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw] = await Promise.all([
+    prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
+    // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
+    // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
+    prisma.auctionLot.findFirst({
+      where: { roomId },
+      include: { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } },
+      orderBy: { id: 'desc' },
+    }),
+    // Lot number is "how many lots this room has called", which is what the
+    // status module shows — not the player's set name.
+    prisma.auctionLot.count({ where: { roomId } }),
+    prisma.team.findMany({
+      where: { roomId },
+      include: { players: true },
+    }),
+    includeQueue
+      ? prisma.player.findMany({ where: { roomId, status: 'UPCOMING' }, orderBy: { id: 'asc' } })
+      : Promise.resolve([]),
+    prisma.player.findMany({
+      where: { roomId, status: 'SOLD' },
+      include: { team: true },
+      orderBy: { id: 'desc' },
+      take: 12,
+    }),
+  ])
 
   return {
     room: { id: room.id, name: room.name, phase: room.phase, round: room.round },
