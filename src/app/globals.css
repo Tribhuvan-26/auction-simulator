@@ -178,3 +178,16 @@
   text-align: center;
   padding: 4px 0;
 }
+
+/* Landing page hero title: a slow light sweep across the metallic gradient,
+ * like a chrome surface catching a moving highlight. Wide background-size so
+ * the bright band is a fraction of the pass, not a full-width wash. */
+@keyframes shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.anim-shimmer-text { animation: shimmer-sweep 6s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-shimmer-text { animation: none; }
+}
