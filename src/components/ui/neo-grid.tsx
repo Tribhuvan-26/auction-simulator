@@ -160,8 +160,8 @@ export function PlayerAuctionCard({
   player: CardPlayer
   currentBid: number
   leaderShortCode: string | null
-  purseLabel: string
-  purseValue: number
+  purseLabel?: string
+  purseValue?: number
   className?: string
 }) {
   return (
@@ -185,8 +185,15 @@ export function PlayerAuctionCard({
             <dl className="mt-3 grid shrink-0 grid-cols-2 border-[3px] border-brand-charcoal">
               <Cell label="Team" value={leaderShortCode ?? 'Waiting for bid'} />
               <Cell label="Role" value={player.role.replace('_', '-')} border />
-              <Cell label="Base" value={formatMoney(player.basePrice)} top />
-              <Cell label={purseLabel} value={formatMoney(purseValue)} top border />
+              <Cell
+                label="Base"
+                value={formatMoney(player.basePrice)}
+                top
+                className={purseLabel === undefined ? 'col-span-2' : undefined}
+              />
+              {purseLabel !== undefined && purseValue !== undefined && (
+                <Cell label={purseLabel} value={formatMoney(purseValue)} top border />
+              )}
             </dl>
           </div>
 
@@ -247,18 +254,21 @@ function Cell({
   value,
   top,
   border,
+  className,
 }: {
   label: string
   value: string
   top?: boolean
   border?: boolean
+  className?: string
 }) {
   return (
     <div
       className={cn(
         'px-3 py-1.5',
         top && 'border-t-[3px] border-brand-charcoal',
-        border && 'border-l-[3px] border-brand-charcoal'
+        border && 'border-l-[3px] border-brand-charcoal',
+        className
       )}
     >
       <dt className="font-heading text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/70">
