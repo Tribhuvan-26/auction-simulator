@@ -66,6 +66,16 @@ export function generatePasscodes(count: number): string[] {
 
 export const DEFAULT_ROOM_NAME = 'IPL 2026 Auction'
 
+// Short code for the room's URLs (e.g. "ROOM-7F2A") — the cuid stays the
+// real id everywhere else. Collisions are astronomically unlikely at this
+// length; the DB's unique constraint is the actual backstop.
+function generateRoomCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no 0/O/1/I — easy to read aloud
+  let suffix = ''
+  for (let i = 0; i < 4; i++) suffix += chars[randomInt(0, chars.length)]
+  return `ROOM-${suffix}`
+}
+
 /**
  * Populates an existing room with the full official team + player set — the
  * half of `seed()` that doesn't touch AuctionRoom. Used by `seed()` for a
@@ -128,12 +138,17 @@ export async function seed(prisma: PrismaClient, roomName: string = DEFAULT_ROOM
   const [adminPasscode, ...reservedTeamPasscodes] = generatePasscodes(officialTeamCount + 1)
 
   const room = await prisma.auctionRoom.create({
-    data: { name: roomName.trim() || DEFAULT_ROOM_NAME, phase: 'SETUP', adminPasscode },
+    data: {
+      name: roomName.trim() || DEFAULT_ROOM_NAME,
+      code: generateRoomCode(),
+      phase: 'SETUP',
+      adminPasscode,
+    },
   })
 
   const { teamNames, passcodes } = await seedInto(prisma, room.id, reservedTeamPasscodes)
 
-  console.log(`\n${room.name}`)
+  console.log(`\n${room.name}  [${room.code}]`)
   console.log(`  ADMIN ${adminPasscode}  auctioneer's console`)
   console.log('  — team seat PINs, hand one to each table —')
   for (const [i, teamName] of teamNames.entries()) {
