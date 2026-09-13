@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getPublicSnapshot } from '@/app/admin/[roomId]/actions'
 import { hasTeamAccess } from '@/lib/team-auth'
 import { unlockTeam } from '@/lib/pin-actions'
+import { resolveRoomId } from '@/lib/resolve-room'
 import { PinGate } from '@/components/ui/pin-gate'
 import { TeamConsole } from './team-console'
 
@@ -12,10 +13,13 @@ export default async function TeamPage({
   params: Promise<{ roomId: string; teamId: string }>
   searchParams: Promise<{ pin?: string }>
 }) {
-  const { roomId, teamId } = await params
+  const { roomId: roomCode, teamId: teamCode } = await params
+  const roomId = await resolveRoomId(roomCode)
+  if (!roomId) notFound()
   const initialSnapshot = await getPublicSnapshot(roomId)
-  const team = initialSnapshot.teams.find((t) => t.id === teamId)
+  const team = initialSnapshot.teams.find((t) => t.shortCode === teamCode.toUpperCase())
   if (!team) notFound()
+  const teamId = team.id
 
   // Nothing about this seat renders until the PIN is in. A ?pin= in the link
   // only prefills the box — the cookie is still set by the unlock action, so a

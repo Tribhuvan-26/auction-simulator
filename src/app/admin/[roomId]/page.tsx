@@ -1,6 +1,8 @@
+import { notFound } from 'next/navigation'
 import { getAdminSnapshot } from './actions'
 import { hasAdminAccess } from '@/lib/team-auth'
 import { unlockAdmin } from '@/lib/pin-actions'
+import { resolveRoomId } from '@/lib/resolve-room'
 import { PinGate } from '@/components/ui/pin-gate'
 import { AdminConsole } from './admin-console'
 
@@ -11,7 +13,9 @@ export default async function AdminPage({
   params: Promise<{ roomId: string }>
   searchParams: Promise<{ pin?: string }>
 }) {
-  const { roomId } = await params
+  const { roomId: roomCode } = await params
+  const roomId = await resolveRoomId(roomCode)
+  if (!roomId) notFound()
   const initialSnapshot = await getAdminSnapshot(roomId)
 
   // The console raises bids for every team, so it can't be authorised by a team
