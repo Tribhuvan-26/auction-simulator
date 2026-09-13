@@ -37,6 +37,7 @@ enum LotStatus {
 
 model AuctionRoom {
   id           String       @id @default(cuid())
+  code         String       @unique @default(cuid())
   name         String
   phase        RoomPhase    @default(SETUP)
   round        Int          @default(1)
@@ -66,6 +67,7 @@ model Team {
   bids              Bid[]
 
   @@unique([roomId, passcode])
+  @@unique([roomId, shortCode])
   @@index([roomId])
 }
 
