@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion, type Variants } from 'framer-motion'
+import CieIntro from '@/components/CieIntro'
 
 // Keep copy easy to swap without touching layout.
 const CONTENT = {
@@ -42,6 +43,7 @@ const item = {
 export default function Landing() {
   return (
     <main className="relative h-screen w-full overflow-hidden bg-[#05070c] text-white" style={GEOMETRY}>
+      <CieIntro />
       {/* The reference screenshot's own photograph, cropped to just the
           stadium/batter/ball region (no baked-in text) so it stays
           photographic instead of redrawn as vector/illustration art. Slow
