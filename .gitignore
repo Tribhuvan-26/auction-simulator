@@ -43,3 +43,6 @@ next-env.d.ts
 
 # seeded room PINs (local only)
 pins.txt
+
+# Playwright MCP scratch output (screenshots, console logs)
+.playwright-mcp/
