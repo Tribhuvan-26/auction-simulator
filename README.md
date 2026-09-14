@@ -1,4 +1,4 @@
-# Auction Live-This project is my child
+# Auction Live-This project is my child make sure good care is taken of it
 
 Foundation for a real-time IPL-style auction platform (Next.js + Prisma + Socket.io).
 
