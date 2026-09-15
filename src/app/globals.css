@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #282828;
+  --background: #121212;
+  --foreground: #FFFFFF;
   --color-blue: #2074D5;
   --color-yellow: #F9D47B;
   --color-pink: #EB547C;
   --color-white: #FFFFFF;
-  --color-charcoal: #282228;
+  --color-charcoal: #282828;
+  --color-surface-dark: #181818;
+  --color-surface-elevated: #202020;
+  --color-surface-card: #1C1C1C;
+  --color-border-tech: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
 }
 
 @theme inline {
@@ -18,30 +23,45 @@
   --color-brand-pink: var(--color-pink);
   --color-brand-white: var(--color-white);
   --color-brand-charcoal: var(--color-charcoal);
+  --color-brand-surface: var(--color-surface-dark);
+  --color-brand-surface-elevated: var(--color-surface-elevated);
+  --color-brand-card: var(--color-surface-card);
+  --color-border-tech: var(--color-border-tech);
+  --color-border-strong: var(--color-border-strong);
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
-  --shadow-brutal: 4px 4px 0 #282828;
-  --shadow-brutal-lg: 8px 8px 0 #282828;
-  --shadow-brutal-pressed: 1px 1px 0 #282828;
+  --font-condensed: var(--font-condensed);
+  --shadow-brutal: 4px 4px 0 #000000;
+  --shadow-brutal-lg: 8px 8px 0 #000000;
+  --shadow-brutal-pressed: 1px 1px 0 #000000;
   --shadow-brutal-white: 4px 4px 0 #FFFFFF;
-  /* Neo-Grid Pop spec calls for flat hard-edge panels only, no diffuse glow —
-   * these keep the old names (still referenced everywhere) but are now just
-   * a bigger hard offset, same family as --shadow-brutal-lg. */
-  --shadow-glow-blue: 10px 10px 0 #282828;
-  --shadow-glow-yellow: 10px 10px 0 #282828;
-  --shadow-glow-pink: 10px 10px 0 #282828;
+  --shadow-glow-blue: 0 0 24px rgba(32, 116, 213, 0.45), 4px 4px 0 #000000;
+  --shadow-glow-yellow: 0 0 24px rgba(249, 212, 123, 0.45), 4px 4px 0 #000000;
+  --shadow-glow-pink: 0 0 24px rgba(235, 84, 124, 0.45), 4px 4px 0 #000000;
 }
 
-/* Court Brutalism motion. The bid-pop pulse, timer urgency pulse, and ticker
- * marquee are steady/looping effects that don't need a JS timeline — plain
- * CSS keyframes. One-shot sequences (SOLD/UNSOLD, lot-change entrance,
- * confetti) are GSAP timelines (see src/components/ui), and mount/unmount
- * moments (toasts, modals, team chip swap) are Framer Motion — see globals.css
- * history for the CSS-only versions this replaced. All opt-out under
- * prefers-reduced-motion below. */
+/* Base typography utilities */
+.font-condensed {
+  font-family: var(--font-condensed), sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-condensed), var(--font-heading), sans-serif;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.text-tech {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Keyframe animations */
 @keyframes bid-pop {
   0%   { transform: scale(1); }
-  35%  { transform: scale(1.04); }
+  35%  { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 @keyframes marquee {
@@ -50,37 +70,35 @@
 }
 @keyframes urgent-pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.07); }
+  50% { transform: scale(1.05); }
+}
+@keyframes beacon-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(235, 84, 124, 0.4), 4px 4px 0 #000; }
+  50% { box-shadow: 0 0 32px rgba(235, 84, 124, 0.75), 6px 6px 0 #000; }
+}
+@keyframes paddle-alarm {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(235, 84, 124, 0.6); }
+  50%      { transform: scale(1.015); box-shadow: 0 0 40px 6px rgba(235, 84, 124, 0.6); }
 }
 
 .anim-bid-pop { animation: bid-pop 0.35s ease-out; }
-.anim-marquee { animation: marquee 28s linear infinite; }
+.anim-marquee { animation: marquee 32s linear infinite; }
 .anim-urgent { animation: urgent-pulse 0.6s ease-in-out infinite; }
-
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: var(--shadow-glow-pink); }
-  50% { box-shadow: 14px 14px 0 #282828; }
-}
+.anim-beacon { animation: beacon-pulse 1.8s ease-in-out infinite; }
 .anim-glow-pulse { animation: glow-pulse 1.4s ease-in-out infinite; }
-
-/* Outbid alarm on the team paddle: a heavy pulse the bidder can't miss from
- * across a room, not a polite fade. */
-@keyframes paddle-alarm {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.55); }
-  50%      { transform: scale(1.015); box-shadow: 0 0 55px 8px rgba(225, 29, 72, 0.55); }
-}
 .anim-paddle-alarm { animation: paddle-alarm 0.85s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-bid-pop, .anim-marquee, .anim-urgent, .anim-glow-pulse, .anim-paddle-alarm {
+  .anim-bid-pop, .anim-marquee, .anim-urgent, .anim-beacon, .anim-glow-pulse, .anim-paddle-alarm {
     animation: none !important;
   }
 }
 
-/* Layered plate: a solid color card offset behind the element via ::before,
- * so surfaces read as thick stacked cardboard instead of flat cutouts.
- * Needs `position: relative` (via .layer-plate) and a visible overflow on
- * every ancestor up to the nearest scroll container. */
+/* Layered plate geometry */
 .layer-plate {
   position: relative;
 }
@@ -90,8 +108,8 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  border: 3px solid var(--color-charcoal);
-  transform: translate(14px, 14px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: translate(8px, 8px);
 }
 .layer-plate-blue::before { background: var(--color-blue); }
 .layer-plate-yellow::before { background: var(--color-yellow); }
@@ -101,15 +119,29 @@
 .shadow-glow-yellow { box-shadow: var(--shadow-glow-yellow); }
 .shadow-glow-pink { box-shadow: var(--shadow-glow-pink); }
 
-/* Fine grain overlay for large flat charcoal surfaces (the display screen) —
- * an SVG turbulence filter as a data-uri, blended in at low opacity so it
- * reads as texture, not noise. */
+/* Concrete & Architectural Textures */
+.bg-concrete {
+  position: relative;
+  background-color: #161616;
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(32, 116, 213, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(20, 20, 20, 0.95) 0%, rgba(14, 14, 14, 1) 100%);
+}
+
+.bg-concrete::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Grain overlay */
 .bg-grain {
   position: relative;
-  /* Stacking context for the plates inside: .layer-plate::before sits at
-   * z-index -1 and must NOT be isolated by the card itself, or it paints over
-   * the card's own background instead of behind it. It lands above this
-   * ground's background and below the card. */
   isolation: isolate;
 }
 .bg-grain::after {
@@ -117,64 +149,106 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.04;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* The hard offset plate that makes a surface read as brutalist rather than
- * floating: a solid block behind it, no blur, no feather. */
-.brutal-offset {
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.55);
-}
-
-/* Ultra-thin dark scrollbar for the ledger columns — the default Windows bar
- * is a light slab that breaks the panel edge. */
-.scrollbar-thin-dark {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
-}
-.scrollbar-thin-dark::-webkit-scrollbar { width: 6px; }
-.scrollbar-thin-dark::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-thin-dark::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 9999px;
-}
-.scrollbar-thin-dark::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
-
-/* Radial spotlight + dot-grid for the display screen's charcoal background —
- * reads as a lit stage rather than one flat rectangle. */
-.bg-spotlight {
-  isolation: isolate;
-  background-color: var(--color-charcoal);
+/* Subtle architectural technical grid background */
+.bg-tech-grid {
+  background-color: #141414;
   background-image:
-    radial-gradient(circle at 50% 0%, rgba(32, 116, 213, 0.35), transparent 60%),
-    radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
-  background-size: auto, 28px 28px;
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Focus is structural here, not a ring: charcoal outline offset off the hard edge. */
-:focus-visible {
-  outline: 3px solid var(--color-blue);
-  outline-offset: 2px;
-}
-
-/* Faint graph-paper ground for the light Neo-Grid Pop panels (admin/team seat). */
+/* Updated dark technical ground replacing old white grid paper */
 .bg-grid-paper {
-  background-color: var(--color-white);
+  background-color: #141414;
   background-image:
-    linear-gradient(rgba(40, 40, 40, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(40, 40, 40, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
-/* Neo-Grid Pop telemetry footer strip, shared by all 3 interfaces. */
-.telemetry-footer {
-  background: var(--color-charcoal);
-  color: rgba(255, 255, 255, 0.75);
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-align: center;
-  padding: 4px 0;
+/* Hard offset brutalist shadow */
+.brutal-offset {
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
 }
+
+/* Ultra-thin technical dark scrollbar */
+.scrollbar-thin-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.scrollbar-thin-dark::-webkit-scrollbar { width: 5px; }
+.scrollbar-thin-dark::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 0px;
+}
+.scrollbar-thin-dark::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.35); }
+
+/* Dramatic architectural spotlight */
+.bg-spotlight {
+  isolation: isolate;
+  background-color: #121212;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(32, 116, 213, 0.22), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: auto, 28px 28px;
+}
+
+/* Architectural photo bracket */
+.bracket-frame {
+  position: relative;
+}
+.bracket-frame::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 18px;
+  height: 18px;
+  border-top: 3px solid var(--color-yellow);
+  border-left: 3px solid var(--color-yellow);
+  z-index: 10;
+  pointer-events: none;
+}
+.bracket-frame::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 18px;
+  height: 18px;
+  border-bottom: 3px solid var(--color-yellow);
+  border-right: 3px solid var(--color-yellow);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Warm architectural strip light */
+.strip-light-warm {
+  box-shadow: 0 4px 20px -2px rgba(249, 212, 123, 0.35);
+}
+
+/* Focus visible state */
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* System telemetry footer strip */
+.telemetry-footer {
+  background: #0E0E0E;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 5px 0;
+}
+
