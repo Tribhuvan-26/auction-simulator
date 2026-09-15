@@ -14,6 +14,7 @@
     "pins": "tsx --env-file=.env prisma/pins.ts",
     "restore": "tsx --env-file=.env prisma/restore.ts",
     "access-sheet": "tsx --env-file=.env prisma/access-sheet.ts",
+    "import-stats": "tsx --env-file=.env prisma/import-stats.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

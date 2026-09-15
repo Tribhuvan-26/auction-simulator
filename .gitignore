@@ -46,3 +46,6 @@ pins.txt
 
 # Playwright MCP scratch output (screenshots, console logs)
 .playwright-mcp/
+
+# generated access sheet — carries live PINs
+Auction-Room-Access.html
