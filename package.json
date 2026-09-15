@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "socket-server": "tsx server/socket-server.ts",
     "pins": "tsx --env-file=.env prisma/pins.ts",
+    "restore": "tsx --env-file=.env prisma/restore.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
