@@ -13,6 +13,7 @@
     "socket-server": "tsx server/socket-server.ts",
     "pins": "tsx --env-file=.env prisma/pins.ts",
     "restore": "tsx --env-file=.env prisma/restore.ts",
+    "access-sheet": "tsx --env-file=.env prisma/access-sheet.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
