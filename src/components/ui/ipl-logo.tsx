@@ -2,8 +2,8 @@ import React from 'react'
 import { cn } from '@/lib/cn'
 
 /**
- * Official IPL Stylized Batsman Emblem & Brand Wordmark
- * As featured in the top-left corner of all visual references.
+ * Official IPL Brand Logo & Wordmark
+ * Uses the authentic IPL cricketer SVG & PNG from the Figma design
  */
 export function IplLogo({
   className,
@@ -11,70 +11,40 @@ export function IplLogo({
   showText = true,
 }: {
   className?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   showText?: boolean
 }) {
   const iconSizes = {
-    sm: 'h-6 w-6',
-    md: 'h-8 w-8',
-    lg: 'h-10 w-10',
-  }
-
-  const textSizes = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
+    sm: 'h-7 w-auto',
+    md: 'h-9 w-auto',
+    lg: 'h-13 w-auto',
+    xl: 'h-16 w-auto',
   }
 
   return (
-    <div className={cn('flex items-center gap-2 select-none', className)}>
-      {/* Iconic IPL Batsman Silhouette Icon */}
-      <svg
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={cn(iconSizes[size], 'shrink-0')}
-        aria-hidden="true"
-      >
-        {/* Stylized Batsman silhouette stroke */}
-        <circle cx="58" cy="22" r="7" fill="currentColor" />
-        <path
-          d="M32 82C32 82 39 74 44 64C47 57 49 48 46 41C44 36 38 33 33 36C28 39 25 45 25 50"
-          stroke="currentColor"
-          strokeWidth="6"
-          strokeLinecap="round"
+    <div className={cn('flex items-center gap-2 select-none group', className)}>
+      {/* Authentic Cricketer Silhouette SVG & PNG */}
+      <picture className="shrink-0 flex items-center">
+        <source srcSet="/assets/brand/ipl-cricketer.svg" type="image/svg+xml" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/brand/ipl-cricketer.png"
+          alt="IPL Cricketer"
+          className={cn(iconSizes[size], 'object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.45)]')}
         />
-        <path
-          d="M48 42C52 38 62 36 67 43C71 49 68 59 62 67C56 75 49 84 49 84"
-          stroke="currentColor"
-          strokeWidth="6"
-          strokeLinecap="round"
-        />
-        {/* Raised Bat */}
-        <path
-          d="M62 36L78 12C80 9 84 9 86 11C88 13 88 17 85 19L68 43"
-          fill="currentColor"
-        />
-        {/* Dynamic motion swoosh */}
-        <path
-          d="M18 48C18 30 32 15 50 15C54 15 58 16 62 17"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeDasharray="1 6"
-        />
-      </svg>
+      </picture>
 
-      {showText && (
-        <span
-          className={cn(
-            'font-display font-black tracking-tighter uppercase text-white',
-            textSizes[size]
-          )}
-        >
+      {/* Official IPL Wordmark */}
+      <div className="flex flex-col justify-center leading-none">
+        <span className="font-teko text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider uppercase text-white leading-none drop-shadow-sm">
           IPL
         </span>
-      )}
+        {showText && (
+          <span className="font-mono text-[7.5px] sm:text-[8.5px] tracking-[0.28em] uppercase text-brand-yellow font-black mt-0.5 leading-none">
+            AUCTION
+          </span>
+        )}
+      </div>
     </div>
   )
 }

@@ -416,3 +416,38 @@ export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
   await emitAuctionEvent(roomId, { type: 'LOT_CHANGE', playerId: next.id })
   return getAdminSnapshot(roomId)
 }
+
+export async function getRoomPlayers(roomId: string) {
+  return prisma.player.findMany({
+    where: { roomId },
+    orderBy: { id: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      role: true,
+      basePrice: true,
+      photoUrl: true,
+      nationality: true,
+      matches: true,
+      runs: true,
+      wickets: true,
+      average: true,
+      strikeRate: true,
+      economy: true,
+      isOverseas: true,
+      setNumber: true,
+      status: true,
+      soldPrice: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          shortCode: true,
+          colorAccent: true,
+        },
+      },
+    },
+  })
+}
+
+export type RoomPlayerItem = Awaited<ReturnType<typeof getRoomPlayers>>[number]

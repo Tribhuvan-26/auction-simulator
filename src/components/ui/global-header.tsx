@@ -80,7 +80,7 @@ export function GlobalHeader({
       )}
     >
       {/* Left: Brand Emblem + Wordmark */}
-      <div className="flex items-center gap-6 md:gap-10">
+      <div className="flex items-center gap-4 md:gap-6">
         <Link
           href="/"
           className="group flex items-center transition-opacity hover:opacity-90"
@@ -88,6 +88,8 @@ export function GlobalHeader({
         >
           <IplLogo size="md" />
         </Link>
+
+        <div className="h-6 w-[1px] bg-white/20 hidden md:block" />
 
         {/* Desktop Navigation Links */}
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main Navigation">
@@ -104,10 +106,9 @@ export function GlobalHeader({
                     : 'text-white/55 hover:text-white hover:bg-white/5'
                 )}
               >
-                <Icon size={14} className={link.active ? 'text-brand-blue' : 'text-white/40'} />
                 <span>{link.label}</span>
                 {link.active && (
-                  <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-brand-blue shadow-[0_0_8px_rgba(32,116,213,0.8)]" />
+                  <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                 )}
               </Link>
             )
@@ -135,8 +136,8 @@ export function GlobalHeader({
         </div>
 
         {/* Location Metadata */}
-        <div className="hidden xl:flex items-center border-l border-white/15 pl-4 font-mono text-[10px] tracking-[0.2em] text-white/45 uppercase">
-          CHENNAI, INDIA
+        <div className="hidden xl:flex items-center border-l border-white/15 pl-4 font-mono text-[10px] tracking-[0.2em] text-white/60 uppercase">
+          {location || 'HYDERABAD'}
         </div>
 
         {/* Mobile menu toggle */}

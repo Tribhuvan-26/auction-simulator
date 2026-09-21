@@ -18,7 +18,7 @@ export default async function Home() {
       },
       _count: { select: { players: true } },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { name: 'asc' },
   })
 
   return <LandingExperience rooms={rooms} />

@@ -41,8 +41,17 @@ export function PinGate({
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#121212] bg-concrete p-6 text-white">
-      <div className="w-full max-w-sm">
+    <main className="relative flex min-h-screen flex-col items-center justify-center bg-[#0d0d0d] p-6 text-white overflow-hidden">
+      {/* Brutalist Architecture Environmental Backdrop */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/assets/landing/ipl-auction-environment.jpg"
+        alt="IPL Architecture"
+        className="fixed inset-0 z-0 h-full w-full object-cover object-[center_right] pointer-events-none select-none opacity-30"
+      />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-black/70" />
+
+      <div className="relative z-10 w-full max-w-sm">
         {/* Technical header badge */}
         <div className="mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-white/50">
           <span className="flex items-center gap-1.5">

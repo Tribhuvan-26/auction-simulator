@@ -31,6 +31,8 @@
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
   --font-condensed: var(--font-condensed);
+  --font-bebas: var(--font-bebas);
+  --font-serif-editorial: var(--font-serif-editorial);
   --shadow-brutal: 4px 4px 0 #000000;
   --shadow-brutal-lg: 8px 8px 0 #000000;
   --shadow-brutal-pressed: 1px 1px 0 #000000;
@@ -41,8 +43,27 @@
 }
 
 /* Base typography utilities */
+.font-teko {
+  font-family: var(--font-teko), 'Teko', 'Bebas Neue', sans-serif;
+}
+
+.font-bebas {
+  font-family: var(--font-bebas), var(--font-condensed), 'Bebas Neue', 'Oswald', sans-serif;
+}
+
+
+.font-serif-editorial {
+  font-family: var(--font-serif-editorial), 'Didot', 'Bodoni MT', 'Bodoni 72', 'Playfair Display', serif;
+  letter-spacing: -0.015em;
+}
+
 .font-condensed {
-  font-family: var(--font-condensed), sans-serif;
+  font-family: var(--font-condensed), 'Teko', 'Bebas Neue', sans-serif;
+}
+
+.crisp-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .font-display {
@@ -250,5 +271,199 @@
   letter-spacing: 0.12em;
   text-align: center;
   padding: 5px 0;
+}
+
+/* Conveyor belt ticker moving smoothly from left to right */
+@keyframes conveyor-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-conveyor-ltr {
+  display: flex;
+  width: max-content;
+  animation: conveyor-ltr 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-conveyor-ltr:hover {
+  animation-play-state: paused;
+}
+
+/* Player Sold Celebration Animation (Broadcast Style) */
+@keyframes sold-overlay-bg {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sold-emblem-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(36px) scale(0.12);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.05);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(0px) scale(0.98);
+  }
+  34% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.08); /* Impact overshoot */
+  }
+  44% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(0px) scale(1); /* Hold */
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) scale(0.86); /* Smooth upward exit */
+  }
+}
+
+@keyframes sold-bat-whip {
+  0% {
+    transform: rotate(-32deg);
+  }
+  16% {
+    transform: rotate(-35deg); /* Load up */
+  }
+  24% {
+    transform: rotate(-25deg);
+  }
+  33% {
+    transform: rotate(14deg); /* Impact follow-through */
+  }
+  39% {
+    transform: rotate(-2deg); /* Recoil */
+  }
+  45% {
+    transform: rotate(0deg); /* Assembled rest */
+  }
+  75% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes sold-arms-follow {
+  0% {
+    transform: rotate(-14deg);
+  }
+  16% {
+    transform: rotate(-15deg);
+  }
+  33% {
+    transform: rotate(6deg);
+  }
+  43% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes sold-body-shift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  16% {
+    transform: translate(1px, 2px) scale(0.99);
+  }
+  33% {
+    transform: translate(-3px, -5px) scale(1.02);
+  }
+  44% {
+    transform: translate(0, 0) scale(1);
+  }
+  75% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes sold-swoosh-pulse {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.88) rotate(-10deg);
+  }
+  16% {
+    opacity: 0.45;
+    transform: scale(0.92) rotate(-8deg);
+  }
+  33% {
+    opacity: 1;
+    transform: scale(1.03) rotate(2deg);
+  }
+  44% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes sold-streak-flash {
+  0%, 25% {
+    opacity: 0;
+    stroke-dashoffset: 120;
+  }
+  32% {
+    opacity: 0.75;
+    stroke-dashoffset: 40;
+  }
+  38% {
+    opacity: 0.3;
+    stroke-dashoffset: 0;
+  }
+  45%, 100% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .sold-emblem-root {
+    animation: sold-reduced-motion 2s ease-in-out forwards !important;
+  }
+  .sold-bat, .sold-arms, .sold-body, .sold-swoosh, .sold-motion-streak {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+@keyframes sold-reduced-motion {
+  0% { opacity: 0; transform: scale(0.9); }
+  20% { opacity: 1; transform: scale(1); }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.94); }
 }
 
