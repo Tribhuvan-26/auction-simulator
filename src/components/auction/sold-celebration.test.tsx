@@ -16,41 +16,28 @@ describe('SoldCelebration', () => {
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
   })
 
-  it('renders the cricketer emblem overlay when triggered', () => {
+  it('renders the dimmed overlay when triggered', () => {
     render(<SoldCelebration trigger={1} />)
     const overlay = screen.getByTestId('sold-celebration-overlay')
     expect(overlay).toBeInTheDocument()
     expect(overlay).toHaveClass('auction-overlay')
   })
 
-  it('contains the official sprite badge and animated cricket sprite', () => {
+  it('contains the animated cricket sprite silhouette and no circular rings', () => {
     const { container } = render(<SoldCelebration trigger={1} />)
-    expect(container.querySelector('.sprite-badge')).toBeInTheDocument()
     expect(container.querySelector('.cricket-sprite')).toBeInTheDocument()
+    expect(container.querySelector('.cricket-silhouette-wrapper')).toBeInTheDocument()
+    // Verify circular ring / badge elements are removed
+    expect(container.querySelector('.sprite-badge')).toBeNull()
   })
 
-  it('renders badge-only with no text when no player is passed', () => {
-    const { container } = render(<SoldCelebration trigger={1} badgeOnly={true} />)
+  it('renders pure cricketer silhouette with no text, prices, or cards', () => {
+    const { container } = render(<SoldCelebration trigger={1} />)
     expect(container.textContent).toBe('')
     expect(screen.queryByText(/PLAYER ACQUIRED/i)).toBeNull()
     expect(screen.queryByText(/CRORE/i)).toBeNull()
     expect(screen.queryByText(/CR/i)).toBeNull()
-  })
-
-  it('renders player acquired modal with name and formatted price when player prop is passed', () => {
-    render(
-      <SoldCelebration
-        trigger={1}
-        player={{
-          name: 'Virat Kohli',
-          price: 145000000,
-        }}
-      />
-    )
-    expect(screen.getByText('PLAYER ACQUIRED!')).toBeInTheDocument()
-    expect(screen.getByText('Virat Kohli')).toBeInTheDocument()
-    expect(screen.getByText('₹14.50 CR')).toBeInTheDocument()
-    expect(screen.getByText('IPL Auction 2026')).toBeInTheDocument()
+    expect(screen.queryByText(/IPL/i)).toBeNull()
   })
 
   it('automatically completes and clears after the animation lifecycle (~2400ms)', () => {
@@ -76,7 +63,7 @@ describe('SoldCelebration', () => {
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
 
-    // Next player sold!
+    // Next trigger
     rerender(<SoldCelebration trigger={2} />)
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
