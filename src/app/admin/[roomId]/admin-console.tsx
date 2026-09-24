@@ -777,7 +777,13 @@ export function AdminConsole({
       </AnimatePresence>
 
       {/* Player Sold Celebration Animation Overlay */}
-      <SoldCelebration trigger={soldTrigger} />
+      <SoldCelebration
+        trigger={soldTrigger}
+        player={snapshot.currentLot?.player ? {
+          name: snapshot.currentLot.player.name,
+          price: snapshot.currentLot.currentBid,
+        } : undefined}
+      />
     </div>
   )
 }

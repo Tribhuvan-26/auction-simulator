@@ -20,35 +20,47 @@ describe('SoldCelebration', () => {
     render(<SoldCelebration trigger={1} />)
     const overlay = screen.getByTestId('sold-celebration-overlay')
     expect(overlay).toBeInTheDocument()
-    expect(overlay).toHaveClass('pointer-events-none')
+    expect(overlay).toHaveClass('auction-overlay')
   })
 
-  it('contains all 4 kinetic SVG layer groups and motion streak', () => {
+  it('contains the official sprite badge and animated cricket sprite', () => {
     const { container } = render(<SoldCelebration trigger={1} />)
-    
-    expect(container.querySelector('#cricketer-layer-swoosh')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-body')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-arms')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-bat')).toBeInTheDocument()
-    expect(container.querySelector('.sold-motion-streak')).toBeInTheDocument()
+    expect(container.querySelector('.sprite-badge')).toBeInTheDocument()
+    expect(container.querySelector('.cricket-sprite')).toBeInTheDocument()
   })
 
-  it('contains NO unwanted text, prices, or team names', () => {
-    const { container } = render(<SoldCelebration trigger={1} />)
+  it('renders badge-only with no text when no player is passed', () => {
+    const { container } = render(<SoldCelebration trigger={1} badgeOnly={true} />)
     expect(container.textContent).toBe('')
-    expect(screen.queryByText(/PLAYER SOLD/i)).toBeNull()
+    expect(screen.queryByText(/PLAYER ACQUIRED/i)).toBeNull()
     expect(screen.queryByText(/CRORE/i)).toBeNull()
-    expect(screen.queryByText(/LAKH/i)).toBeNull()
+    expect(screen.queryByText(/CR/i)).toBeNull()
   })
 
-  it('automatically completes and clears after the animation lifecycle (~2200ms)', () => {
+  it('renders player acquired modal with name and formatted price when player prop is passed', () => {
+    render(
+      <SoldCelebration
+        trigger={1}
+        player={{
+          name: 'Virat Kohli',
+          price: 145000000,
+        }}
+      />
+    )
+    expect(screen.getByText('PLAYER ACQUIRED!')).toBeInTheDocument()
+    expect(screen.getByText('Virat Kohli')).toBeInTheDocument()
+    expect(screen.getByText('₹14.50 CR')).toBeInTheDocument()
+    expect(screen.getByText('IPL Auction 2026')).toBeInTheDocument()
+  })
+
+  it('automatically completes and clears after the animation lifecycle (~2400ms)', () => {
     const onComplete = vi.fn()
     render(<SoldCelebration trigger={1} onComplete={onComplete} />)
 
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(2400)
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
@@ -60,7 +72,7 @@ describe('SoldCelebration', () => {
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(2400)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
 
@@ -69,7 +81,7 @@ describe('SoldCelebration', () => {
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(2400)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
   })

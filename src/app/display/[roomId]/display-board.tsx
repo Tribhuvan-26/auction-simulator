@@ -1016,7 +1016,14 @@ export function DisplayBoard({
       </AnimatePresence>
 
       {/* Player Sold Celebration Animation Overlay */}
-      <SoldCelebration trigger={soldTrigger} />
+      <SoldCelebration
+        trigger={soldTrigger}
+        player={lot?.player ? {
+          name: lot.player.name,
+          price: lot.currentBid,
+          teamName: leader?.name,
+        } : undefined}
+      />
     </div>
   )
 }
