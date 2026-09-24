@@ -40,7 +40,7 @@ const FRAME_PATHS = Array.from({ length: FRAME_COUNT }, (_, i) =>
  * Official IPL Cricket Pop-up Animation.
  *
  * Renders the pure white cricketer silhouette bat swing animation against a dimmed background.
- * Displays exactly one isolated frame at a time without frame numbers, borders, or scrolling seams.
+ * Perfectly anchored in the center of the screen without vertical fluctuations, jumping, glow, or frame numbers.
  */
 export function SoldCelebration({
   trigger,
@@ -78,26 +78,52 @@ export function SoldCelebration({
     }, 2400)
   }, [onComplete])
 
-  // Stepped frame progression: plays all 42 frames smoothly in-place (~24ms per frame)
+  // Stepped frame progression: plays all 42 frames smoothly in-place (~26ms per frame)
   useEffect(() => {
     if (!isPlaying) return
 
     setCurrentFrame(0)
+    let animId: number | null = null
+    let intervalId: NodeJS.Timeout | null = null
+    let start: number | null = null
+    const duration = 1100 // ~26ms per frame for smooth natural bat swing
+
+    // Use requestAnimationFrame in browser for buttery display-rate sync
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      const step = (time: number) => {
+        if (start === null) start = time
+        const elapsed = time - start
+        const progress = Math.min(elapsed / duration, 1)
+        const frame = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
+        setCurrentFrame(frame)
+
+        if (progress < 1) {
+          animId = window.requestAnimationFrame(step)
+        }
+      }
+      animId = window.requestAnimationFrame(step)
+    }
+
+    // Interval fallback for timer-based testing environments
     const startTime = Date.now()
-    const totalDuration = 1008 // 42 frames * 24ms
-
-    const interval = setInterval(() => {
+    intervalId = setInterval(() => {
       const elapsed = Date.now() - startTime
-      const progress = Math.min(elapsed / totalDuration, 1)
-      const index = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
-      setCurrentFrame(index)
-
-      if (progress >= 1) {
-        clearInterval(interval)
+      const progress = Math.min(elapsed / duration, 1)
+      const frame = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
+      setCurrentFrame(frame)
+      if (progress >= 1 && intervalId) {
+        clearInterval(intervalId)
       }
     }, 24)
 
-    return () => clearInterval(interval)
+    return () => {
+      if (animId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(animId)
+      }
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+      }
+    }
   }, [isPlaying, playKey])
 
   // Watch trigger prop changes (only trigger when positive number or new value, never on initial 0)
@@ -163,12 +189,13 @@ export function SoldCelebration({
       aria-modal="true"
       aria-label="IPL Celebration"
     >
-      <div className="cricket-silhouette-wrapper" aria-hidden="true">
+      <div className="cricket-silhouette-wrapper flex items-center justify-center" aria-hidden="true">
+        {/* Plain crisp solid white cricketer silhouette - NO glow, NO drop-shadow */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={FRAME_PATHS[currentFrame]}
           alt="IPL Cricketer Silhouette"
-          className="w-[210px] h-[164px] sm:w-[240px] sm:h-[188px] object-contain filter drop-shadow-[0_0_18px_rgba(255,255,255,0.6)] pointer-events-none select-none transition-none"
+          className="w-[220px] h-[175px] sm:w-[250px] sm:h-[199px] object-contain pointer-events-none select-none filter-none drop-shadow-none"
           draggable={false}
         />
       </div>

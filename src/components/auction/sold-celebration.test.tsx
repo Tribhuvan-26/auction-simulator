@@ -48,11 +48,11 @@ describe('SoldCelebration', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    // Around half-way (~frame 21)
-    expect(img.getAttribute('src')).toMatch(/frame_2[0-2]\.png/)
+    // Around half-way (~frame 19-21)
+    expect(img.getAttribute('src')).toMatch(/frame_(19|20|21|22)\.png/)
 
     act(() => {
-      vi.advanceTimersByTime(600)
+      vi.advanceTimersByTime(700)
     })
     // Reached final follow-through frame 42
     expect(img.getAttribute('src')).toMatch(/frame_42\.png/)
