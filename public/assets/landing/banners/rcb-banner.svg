@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 500" fill="none">
+  <defs>
+    <linearGradient id="rcbRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#C8102E" />
+      <stop offset="50%" stopColor="#9B111E" />
+      <stop offset="100%" stopColor="#5B0610" />
+    </linearGradient>
+    <linearGradient id="rcbFabricFold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#000000" stopOpacity="0.4" />
+      <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.15" />
+      <stop offset="70%" stopColor="#000000" stopOpacity="0.3" />
+      <stop offset="100%" stopColor="#000000" stopOpacity="0.6" />
+    </linearGradient>
+    <filter id="rcbShadow" x="-10%" y="-5%" width="120%" height="115%">
+      <feDropShadow dx="8" dy="12" stdDeviation="10" flood-color="#000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <g filter="url(#rcbShadow)">
+    <rect x="10" y="10" width="140" height="470" rx="3" fill="url(#rcbRed)" />
+    <rect x="10" y="10" width="140" height="470" rx="3" fill="url(#rcbFabricFold)" />
+    
+    {/* Hanging Grommets */}
+    <circle cx="25" cy="22" r="5" fill="#141414" stroke="#888" stroke-width="2" />
+    <circle cx="135" cy="22" r="5" fill="#141414" stroke="#888" stroke-width="2" />
+    
+    {/* RCB Royal Lion Crest */}
+    <g transform="translate(80, 180) scale(1.05)">
+      {/* Rampant Lion */}
+      <path d="M-25,30 L-20,10 L-10,15 L0,-10 L-15,-20 L5,-35 L15,-15 L25,-25 L20,0 L30,10 L15,20 L20,35 Z" fill="#F9D47B" />
+      {/* Crown */}
+      <path d="M-15,-40 L-5,-50 L5,-38 L15,-48 L22,-36 Z" fill="#F9D47B" stroke="#000" stroke-width="1.5" />
+    </g>
+
+    {/* Typography */}
+    <text x="80" y="305" font-family="'Oswald', sans-serif" font-weight="900" font-size="22" fill="#FFFFFF" text-anchor="middle" letter-spacing="4">ROYAL</text>
+    <text x="80" y="330" font-family="'Oswald', sans-serif" font-weight="900" font-size="18" fill="#F9D47B" text-anchor="middle" letter-spacing="3">CHALLENGERS</text>
+    
+    {/* Bottom decorative hem */}
+    <line x1="20" y1="460" x2="140" y2="460" stroke="#F9D47B" stroke-width="3" stroke-dasharray="8 4" />
+  </g>
+</svg>

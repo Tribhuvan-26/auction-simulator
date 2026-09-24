@@ -25,17 +25,15 @@ type CrestProps = {
 }
 
 export function TeamCrest({ shortCode, name, colorAccent, logoUrl, mark, className }: CrestProps) {
-  if (logoUrl) {
-    // RR's file is drawn in the same pink as the team's own tile background —
-    // a thin white edge outline (not a background plate) keeps every other
-    // team's crest pure SVG while making RR's actually visible.
+  const resolvedLogo = logoUrl || `/assets/teams/${shortCode.toLowerCase()}.svg`
+  if (resolvedLogo) {
     const rrOutline =
       shortCode === 'RR'
         ? '[filter:drop-shadow(1px_0_0_white)_drop-shadow(-1px_0_0_white)_drop-shadow(0_1px_0_white)_drop-shadow(0_-1px_0_white)]'
         : ''
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- caller-supplied logo file, no next/image domain config
-      <img src={logoUrl} alt={`${name} logo`} className={cn('block object-contain', rrOutline, className)} />
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={resolvedLogo} alt={`${name} logo`} className={cn('block object-contain', rrOutline, className)} />
     )
   }
   const Crest = CRESTS[shortCode] ?? MotifCrest

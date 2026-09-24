@@ -2,14 +2,13 @@ import { cn } from '@/lib/cn'
 
 type BrutalCardVariant = 'default' | 'active' | 'sold' | 'unsold' | 'pressed'
 
-// active/sold get a layered plate + ambient glow so importance reads at a
-// glance, without having to parse the text inside.
+// Architectural brutalist panels: crisp technical borders, dark surfaces, hard offsets
 const variantClasses: Record<BrutalCardVariant, string> = {
-  default: 'border-brand-charcoal shadow-brutal bg-brand-white',
-  active: 'border-brand-blue shadow-glow-blue bg-brand-white layer-plate layer-plate-blue',
-  sold: 'border-brand-yellow shadow-glow-yellow bg-brand-white layer-plate layer-plate-yellow',
-  unsold: 'border-brand-charcoal shadow-brutal bg-brand-white/60',
-  pressed: 'border-brand-charcoal shadow-brutal-pressed bg-brand-white translate-x-[3px] translate-y-[3px]',
+  default: 'border-brand-charcoal shadow-brutal bg-[#181818] text-brand-white',
+  active: 'border-brand-blue shadow-glow-blue bg-[#1C1C1C] layer-plate layer-plate-blue text-brand-white',
+  sold: 'border-brand-yellow shadow-glow-yellow bg-[#1C1C1C] layer-plate layer-plate-yellow text-brand-white',
+  unsold: 'border-brand-charcoal shadow-brutal bg-brand-white/60 text-brand-charcoal',
+  pressed: 'border-brand-charcoal shadow-brutal-pressed bg-[#181818] text-brand-white translate-x-[2px] translate-y-[2px]',
 }
 
 export function BrutalCard({
@@ -22,17 +21,18 @@ export function BrutalCard({
   children: React.ReactNode
 }) {
   return (
-    <div className={cn('border-2 rounded-none p-4', variantClasses[variant], className)}>
+    <div className={cn('border-[2px] rounded-none p-4', variantClasses[variant], className)}>
       {children}
     </div>
   )
 }
 
-/** Neo-Grid Pop's solid black bar above a panel — "CURRENT STATUS", "BIDDING LOG", etc. */
+/** Dark architectural section header bar — "CURRENT STATUS", "BIDDING LOG", etc. */
 export function SectionHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('bg-brand-charcoal px-3 py-1.5 font-heading text-xs font-bold uppercase tracking-widest text-brand-white', className)}>
+    <div className={cn('bg-[#242424] border-b border-white/10 px-3 py-1.5 font-heading text-xs font-bold uppercase tracking-widest text-brand-white', className)}>
       {children}
     </div>
   )
 }
+

@@ -1,21 +1,31 @@
-import { Space_Grotesk, Inter, Cormorant_Garamond } from 'next/font/google'
+import { Space_Grotesk, Inter, Oswald, Bebas_Neue, Teko } from 'next/font/google'
 
 export const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['300', '500', '700'],
+  weight: ['500', '700'],
   variable: '--font-heading',
 })
 
 export const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['400', '500', '600'],
   variable: '--font-body',
 })
 
-// Landing page hero title only — an elegant high-contrast serif for a
-// premium/luxury feel, distinct from the app's own brutalist heading font.
-export const cormorant = Cormorant_Garamond({
+export const oswald = Oswald({
   subsets: ['latin'],
-  weight: ['300', '500', '600'],
-  variable: '--font-luxury',
+  weight: ['500', '600', '700'],
+  variable: '--font-condensed',
+})
+
+export const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-bebas',
+})
+
+export const teko = Teko({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-teko',
 })
