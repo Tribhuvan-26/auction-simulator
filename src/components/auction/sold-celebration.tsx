@@ -71,14 +71,14 @@ export function SoldCelebration({
     setPlayKey((k) => k + 1)
     setIsPlaying(true)
 
-    // Complete lifecycle after 2400ms (matches CSS animation duration)
+    // Complete lifecycle after 1700ms (750ms swing + 650ms hold + 300ms fade)
     timerRef.current = setTimeout(() => {
       setIsPlaying(false)
       onComplete?.()
-    }, 2400)
+    }, 1700)
   }, [onComplete])
 
-  // Stepped frame progression: plays all 42 frames smoothly in-place (~26ms per frame)
+  // Stepped frame progression: plays all 42 frames smoothly in-place (~18ms per frame)
   useEffect(() => {
     if (!isPlaying) return
 
@@ -86,7 +86,7 @@ export function SoldCelebration({
     let animId: number | null = null
     let intervalId: NodeJS.Timeout | null = null
     let start: number | null = null
-    const duration = 1100 // ~26ms per frame for smooth natural bat swing
+    const duration = 750 // ~18ms per frame for crisp, snappy bat swing
 
     // Use requestAnimationFrame in browser for buttery display-rate sync
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
@@ -114,7 +114,7 @@ export function SoldCelebration({
       if (progress >= 1 && intervalId) {
         clearInterval(intervalId)
       }
-    }, 24)
+    }, 18)
 
     return () => {
       if (animId !== null && typeof window !== 'undefined') {
@@ -195,7 +195,7 @@ export function SoldCelebration({
         <img
           src={FRAME_PATHS[currentFrame]}
           alt="IPL Cricketer Silhouette"
-          className="w-[220px] h-[175px] sm:w-[250px] sm:h-[199px] object-contain pointer-events-none select-none filter-none drop-shadow-none"
+          className="w-[150px] h-[119px] sm:w-[175px] sm:h-[139px] object-contain pointer-events-none select-none filter-none drop-shadow-none"
           draggable={false}
         />
       </div>

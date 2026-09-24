@@ -46,26 +46,26 @@ describe('SoldCelebration', () => {
     expect(img.getAttribute('src')).toMatch(/frame_01\.png/)
 
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(375)
     })
-    // Around half-way (~frame 19-21)
-    expect(img.getAttribute('src')).toMatch(/frame_(19|20|21|22)\.png/)
+    // Around half-way (~frame 20-22)
+    expect(img.getAttribute('src')).toMatch(/frame_(20|21|22)\.png/)
 
     act(() => {
-      vi.advanceTimersByTime(700)
+      vi.advanceTimersByTime(500)
     })
     // Reached final follow-through frame 42
     expect(img.getAttribute('src')).toMatch(/frame_42\.png/)
   })
 
-  it('automatically completes and clears after the animation lifecycle (~2400ms)', () => {
+  it('automatically completes and clears after the animation lifecycle (~1700ms)', () => {
     const onComplete = vi.fn()
     render(<SoldCelebration trigger={1} onComplete={onComplete} />)
 
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2400)
+      vi.advanceTimersByTime(1700)
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
@@ -77,7 +77,7 @@ describe('SoldCelebration', () => {
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2400)
+      vi.advanceTimersByTime(1700)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
 
@@ -86,7 +86,7 @@ describe('SoldCelebration', () => {
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2400)
+      vi.advanceTimersByTime(1700)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
   })

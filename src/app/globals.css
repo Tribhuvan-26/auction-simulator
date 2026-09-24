@@ -17,8 +17,8 @@
   --ipl-gold: #ffc83d;
   --ipl-crimson: #ef2f5b;
   --sheet-url: url("/assets/brand/cricket-sprite-sheet.png");
-  --frame-width: 210px;
-  --frame-height: 164px;
+  --frame-width: 175px;
+  --frame-height: 139px;
 }
 
 @theme inline {
@@ -312,13 +312,13 @@
   backdrop-filter: blur(4px);
   z-index: 9999;
   pointer-events: none;
-  animation: sold-overlay-fade 2400ms ease-out forwards;
+  animation: sold-overlay-fade 1700ms ease-out forwards;
 }
 
 @keyframes sold-overlay-fade {
   0% { opacity: 0; }
-  8% { opacity: 1; }
-  85% { opacity: 1; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
   100% { opacity: 0; }
 }
 
