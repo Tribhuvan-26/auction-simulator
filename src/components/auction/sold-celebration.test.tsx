@@ -23,11 +23,11 @@ describe('SoldCelebration', () => {
     expect(overlay).toHaveClass('auction-overlay')
   })
 
-  it('contains the animated cricket sprite silhouette and no circular rings', () => {
+  it('only renders one frame at a time without circular rings or frame counts', () => {
     const { container } = render(<SoldCelebration trigger={1} />)
-    expect(container.querySelector('.cricket-sprite')).toBeInTheDocument()
-    expect(container.querySelector('.cricket-silhouette-wrapper')).toBeInTheDocument()
-    // Verify circular ring / badge elements are removed
+    const images = container.querySelectorAll('img')
+    expect(images.length).toBe(1)
+    expect(images[0].getAttribute('src')).toMatch(/\/assets\/brand\/cricket-frames\/frame_01\.png/)
     expect(container.querySelector('.sprite-badge')).toBeNull()
   })
 
@@ -38,6 +38,24 @@ describe('SoldCelebration', () => {
     expect(screen.queryByText(/CRORE/i)).toBeNull()
     expect(screen.queryByText(/CR/i)).toBeNull()
     expect(screen.queryByText(/IPL/i)).toBeNull()
+  })
+
+  it('smoothly advances frames in-place during the animation', () => {
+    const { container } = render(<SoldCelebration trigger={1} />)
+    const img = container.querySelector('img')!
+    expect(img.getAttribute('src')).toMatch(/frame_01\.png/)
+
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+    // Around half-way (~frame 21)
+    expect(img.getAttribute('src')).toMatch(/frame_2[0-2]\.png/)
+
+    act(() => {
+      vi.advanceTimersByTime(600)
+    })
+    // Reached final follow-through frame 42
+    expect(img.getAttribute('src')).toMatch(/frame_42\.png/)
   })
 
   it('automatically completes and clears after the animation lifecycle (~2400ms)', () => {

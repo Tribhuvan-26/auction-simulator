@@ -31,11 +31,16 @@ export interface SoldCelebrationProps {
   showCard?: boolean
 }
 
+const FRAME_COUNT = 42
+const FRAME_PATHS = Array.from({ length: FRAME_COUNT }, (_, i) =>
+  `/assets/brand/cricket-frames/frame_${String(i + 1).padStart(2, '0')}.png`
+)
+
 /**
  * Official IPL Cricket Pop-up Animation.
  *
  * Renders the pure white cricketer silhouette bat swing animation against a dimmed background.
- * No circular rings, no borders, no text.
+ * Displays exactly one isolated frame at a time without frame numbers, borders, or scrolling seams.
  */
 export function SoldCelebration({
   trigger,
@@ -44,13 +49,25 @@ export function SoldCelebration({
 }: SoldCelebrationProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [playKey, setPlayKey] = useState(0)
+  const [currentFrame, setCurrentFrame] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const lastTriggerRef = useRef<number | string | null>(null)
+
+  // Preload all 42 isolated frames into browser memory on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      FRAME_PATHS.forEach((path) => {
+        const img = new Image()
+        img.src = path
+      })
+    }
+  }, [])
 
   const startAnimation = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
     }
+    setCurrentFrame(0)
     setPlayKey((k) => k + 1)
     setIsPlaying(true)
 
@@ -60,6 +77,28 @@ export function SoldCelebration({
       onComplete?.()
     }, 2400)
   }, [onComplete])
+
+  // Stepped frame progression: plays all 42 frames smoothly in-place (~24ms per frame)
+  useEffect(() => {
+    if (!isPlaying) return
+
+    setCurrentFrame(0)
+    const startTime = Date.now()
+    const totalDuration = 1008 // 42 frames * 24ms
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / totalDuration, 1)
+      const index = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
+      setCurrentFrame(index)
+
+      if (progress >= 1) {
+        clearInterval(interval)
+      }
+    }, 24)
+
+    return () => clearInterval(interval)
+  }, [isPlaying, playKey])
 
   // Watch trigger prop changes (only trigger when positive number or new value, never on initial 0)
   useEffect(() => {
@@ -125,7 +164,13 @@ export function SoldCelebration({
       aria-label="IPL Celebration"
     >
       <div className="cricket-silhouette-wrapper" aria-hidden="true">
-        <div className="cricket-sprite" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={FRAME_PATHS[currentFrame]}
+          alt="IPL Cricketer Silhouette"
+          className="w-[210px] h-[164px] sm:w-[240px] sm:h-[188px] object-contain filter drop-shadow-[0_0_18px_rgba(255,255,255,0.6)] pointer-events-none select-none transition-none"
+          draggable={false}
+        />
       </div>
     </div>
   )
