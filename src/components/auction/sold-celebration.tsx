@@ -82,7 +82,6 @@ export function SoldCelebration({
   useEffect(() => {
     if (!isPlaying) return
 
-    setCurrentFrame(0)
     let animId: number | null = null
     let intervalId: NodeJS.Timeout | null = null
     let start: number | null = null
