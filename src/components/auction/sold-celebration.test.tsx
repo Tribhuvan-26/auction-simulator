@@ -16,39 +16,56 @@ describe('SoldCelebration', () => {
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
   })
 
-  it('renders the cricketer emblem overlay when triggered', () => {
+  it('renders the dimmed overlay when triggered', () => {
     render(<SoldCelebration trigger={1} />)
     const overlay = screen.getByTestId('sold-celebration-overlay')
     expect(overlay).toBeInTheDocument()
-    expect(overlay).toHaveClass('pointer-events-none')
+    expect(overlay).toHaveClass('auction-overlay')
   })
 
-  it('contains all 4 kinetic SVG layer groups and motion streak', () => {
+  it('only renders one frame at a time without circular rings or frame counts', () => {
     const { container } = render(<SoldCelebration trigger={1} />)
-    
-    expect(container.querySelector('#cricketer-layer-swoosh')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-body')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-arms')).toBeInTheDocument()
-    expect(container.querySelector('#cricketer-layer-bat')).toBeInTheDocument()
-    expect(container.querySelector('.sold-motion-streak')).toBeInTheDocument()
+    const images = container.querySelectorAll('img')
+    expect(images.length).toBe(1)
+    expect(images[0].getAttribute('src')).toMatch(/\/assets\/brand\/cricket-frames\/frame_01\.png/)
+    expect(container.querySelector('.sprite-badge')).toBeNull()
   })
 
-  it('contains NO unwanted text, prices, or team names', () => {
+  it('renders pure cricketer silhouette with no text, prices, or cards', () => {
     const { container } = render(<SoldCelebration trigger={1} />)
     expect(container.textContent).toBe('')
-    expect(screen.queryByText(/PLAYER SOLD/i)).toBeNull()
+    expect(screen.queryByText(/PLAYER ACQUIRED/i)).toBeNull()
     expect(screen.queryByText(/CRORE/i)).toBeNull()
-    expect(screen.queryByText(/LAKH/i)).toBeNull()
+    expect(screen.queryByText(/CR/i)).toBeNull()
+    expect(screen.queryByText(/IPL/i)).toBeNull()
   })
 
-  it('automatically completes and clears after the animation lifecycle (~2200ms)', () => {
+  it('smoothly advances frames in-place during the animation', () => {
+    const { container } = render(<SoldCelebration trigger={1} />)
+    const img = container.querySelector('img')!
+    expect(img.getAttribute('src')).toMatch(/frame_01\.png/)
+
+    act(() => {
+      vi.advanceTimersByTime(375)
+    })
+    // Around half-way (~frame 20-22)
+    expect(img.getAttribute('src')).toMatch(/frame_(20|21|22)\.png/)
+
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+    // Reached final follow-through frame 42
+    expect(img.getAttribute('src')).toMatch(/frame_42\.png/)
+  })
+
+  it('automatically completes and clears after the animation lifecycle (~1700ms)', () => {
     const onComplete = vi.fn()
     render(<SoldCelebration trigger={1} onComplete={onComplete} />)
 
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(1700)
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
@@ -60,16 +77,16 @@ describe('SoldCelebration', () => {
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(1700)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
 
-    // Next player sold!
+    // Next trigger
     rerender(<SoldCelebration trigger={2} />)
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(2200)
+      vi.advanceTimersByTime(1700)
     })
     expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
   })

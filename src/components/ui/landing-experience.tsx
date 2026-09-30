@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
-import { ChevronLeft, ArrowRight } from 'lucide-react'
+import { ChevronLeft, ArrowRight, Menu } from 'lucide-react'
 
 type Room = {
   id: string
@@ -49,6 +49,24 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
   const [hasEntered, setHasEntered] = useState(initialEntered)
   const [hoveredTeamKey, setHoveredTeamKey] = useState<string | null>(null)
   const [transitionCelebration, setTransitionCelebration] = useState(0)
+  const [istTime, setIstTime] = useState('05:42:17 IST')
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const formatted = now.toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+      setIstTime(`${formatted} IST`)
+    }
+    updateTime()
+    const timer = setInterval(updateTime, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   // Handle entering auction with dynamic bat swing transition animation
   const handleEnterAuction = () => {
@@ -129,61 +147,126 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
               transition={{ duration: 0.35 }}
               className="flex-1 flex flex-col justify-between px-6 pt-6 pb-4 md:px-12 lg:px-16 min-h-screen"
             >
-              {/* Top-Left: Official IPL Brand Logo with authentic Figma cricketer */}
-              <div className="flex items-center justify-between w-full pt-2">
+              {/* Header Navbar: Matches user reference screenshot exactly */}
+              <div className="flex items-center justify-between w-full pt-2 select-none">
+                {/* Left: Official IPL Brand Logo with authentic cricketer */}
                 <div className="flex items-center gap-3">
-                  <IplLogo size="lg" showText={false} />
+                  <IplLogo size="md" showText={false} />
                 </div>
-              </div>
 
-              {/* Main Left Hero Area: Authentic Figma Typography Graphic & Clickable Button */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 items-center my-auto py-3">
-                <div className="relative z-20 flex flex-col max-w-[620px] sm:max-w-[680px] lg:max-w-[760px] xl:max-w-[820px] py-1 select-none">
-                  {/* Category Eyebrow */}
-                  <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-[0.32em] text-white/80 mb-2">
-                    INDIAN PREMIER LEAGUE
-                  </span>
-
-                  {/* Monumental Headline */}
-                  <h1 className="font-teko text-7xl sm:text-8xl md:text-9xl lg:text-[10.5rem] font-bold uppercase tracking-tight text-white leading-[0.80] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
-                    IPL
-                    <br />
-                    AUCTION
-                  </h1>
-
-                  {/* Editorial Tagline with Yellow Accent Line */}
-                  <div className="mt-5 sm:mt-6 flex flex-col gap-1 border-l-2 border-[#F9D47B] pl-4 py-0.5">
-                    <span className="font-heading text-sm sm:text-base font-black uppercase tracking-[0.2em] text-white drop-shadow">
-                      BIGGER PLAYERS. BOLDER MOVES.
+                {/* Center: Navigation Links */}
+                <nav className="hidden md:flex items-center gap-8 lg:gap-11">
+                  {['AUCTION', 'TEAMS', 'PLAYERS', 'HISTORY', 'ABOUT'].map((item) => (
+                    <span
+                      key={item}
+                      className="font-mono text-[11px] lg:text-xs font-semibold uppercase tracking-[0.25em] text-white/70 hover:text-white transition-colors cursor-pointer"
+                    >
+                      {item}
                     </span>
-                    <span className="font-mono text-xs sm:text-[13px] tracking-[0.16em] text-white/70 uppercase">
-                      A NEW CHAPTER AWAITS. ——————
+                  ))}
+                </nav>
+
+                {/* Right: Live Badge, Clock, Hamburger Menu */}
+                <div className="flex items-center gap-4 sm:gap-6">
+                  {/* Live Status Indicator */}
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                    </span>
+                    <span className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-widest text-white/90">
+                      LIVE
                     </span>
                   </div>
 
-                  {/* Interactive Action Button: ENTER THE AUCTION */}
-                  <div className="mt-8 sm:mt-10">
+                  {/* IST Time */}
+                  <span className="font-mono text-[11px] sm:text-xs tracking-widest text-white/70">
+                    {istTime}
+                  </span>
+
+                  {/* Mobile / Global Menu Hamburger */}
+                  <button
+                    type="button"
+                    aria-label="Navigation Menu"
+                    className="text-white/80 hover:text-white transition-colors p-1 cursor-pointer"
+                  >
+                    <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Main Left Hero Area: Exact match to user reference screenshot */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 items-center my-auto py-2">
+                <div className="relative z-20 flex flex-col max-w-[620px] sm:max-w-[680px] lg:max-w-[760px] xl:max-w-[820px] py-1 select-none">
+                  {/* Category Eyebrow */}
+                  <span className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.35em] text-white/75 mb-1.5 block">
+                    INDIAN PREMIER LEAGUE
+                  </span>
+
+                  {/* Monumental Headline: "IPL" with side tags, followed by "AUCTION" */}
+                  <div className="flex flex-col select-none">
+                    <div className="flex items-center gap-6 sm:gap-8">
+                      <h1 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[10rem] lg:text-[11.5rem] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                        IPL
+                      </h1>
+                      {/* Vertical Category Pillar from Reference Image */}
+                      <div className="flex flex-col gap-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.28em] text-white/50 uppercase border-l border-white/15 pl-4 sm:pl-5 py-1 self-center">
+                        <span>PLAYERS</span>
+                        <span>FRANCHISES</span>
+                        <span>STRATEGY</span>
+                        <span>RIVALRY</span>
+                        <span>LEGACY</span>
+                      </div>
+                    </div>
+
+                    <h2 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[10rem] lg:text-[11.5rem] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                      AUCTION
+                    </h2>
+                  </div>
+
+                  {/* Editorial Tagline with trailing hairline */}
+                  <div className="mt-4 sm:mt-5 flex flex-col gap-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] text-white/75 uppercase">
+                    <span>BIGGER PLAYERS. BOLDER MOVES.</span>
+                    <span className="flex items-center gap-2">
+                      A NEW CHAPTER AWAITS.
+                      <span className="inline-block w-20 sm:w-28 h-[1px] bg-white/30" />
+                    </span>
+                  </div>
+
+                  {/* Single Action Button: ENTER THE AUCTION matching reference card colorscheme & layout */}
+                  <div className="mt-7 sm:mt-8">
                     <button
                       type="button"
                       data-testid="enter-auction-btn"
                       aria-label="Enter the Auction"
                       onClick={handleEnterAuction}
-                      className="group flex flex-col justify-between w-full max-w-[480px] border border-white/20 hover:border-white/70 bg-[#0242CC] hover:bg-[#0037B3] p-5 sm:p-6 text-left shadow-[0_0_35px_rgba(2,66,204,0.55)] hover:shadow-[0_0_55px_rgba(2,66,204,0.85)] transition-all duration-300 active:scale-[0.99] cursor-pointer"
+                      className="group flex flex-col justify-between w-full max-w-[280px] sm:max-w-[320px] rounded-none border border-[#2563EB]/80 hover:border-blue-400 bg-[#0B2564]/85 hover:bg-[#0E3184]/95 p-5 sm:p-6 text-left shadow-[0_0_30px_rgba(37,99,235,0.45)] hover:shadow-[0_0_50px_rgba(37,99,235,0.75)] backdrop-blur-md transition-all duration-300 active:scale-[0.99] cursor-pointer"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-teko text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-white leading-none">
-                          ENTER THE AUCTION
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-mono text-xs font-bold uppercase tracking-[0.22em] text-[#60A5FA]">
+                          ENTER THE
                         </span>
-                        <ArrowRight className="w-6 h-6 sm:w-8 sm:h-8 text-white transition-transform duration-300 group-hover:translate-x-2" />
+                        <ArrowRight className="w-5 h-5 text-[#60A5FA] group-hover:text-white group-hover:translate-x-1.5 transition-all" />
                       </div>
-                      <span className="mt-2.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-white/85">
-                        MANAGE SQUADS &bull; VIEW AUCTIONS LIVE &bull; TRACK STRATEGY
+
+                      <span className="font-teko text-5xl sm:text-6xl font-bold uppercase tracking-wide text-white leading-none my-1.5 block">
+                        AUCTION
                       </span>
+
+                      <div className="font-mono text-[9.5px] sm:text-[10px] uppercase tracking-[0.16em] text-white/75 flex flex-col gap-0.5 leading-snug mt-1">
+                        <span>MANAGE YOUR SQUAD</span>
+                        <span>VIEW AUCTIONS LIVE</span>
+                        <span>TRACK YOUR STRATEGY</span>
+                      </div>
                     </button>
 
                     {/* Sub-tagline below button */}
-                    <div className="mt-4 flex items-center gap-2 font-mono text-xs sm:text-[13px] uppercase tracking-[0.24em] text-white/60">
-                      <span>○—— ALL 10 TEAMS. ONE AUCTION.</span>
+                    <div className="mt-5 flex items-center gap-2 font-mono text-xs tracking-[0.24em] text-white/60 uppercase">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full border border-white/50 inline-block" />
+                        <span className="w-6 h-[1px] bg-white/40 inline-block" />
+                      </span>
+                      <span>ALL 10 TEAMS. ONE AUCTION.</span>
                     </div>
                   </div>
                 </div>

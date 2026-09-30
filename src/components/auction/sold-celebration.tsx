@@ -2,52 +2,129 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 
+export interface SoldCelebrationPlayer {
+  name?: string
+  price?: number | string
+  teamName?: string
+}
+
 export interface SoldCelebrationProps {
   /**
    * Optional key or counter that triggers the animation when changed.
    */
   trigger?: number | string | null
   /**
-   * Callback invoked when the celebration animation finishes (~2.2s).
+   * Optional manual active state override.
+   */
+  active?: boolean
+  /**
+   * Callback invoked when the celebration animation finishes (~2.4s).
    */
   onComplete?: () => void
+  /**
+   * Optional player data (reserved for future use).
+   */
+  player?: SoldCelebrationPlayer | null
+  /**
+   * Optional toggle to show player card (defaults to false for pure cricketer silhouette).
+   */
+  showCard?: boolean
 }
 
+const FRAME_COUNT = 42
+const FRAME_PATHS = Array.from({ length: FRAME_COUNT }, (_, i) =>
+  `/assets/brand/cricket-frames/frame_${String(i + 1).padStart(2, '0')}.png`
+)
+
 /**
- * Premium International Cricket Broadcast "Player Sold" Celebration.
- * 
- * Features:
- * - 100% pure white authentic IPL cricketer silhouette emblem & swoosh.
- * - Independent multi-layer kinetic swing: bat whip, arm follow-through,
- *   athletic body drive, and dynamic swoosh illumination.
- * - Broadcast pop-in with elegant scale overshoot and smooth upward drift exit.
- * - Pure SVG + hardware-accelerated GPU transforms.
- * - Zero layout shifts; pointer-events-none overlay.
- * - No text, no background cards, no colored glows.
- * - Supports repeated triggers without page reloads.
+ * Official IPL Cricket Pop-up Animation.
+ *
+ * Renders the pure white cricketer silhouette bat swing animation against a dimmed background.
+ * Perfectly anchored in the center of the screen without vertical fluctuations, jumping, glow, or frame numbers.
  */
 export function SoldCelebration({
   trigger,
+  active,
   onComplete,
 }: SoldCelebrationProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [playKey, setPlayKey] = useState(0)
+  const [currentFrame, setCurrentFrame] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const lastTriggerRef = useRef<number | string | null>(null)
+
+  // Preload all 42 isolated frames into browser memory on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      FRAME_PATHS.forEach((path) => {
+        const img = new Image()
+        img.src = path
+      })
+    }
+  }, [])
 
   const startAnimation = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
     }
+    setCurrentFrame(0)
     setPlayKey((k) => k + 1)
     setIsPlaying(true)
 
-    // Complete lifecycle after 2200ms (matches CSS animation duration)
+    // Complete lifecycle after 1700ms (750ms swing + 650ms hold + 300ms fade)
     timerRef.current = setTimeout(() => {
       setIsPlaying(false)
       onComplete?.()
-    }, 2200)
+    }, 1700)
   }, [onComplete])
+
+  // Stepped frame progression: plays all 42 frames smoothly in-place (~18ms per frame)
+  useEffect(() => {
+    if (!isPlaying) return
+
+    setCurrentFrame(0)
+    let animId: number | null = null
+    let intervalId: NodeJS.Timeout | null = null
+    let start: number | null = null
+    const duration = 750 // ~18ms per frame for crisp, snappy bat swing
+
+    // Use requestAnimationFrame in browser for buttery display-rate sync
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      const step = (time: number) => {
+        if (start === null) start = time
+        const elapsed = time - start
+        const progress = Math.min(elapsed / duration, 1)
+        const frame = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
+        setCurrentFrame(frame)
+
+        if (progress < 1) {
+          animId = window.requestAnimationFrame(step)
+        }
+      }
+      animId = window.requestAnimationFrame(step)
+    }
+
+    // Interval fallback for timer-based testing environments
+    const startTime = Date.now()
+    intervalId = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const frame = Math.min(Math.floor(progress * FRAME_COUNT), FRAME_COUNT - 1)
+      setCurrentFrame(frame)
+      if (progress >= 1 && intervalId) {
+        clearInterval(intervalId)
+      }
+    }, 18)
+
+    return () => {
+      if (animId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(animId)
+      }
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [isPlaying, playKey])
 
   // Watch trigger prop changes (only trigger when positive number or new value, never on initial 0)
   useEffect(() => {
@@ -62,6 +139,13 @@ export function SoldCelebration({
     }
   }, [trigger, startAnimation])
 
+  // Watch manual active prop
+  useEffect(() => {
+    if (active && !isPlaying) {
+      startAnimation()
+    }
+  }, [active, isPlaying, startAnimation])
+
   // Listen to window-level custom events & expose global trigger
   useEffect(() => {
     const handleCustomEvent = (e: Event) => {
@@ -75,7 +159,9 @@ export function SoldCelebration({
     window.addEventListener('auction:play-sold', handleCustomEvent)
 
     // Expose global window function for direct execution
-    ;(window as unknown as { showSoldAnimation: () => void }).showSoldAnimation = startAnimation
+    ;(window as unknown as { showSoldAnimation: () => void }).showSoldAnimation = () => {
+      startAnimation()
+    }
 
     return () => {
       window.removeEventListener('auction:sold', handleCustomEvent)
@@ -98,114 +184,20 @@ export function SoldCelebration({
     <div
       key={playKey}
       data-testid="sold-celebration-overlay"
-      className="fixed inset-0 pointer-events-none z-[9999] flex items-center justify-center select-none overflow-hidden bg-black/60 backdrop-blur-[2px] transition-all duration-300"
-      style={{
-        animation: 'sold-overlay-bg 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-      }}
-      aria-hidden="true"
+      className="auction-overlay select-none pointer-events-none"
+      role="dialog"
+      aria-modal="true"
+      aria-label="IPL Celebration"
     >
-      {/* Centered Cricketer Emblem Container - Compact, smaller & elegant */}
-      <div
-        className="sold-emblem-root relative flex items-center justify-center w-[120px] h-[174px] sm:w-[145px] sm:h-[210px] md:w-[165px] md:h-[239px]"
-        style={{
-          animation: 'sold-emblem-pop 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-          willChange: 'transform, opacity',
-        }}
-      >
-        {/* Multi-Layer Animated Cricketer SVG */}
-        <svg
-          viewBox="0 0 252 365"
-          className="w-full h-full object-contain filter drop-shadow-[0_0_18px_rgba(255,255,255,0.4)]"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Subtle minimal white motion streak behind bat stroke */}
-          <path
-            d="M 12 110 C 14 82, 32 50, 72 32"
-            stroke="#FFFFFF"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            fill="none"
-            className="sold-motion-streak"
-            style={{
-              animation: 'sold-streak-flash 2.2s ease-out forwards',
-              strokeDasharray: '120',
-              willChange: 'opacity, stroke-dashoffset',
-            }}
-          />
-
-          {/* Layer 1: Swoosh (Orbital motion trail) */}
-          <g
-            id="cricketer-layer-swoosh"
-            className="sold-swoosh"
-            style={{
-              transformOrigin: '125px 120px',
-              animation: 'sold-swoosh-pulse 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
-              willChange: 'transform, opacity',
-            }}
-          >
-            <image
-              href="/assets/brand/cricketer-swoosh.png"
-              width="252"
-              height="365"
-              preserveAspectRatio="xMidYMid meet"
-            />
-          </g>
-
-          {/* Layer 2: Body (Head, helmet, torso, legs, pads) */}
-          <g
-            id="cricketer-layer-body"
-            className="sold-body"
-            style={{
-              transformOrigin: '105px 230px',
-              animation: 'sold-body-shift 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
-              willChange: 'transform',
-            }}
-          >
-            <image
-              href="/assets/brand/cricketer-body.png"
-              width="252"
-              height="365"
-              preserveAspectRatio="xMidYMid meet"
-            />
-          </g>
-
-          {/* Layer 3: Arms (Shoulders, forearms, hands gripping handle) */}
-          <g
-            id="cricketer-layer-arms"
-            className="sold-arms"
-            style={{
-              transformOrigin: '110px 105px',
-              animation: 'sold-arms-follow 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
-              willChange: 'transform',
-            }}
-          >
-            <image
-              href="/assets/brand/cricketer-arms.png"
-              width="252"
-              height="365"
-              preserveAspectRatio="xMidYMid meet"
-            />
-          </g>
-
-          {/* Layer 4: Cricket Bat (Handle & blade with high-speed rotational swing) */}
-          <g
-            id="cricketer-layer-bat"
-            className="sold-bat"
-            style={{
-              transformOrigin: '82px 92px',
-              animation: 'sold-bat-whip 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
-              willChange: 'transform',
-            }}
-          >
-            <image
-              href="/assets/brand/cricketer-bat.png"
-              width="252"
-              height="365"
-              preserveAspectRatio="xMidYMid meet"
-            />
-          </g>
-        </svg>
+      <div className="cricket-silhouette-wrapper flex items-center justify-center" aria-hidden="true">
+        {/* Plain crisp solid white cricketer silhouette - NO glow, NO drop-shadow */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={FRAME_PATHS[currentFrame]}
+          alt="IPL Cricketer Silhouette"
+          className="w-[150px] h-[119px] sm:w-[175px] sm:h-[139px] object-contain pointer-events-none select-none filter-none drop-shadow-none"
+          draggable={false}
+        />
       </div>
     </div>
   )

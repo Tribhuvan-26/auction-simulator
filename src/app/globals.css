@@ -13,6 +13,12 @@
   --color-surface-card: #1C1C1C;
   --color-border-tech: rgba(255, 255, 255, 0.12);
   --color-border-strong: rgba(255, 255, 255, 0.24);
+  --ipl-blue: #1f64ff;
+  --ipl-gold: #ffc83d;
+  --ipl-crimson: #ef2f5b;
+  --sheet-url: url("/assets/brand/cricket-sprite-sheet.png");
+  --frame-width: 175px;
+  --frame-height: 139px;
 }
 
 @theme inline {
@@ -294,176 +300,223 @@
   animation-play-state: paused;
 }
 
-/* Player Sold Celebration Animation (Broadcast Style) */
-@keyframes sold-overlay-bg {
+/* Player Sold / Acquired Celebration Animation (Official IPL Cricket Silhouette) */
+.auction-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  isolation: isolate;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  pointer-events: none;
+  animation: sold-overlay-fade 1700ms ease-out forwards;
+}
+
+@keyframes sold-overlay-fade {
   0% { opacity: 0; }
   10% { opacity: 1; }
-  75% { opacity: 1; }
+  80% { opacity: 1; }
   100% { opacity: 0; }
 }
 
-@keyframes sold-emblem-pop {
+.cricket-silhouette-wrapper {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: none !important;
+}
+
+.cricket-sprite {
+  width: var(--frame-width);
+  height: var(--frame-height);
+  background-image: var(--sheet-url);
+  background-repeat: no-repeat;
+
+  /* Seven columns and six rows = 42 frames */
+  background-size: 700% 600%;
+  background-position: 0% 0%;
+
+  /* Screen blending removes the black background, leaving pure white glowing cricketer */
+  mix-blend-mode: screen;
+  filter: contrast(1.28) brightness(1.15) drop-shadow(0 0 16px rgba(255, 255, 255, 0.45));
+
+  /* Hides frame labels and grid seams around the sheet edges */
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 91% at 57% 54%,
+    #000 68%,
+    transparent 99%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 91% at 57% 54%,
+    #000 68%,
+    transparent 99%
+  );
+
+  animation: ipl-cricket-swing 900ms steps(1, end) 180ms forwards;
+  will-change: background-position;
+}
+
+.eyebrow-ipl {
+  margin: 0 0 9px;
+  color: #aebcff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.acquired-heading {
+  margin: 0;
+  font-size: clamp(29px, 8vw, 42px);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  background: linear-gradient(
+    100deg,
+    #fff 12%,
+    #ffeab1 56%,
+    #fff 88%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 200, 61, 0.18));
+}
+
+.player-name-ipl {
+  margin: 15px 0 24px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.price-badge-ipl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  padding: 13px 24px;
+  border: 1px solid rgba(255, 200, 61, 0.82);
+  border-radius: 999px;
+  color: #fff8d6;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 200, 61, 0.17),
+    rgba(239, 47, 91, 0.12)
+  );
+  box-shadow:
+    0 0 15px rgba(255, 200, 61, 0.3),
+    0 0 38px rgba(239, 47, 91, 0.22),
+    inset 0 0 18px rgba(255, 200, 61, 0.1);
+}
+
+@keyframes modal-spring {
   0% {
     opacity: 0;
-    transform: translateY(36px) scale(0.12);
+    transform: scale(0.9) translateY(18px);
   }
-  16% {
+
+  72% {
     opacity: 1;
-    transform: translateY(-2px) scale(1.05);
+    transform: scale(1.025) translateY(-3px);
   }
-  22% {
-    opacity: 1;
-    transform: translateY(0px) scale(0.98);
-  }
-  34% {
-    opacity: 1;
-    transform: translateY(-4px) scale(1.08); /* Impact overshoot */
-  }
-  44% {
-    opacity: 1;
-    transform: translateY(0px) scale(1);
-  }
-  75% {
-    opacity: 1;
-    transform: translateY(0px) scale(1); /* Hold */
-  }
+
   100% {
-    opacity: 0;
-    transform: translateY(-26px) scale(0.86); /* Smooth upward exit */
-  }
-}
-
-@keyframes sold-bat-whip {
-  0% {
-    transform: rotate(-32deg);
-  }
-  16% {
-    transform: rotate(-35deg); /* Load up */
-  }
-  24% {
-    transform: rotate(-25deg);
-  }
-  33% {
-    transform: rotate(14deg); /* Impact follow-through */
-  }
-  39% {
-    transform: rotate(-2deg); /* Recoil */
-  }
-  45% {
-    transform: rotate(0deg); /* Assembled rest */
-  }
-  75% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes sold-arms-follow {
-  0% {
-    transform: rotate(-14deg);
-  }
-  16% {
-    transform: rotate(-15deg);
-  }
-  33% {
-    transform: rotate(6deg);
-  }
-  43% {
-    transform: rotate(0deg);
-  }
-  75% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes sold-body-shift {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  16% {
-    transform: translate(1px, 2px) scale(0.99);
-  }
-  33% {
-    transform: translate(-3px, -5px) scale(1.02);
-  }
-  44% {
-    transform: translate(0, 0) scale(1);
-  }
-  75% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-}
-
-@keyframes sold-swoosh-pulse {
-  0% {
-    opacity: 0.35;
-    transform: scale(0.88) rotate(-10deg);
-  }
-  16% {
-    opacity: 0.45;
-    transform: scale(0.92) rotate(-8deg);
-  }
-  33% {
     opacity: 1;
-    transform: scale(1.03) rotate(2deg);
-  }
-  44% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  75% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1) rotate(0deg);
+    transform: scale(1) translateY(0);
   }
 }
 
-@keyframes sold-streak-flash {
-  0%, 25% {
-    opacity: 0;
-    stroke-dashoffset: 120;
+/*
+ * Source dimensions: 1024 x 682
+ * Grid: 7 columns × 6 rows = 42 frames.
+ * The positions below traverse the sheet in row-major order.
+ */
+@keyframes ipl-cricket-swing {
+  0% { background-position: 0% 0%; }
+  2.439% { background-position: 16.6667% 0%; }
+  4.878% { background-position: 33.3333% 0%; }
+  7.317% { background-position: 50% 0%; }
+  9.756% { background-position: 66.6667% 0%; }
+  12.195% { background-position: 83.3333% 0%; }
+  14.634% { background-position: 100% 0%; }
+
+  17.073% { background-position: 0% 20%; }
+  19.512% { background-position: 16.6667% 20%; }
+  21.951% { background-position: 33.3333% 20%; }
+  24.39% { background-position: 50% 20%; }
+  26.829% { background-position: 66.6667% 20%; }
+  29.268% { background-position: 83.3333% 20%; }
+  31.707% { background-position: 100% 20%; }
+
+  34.146% { background-position: 0% 40%; }
+  36.585% { background-position: 16.6667% 40%; }
+  39.024% { background-position: 33.3333% 40%; }
+  41.463% { background-position: 50% 40%; }
+  43.902% { background-position: 66.6667% 40%; }
+  46.341% { background-position: 83.3333% 40%; }
+  48.78% { background-position: 100% 40%; }
+
+  51.22% { background-position: 0% 60%; }
+  53.659% { background-position: 16.6667% 60%; }
+  56.098% { background-position: 33.3333% 60%; }
+  58.537% { background-position: 50% 60%; }
+  60.976% { background-position: 66.6667% 60%; }
+  63.415% { background-position: 83.3333% 60%; }
+  65.854% { background-position: 100% 60%; }
+
+  68.293% { background-position: 0% 80%; }
+  70.732% { background-position: 16.6667% 80%; }
+  73.171% { background-position: 33.3333% 80%; }
+  75.61% { background-position: 50% 80%; }
+  78.049% { background-position: 66.6667% 80%; }
+  80.488% { background-position: 83.3333% 80%; }
+  82.927% { background-position: 100% 80%; }
+
+  85.366% { background-position: 0% 100%; }
+  87.805% { background-position: 16.6667% 100%; }
+  90.244% { background-position: 33.3333% 100%; }
+  92.683% { background-position: 50% 100%; }
+  95.122% { background-position: 66.6667% 100%; }
+  97.561% { background-position: 83.3333% 100%; }
+  100% { background-position: 100% 100%; }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --frame-width: 169px;
+    --frame-height: 132px;
   }
-  32% {
-    opacity: 0.75;
-    stroke-dashoffset: 40;
+
+  .auction-card {
+    padding: 108px 22px 25px;
+    border-radius: 25px;
   }
-  38% {
-    opacity: 0.3;
-    stroke-dashoffset: 0;
-  }
-  45%, 100% {
-    opacity: 0;
-    stroke-dashoffset: 0;
+
+  .sprite-badge {
+    width: 195px;
   }
 }
 
-/* Reduced motion accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .sold-emblem-root {
-    animation: sold-reduced-motion 2s ease-in-out forwards !important;
+  .auction-card {
+    animation: none;
   }
-  .sold-bat, .sold-arms, .sold-body, .sold-swoosh, .sold-motion-streak {
-    animation: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-}
 
-@keyframes sold-reduced-motion {
-  0% { opacity: 0; transform: scale(0.9); }
-  20% { opacity: 1; transform: scale(1); }
-  75% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.94); }
+  .cricket-sprite {
+    animation: none;
+    background-position: 100% 100%;
+  }
 }
 
