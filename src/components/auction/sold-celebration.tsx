@@ -14,10 +14,6 @@ export interface SoldCelebrationProps {
    */
   trigger?: number | string | null
   /**
-   * Optional manual active state override.
-   */
-  active?: boolean
-  /**
    * Callback invoked when the celebration animation finishes (~2.4s).
    */
   onComplete?: () => void
@@ -44,7 +40,6 @@ const FRAME_PATHS = Array.from({ length: FRAME_COUNT }, (_, i) =>
  */
 export function SoldCelebration({
   trigger,
-  active,
   onComplete,
 }: SoldCelebrationProps) {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -137,13 +132,6 @@ export function SoldCelebration({
       startAnimation()
     }
   }, [trigger, startAnimation])
-
-  // Watch manual active prop
-  useEffect(() => {
-    if (active && !isPlaying) {
-      startAnimation()
-    }
-  }, [active, isPlaying, startAnimation])
 
   // Listen to window-level custom events & expose global trigger
   useEffect(() => {
