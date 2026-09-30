@@ -1,10 +1,7 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 import { formatMoney } from '@/lib/money'
-import { TeamCrest } from '@/components/ui/team-crest'
-import { CornerBracketFrame } from '@/components/ui/architectural-primitives'
 
 export interface PlayerHeroData {
   id: string
