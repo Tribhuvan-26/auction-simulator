@@ -1,8 +1,8 @@
 # Auction Live — project teardown
 
 A real-time IPL-style player auction: one auctioneer runs the room, ten team seats bid against each
-other, and a big screen carries the lot. Postgres is the only source of truth; Socket.io exists
-purely to tell every screen when to re-read it.
+other, and a big screen carries the lot. Postgres is the only source of truth; Supabase Realtime
+exists purely to tell every screen when to re-read it.
 
 | | |
 |---|---|
@@ -64,15 +64,16 @@ the page you put on screen while people find their seats.
 ## 2. Stack & repo map
 
 Next.js 16 App Router with React 19. There is no REST API and no tRPC — the client calls Server
-Actions directly, and each one returns a fresh snapshot of the whole room. Two processes run side by
-side in development: the Next app on `:3000` and a standalone Socket.io server on `:4000`.
+Actions directly, and each one returns a fresh snapshot of the whole room. One process runs in
+development: the Next app on `:3000`. Live pushes go through Supabase Realtime, so there is no relay
+server to run.
 
 | Layer | Choice | Why it's there |
 |---|---|---|
 | Framework | Next.js 16.3.4 · React 19.2 | Server Actions are the entire write API; server components fetch the first snapshot. |
 | Database | PostgreSQL 16 via Docker | Transactions matter — a sale moves the lot, the player and the purse together or not at all. |
 | ORM | Prisma 7 + `@prisma/adapter-pg` | Driver adapter, so the client is constructed explicitly from `DATABASE_URL`. |
-| Realtime | Socket.io 4.8 (client + server) | Rooms keyed by `roomId`; carries notifications only, never state. |
+| Realtime | Supabase Realtime broadcast | One channel per room (`room:<roomId>`); carries notifications only, never state. |
 | Styling | Tailwind v4 (CSS-first `@theme`) | Brand tokens live in `globals.css`, not a JS config file. |
 | Motion | GSAP · Framer Motion · CSS keyframes | Three tools, three jobs — split explained in part 8. |
 | Tests | Vitest + Testing Library + jsdom | 10 files, 73 tests, hitting a real database. |
@@ -89,8 +90,6 @@ prisma/
     player-roles.json      hand-curated, 254 entries
     ipl-2026-players.csv   original auction sheet
   migrations/              init + fk indexes/cascade
-server/
-  socket-server.ts         21 lines — join room, rebroadcast
 src/app/
   page.tsx                 room directory / seat picker
   admin/[roomId]/
@@ -186,7 +185,7 @@ npx tsx -r dotenv/config prisma/backfill-roles.ts
 ## 5. Server actions
 
 `src/app/admin/[roomId]/actions.ts` is the entire write API. Every mutation ends the same way: commit
-a transaction, fire a socket event, and return `getAdminSnapshot(roomId)` — one object describing the
+a transaction, fire a realtime event, and return `getAdminSnapshot(roomId)` — one object describing the
 room, the current lot with its bid history, all ten teams with squads and purses, the upcoming queue,
 and the last twelve sales. All three screens consume that same shape.
 
@@ -254,34 +253,28 @@ moves on; the mutations narrow to `QUEUED` or `BIDDING`. Both land on the same r
 
 ## 6. Realtime layer
 
-The socket carries *notifications, not state*. An event says "something happened in this room"; every
+The realtime channel carries *notifications, not state*. An event says "something happened in this room"; every
 screen answers by re-reading the snapshot from the database. That's one extra round trip per event,
 which is nothing at auction pace, and it means no screen can drift out of sync by mis-applying a
 patch.
 
-### The server — 21 lines
+### The relay — Supabase Realtime
 
-```ts
-io.on('connection', (socket) => {
-  socket.on('room:join', (roomId) => socket.join(roomId))
-  socket.on('auction:event', ({ roomId, payload }) =>
-    socket.to(roomId).emit('auction:event', payload))
-})
-```
-
-It has no database access and no auction logic. It is a fan-out relay, and the room is the channel.
+There is no relay server of our own. Each room is a Supabase Realtime broadcast channel named
+`room:<roomId>`; server actions post to it over HTTP and every open screen is subscribed to it. It has
+no database access and no auction logic. It is a fan-out relay, and the room is the channel.
 
 ### Emitting — deliberately fail-open
 
 `src/lib/socket-emitter.ts` is called by server actions *after* the database write has already
-committed. So a dead socket server must never throw or hang the mutation: it logs, gives up after 3
+committed. So a Realtime outage must never throw or hang the mutation: it logs, gives up after 3
 seconds, and resolves. The acting user still gets their fresh snapshot as the action's return value;
-other screens simply miss the live push until the relay comes back.
+other screens simply miss the live push until Realtime comes back.
 
 ### Consuming — `useLiveSnapshot`
 
-One hook, used by all three screens. It joins the room, and on every event calls the snapshot fetcher
-and swaps in the result. An optional `onEvent` callback fires first, from inside the socket handler,
+One hook, used by all three screens. It subscribes to the room's channel, and on every event calls the snapshot fetcher
+and swaps in the result. An optional `onEvent` callback fires first, from inside the broadcast handler,
 for the transient reactions a snapshot can't express — the SOLD stamp, the bid pulse, the "you've
 been outbid" toast. Those are moments, not state, and they'd be gone by the next re-read.
 
@@ -416,8 +409,7 @@ fake.
 | `actions.test.ts` | Snapshot shape, every mutation, off-tier and rule rejection, the one-open-lot invariant. |
 | `bid-rules.test.ts` | Every rung of the bid ladder, including the tier boundaries. |
 | `seed.test.ts` | 10 teams, 254 players, curated roles, set split. |
-| `socket-server.test.ts` | Room join and rebroadcast against an ephemeral server. |
-| `socket-emitter.test.ts` | The fail-open path — a dead relay must not throw. |
+| `socket-emitter.test.ts` | Broadcast request shape, and the fail-open path — a Realtime outage must not throw. |
 | `admin-console` · `team-console` · `pin-gate` · `brutal-card` | Rendering and interaction, via Testing Library. |
 
 ### Running it
@@ -429,14 +421,13 @@ npx prisma migrate dev
 npx prisma db seed
 
 npm run dev                      # app      :3000
-npm run socket-server            # relay    :4000
 
 npm run typecheck                # tsc --noEmit
 npm test                         # vitest run
 ```
 
-Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_PUBLIC_SOCKET_URL`,
-`SOCKET_PORT`.
+Three environment variables, copied from `.env.example`: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`. Production runs on Vercel, which deploys every push to `main`.
 
 ### Known gaps
 
