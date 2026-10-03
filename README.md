@@ -1,6 +1,6 @@
 # Auction Live-This project is my child make sure good care is taken of it
 
-Foundation for a real-time IPL-style auction platform (Next.js + Prisma + Socket.io).
+Foundation for a real-time IPL-style auction platform (Next.js + Prisma + Supabase Realtime).
 
 ## Local dev setup
 
@@ -11,11 +11,10 @@ npx prisma migrate dev
 npx prisma db seed
 ```
 
-Then, in separate terminals:
+Then:
 
 ```bash
-npm run dev            # Next.js app (http://localhost:3000)
-npm run socket-server  # Socket.io server (http://localhost:4000)
+npm run dev  # http://localhost:3000
 ```
 
 ## Other scripts
@@ -27,7 +26,7 @@ npm run lint       # eslint
 npm run build      # next build
 ```
 
-Copy `.env.example` to `.env` and adjust `DATABASE_URL`, `NEXT_PUBLIC_SOCKET_URL`, and `SOCKET_PORT` as needed.
+Copy `.env.example` to `.env` and adjust `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (live updates go through Supabase Realtime, so these always point at the Supabase project).
 
 ## Architecture
 

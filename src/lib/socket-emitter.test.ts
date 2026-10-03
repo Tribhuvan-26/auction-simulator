@@ -1,35 +1,34 @@
-import { io as ioClient, Socket } from 'socket.io-client'
-import { createSocketServer } from '../../server/socket-server'
-import type { Server as HttpServer } from 'http'
-import type { AddressInfo } from 'net'
-import { emitAuctionEvent, __setSocketPortForTests } from './socket-emitter'
+import { vi } from 'vitest'
+import { emitAuctionEvent } from './socket-emitter'
 
 describe('socket-emitter', () => {
-  let server: HttpServer
-  let port: number
-  let listener: Socket
-
-  beforeAll(async () => {
-    server = createSocketServer(0)
-    await new Promise<void>((resolve) => server.listen(() => resolve()))
-    port = (server.address() as AddressInfo).port
-    __setSocketPortForTests(port)
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://proj.supabase.co')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'anon')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
   })
 
-  afterAll(() => {
-    listener?.close()
-    server.close()
-  })
+  it('broadcasts the payload on the room channel', async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 202 }))
+    vi.stubGlobal('fetch', fetchMock)
 
-  it('broadcasts a payload to clients in the target room', async () => {
-    listener = ioClient(`http://localhost:${port}`)
-    await new Promise<void>((resolve) => listener.on('connect', () => resolve()))
-    listener.emit('room:join', 'room-1')
-    await new Promise((resolve) => setTimeout(resolve, 50))
-
-    const received = new Promise((resolve) => listener.on('auction:event', resolve))
     await emitAuctionEvent('room-1', { type: 'BID', teamId: 'team-1', amount: 150 })
 
-    expect(await received).toEqual({ type: 'BID', teamId: 'team-1', amount: 150 })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://proj.supabase.co/realtime/v1/api/broadcast')
+    expect(JSON.parse(init.body as string)).toEqual({
+      messages: [
+        { topic: 'room:room-1', event: 'auction:event', payload: { type: 'BID', teamId: 'team-1', amount: 150 }, private: false },
+      ],
+    })
+  })
+
+  it('never throws when Realtime is down', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('ECONNREFUSED') }))
+    await expect(emitAuctionEvent('room-1', {})).resolves.toBeUndefined()
   })
 })
