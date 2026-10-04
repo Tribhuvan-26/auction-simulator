@@ -552,3 +552,6 @@
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(-14%); }
 }
+
+/* landing loader gate: set in app/layout.tsx before first paint */
+html.loader-skip #ipl-loader { display: none; }

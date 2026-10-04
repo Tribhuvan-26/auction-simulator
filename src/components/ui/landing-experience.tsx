@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TeamCrest } from '@/components/ui/team-crest'
@@ -8,6 +8,7 @@ import { IplLogo } from '@/components/ui/ipl-logo'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { LandingScene } from '@/components/ui/landing-scene'
+import { Loader } from '@/components/ui/Loader'
 import { ChevronLeft, ArrowRight, Menu } from 'lucide-react'
 
 type Room = {
@@ -48,6 +49,9 @@ const BASE_CONVEYOR_TEAMS = [
 export function LandingExperience({ rooms, initialEntered = false }: LandingExperienceProps) {
   // Navigation between Screen 1 (Landing Hero) and Screen 2 (Room Directory)
   const [hasEntered, setHasEntered] = useState(initialEntered)
+  // the hero renders behind the loader; it unmounts itself (calls onDone) when the panels have parted
+  const [showLoader, setShowLoader] = useState(true)
+  const hideLoader = useCallback(() => setShowLoader(false), [])
   const [hoveredTeamKey, setHoveredTeamKey] = useState<string | null>(null)
   const [transitionCelebration, setTransitionCelebration] = useState(0)
   const [istTime, setIstTime] = useState('05:42:17 IST')
@@ -108,6 +112,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
         ================================================================
       */}
       <LandingScene />
+      {!initialEntered && showLoader && <Loader onDone={hideLoader} />}
 
       {/* Content wrapper */}
       <div className="relative z-10 flex min-h-screen flex-col justify-between">
