@@ -252,7 +252,7 @@ export function DisplayBoard({
       </div>
 
       {/* Main Composition: Left Pillar | Center Stage | Right Pillar */}
-      <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr_200px] xl:grid-cols-[180px_1fr_220px] gap-4 p-4 lg:p-6 min-h-0">
+      <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr_200px] xl:grid-cols-[180px_1fr_220px] gap-4 p-4 lg:px-6 min-h-0">
         {/* ── Left Pillar: Lot Number & Functional Category Navigation ── */}
         <aside className="flex flex-col justify-between border-r border-white/10 pr-4 py-2">
           <div className="flex flex-col gap-5">
@@ -413,7 +413,7 @@ export function DisplayBoard({
         </aside>
 
         {/* ── Center Stage: Player Hero + Action Controls + Bottom Panels (Screenshot 2) ── */}
-        <section className="flex flex-col gap-4 min-w-0">
+        <section className="flex flex-col gap-3 min-w-0">
           {/* Active / Selected Player Card matching Screenshot 2 */}
           <div
             ref={cardRef}
@@ -720,7 +720,7 @@ export function DisplayBoard({
                   <Link
                     key={t.id}
                     href={`/team/${roomId}/${t.id}`}
-                    className="flex items-center justify-between border border-white/10 bg-[#1F1F24] p-1.5 hover:border-white/30 transition-colors"
+                    className="flex items-center justify-between border border-white/10 bg-[#1F1F24] px-1.5 py-1 hover:border-white/30 transition-colors"
                   >
                     <div className="flex items-center gap-1.5 truncate max-w-[90px]">
                       <TeamCrest
