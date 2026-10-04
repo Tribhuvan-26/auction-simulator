@@ -18,6 +18,7 @@ import {
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
+import { Model3D } from '@/components/ui/model-3d'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { formatMoney } from '@/lib/money'
@@ -230,6 +231,13 @@ export function TeamConsole({
   const [passedLotId, setPassedLotId] = useState<string | null>(null)
   const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
   const outbidTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // 3D crest coin intro on entering the war room (clip is 2s)
+  const [showIntro, setShowIntro] = useState(true)
+  useEffect(() => {
+    const t = setTimeout(() => setShowIntro(false), 2400)
+    return () => clearTimeout(t)
+  }, [])
 
   // Interactive modal states
   const [showFranchiseDropdown, setShowFranchiseDropdown] = useState(false)
@@ -1290,6 +1298,25 @@ export function TeamConsole({
             ) : (
               'OUTBID — COUNTER NOW'
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            key="team-intro"
+            exit={{ opacity: 0 }}
+            onClick={() => setShowIntro(false)}
+            className="fixed inset-0 z-[60] flex cursor-pointer flex-col items-center justify-center gap-4 bg-black/85 backdrop-blur-sm"
+          >
+            <Model3D
+              src="/models/coin.glb"
+              logoUrl={team.logoUrl || `/assets/teams/${team.shortCode.toLowerCase()}.svg`}
+              logoBg={theme.primary}
+              className="size-[min(70vw,360px)]"
+            />
+            <p className="font-condensed text-3xl font-black uppercase tracking-wider text-white">{team.name}</p>
           </motion.div>
         )}
       </AnimatePresence>
