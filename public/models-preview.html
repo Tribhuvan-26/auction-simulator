@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Models Preview</title>
+<style>
+  body { margin: 0; background: #0d0d0f; color: #fff; font: 600 14px system-ui, sans-serif; }
+  h1 { margin: 16px; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; padding: 0 16px 16px; }
+  figure { margin: 0; background: #17171b; border: 1px solid #ffffff22; }
+  .stage { position: relative; aspect-ratio: 4 / 3; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  figcaption { padding: 10px 12px; border-top: 1px solid #ffffff22; display: flex; justify-content: space-between; color: #ffffffb0; }
+  figcaption b { color: #fff; }
+</style>
+</head>
+<body>
+<h1>Auction 3D animations</h1>
+<div class="grid">
+  <figure><div class="stage" data-src="/models/gavel.glb" data-replay="2600"></div><figcaption><b>SOLD gavel</b><span>display board, on SOLD</span></figcaption></figure>
+  <figure><div class="stage" data-src="/models/unsold.glb" data-replay="2600"></div><figcaption><b>UNSOLD plate</b><span>display board, on UNSOLD</span></figcaption></figure>
+  <figure><div class="stage" data-src="/models/coin.glb" data-replay="3000" data-coin></div><figcaption><b>Team coin</b><span id="team">team console intro</span></figcaption></figure>
+  <figure><div class="stage" data-src="/models/trophy.glb" data-loop></div><figcaption><b>IPL trophy</b><span>display board, idle</span></figcaption></figure>
+</div>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+<script type="module">
+// Throwaway preview: mirrors src/components/ui/model-3d.tsx, plus replay + team cycling.
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+const TEAMS = [['CSK', '#F9CD05', 'Chennai Super Kings'], ['MI', '#004BA0', 'Mumbai Indians'], ['RCB', '#EC1C24', 'Royal Challengers Bengaluru'], ['KKR', '#3A225D', 'Kolkata Knight Riders'], ['SRH', '#FF822A', 'Sunrisers Hyderabad'], ['RR', '#EA1A85', 'Rajasthan Royals'], ['DC', '#17479E', 'Delhi Capitals'], ['GT', '#1B2133', 'Gujarat Titans'], ['LSG', '#A72056', 'Lucknow Super Giants'], ['PBKS', '#DD1F2D', 'Punjab Kings']]
+
+async function logoTexture([code, bg]) {
+  const img = new Image()
+  img.src = `/assets/teams/${code.toLowerCase()}.svg`
+  await img.decode().catch(() => {})
+  const c = document.createElement('canvas')
+  const S = 1024
+  c.width = c.height = S
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, S, S)
+  const r = (img.naturalWidth || 1) / (img.naturalHeight || 1), box = S * 0.74
+  const w = r >= 1 ? box : box * r, h = r >= 1 ? box / r : box
+  if (img.naturalWidth) ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h)
+  const t = new THREE.CanvasTexture(c)
+  t.flipY = false
+  t.colorSpace = THREE.SRGBColorSpace
+  t.anisotropy = 16
+  return t
+}
+
+for (const host of document.querySelectorAll('.stage')) {
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  renderer.toneMapping = THREE.NeutralToneMapping
+  host.appendChild(renderer.domElement)
+  const scene = new THREE.Scene()
+  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture
+  const key = new THREE.DirectionalLight(0xffffff, 2)
+  key.position.set(3, -4, 6)
+  scene.add(key)
+
+  const gltf = await new GLTFLoader().loadAsync(host.dataset.src)
+  scene.add(gltf.scene)
+  const camera = gltf.cameras[0]
+  const fov0 = camera.fov, aspect0 = camera.aspect
+  const resize = () => {
+    const w = host.clientWidth, h = host.clientHeight
+    renderer.setSize(w, h, false)
+    camera.aspect = w / h
+    camera.fov = camera.aspect >= aspect0 ? fov0 : THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(fov0) / 2) * aspect0 / camera.aspect))
+    camera.updateProjectionMatrix()
+  }
+  resize()
+  new ResizeObserver(resize).observe(host)
+
+  const mixer = new THREE.AnimationMixer(gltf.scene)
+  const actions = gltf.animations.map((clip) => {
+    const a = mixer.clipAction(clip)
+    if (!('loop' in host.dataset)) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true }
+    return a.play()
+  })
+
+  let teamIdx = 0
+  const setTeam = async () => {
+    const team = TEAMS[teamIdx++ % TEAMS.length]
+    const tex = await logoTexture(team)
+    gltf.scene.traverse((o) => { if (o.material && /^Logo/.test(o.material.name)) { Object.assign(o.material, { map: tex, emissiveMap: tex, emissiveIntensity: 0.75, metalness: 0, roughness: 0.45, toneMapped: false, needsUpdate: true }); o.material.emissive.set(0xffffff); o.material.color.setScalar(0.35) } })
+    document.getElementById('team').textContent = team[2]
+  }
+  if ('coin' in host.dataset) await setTeam()
+  if (host.dataset.replay) {
+    setInterval(async () => {
+      if ('coin' in host.dataset) await setTeam()
+      actions.forEach((a) => a.reset().play())
+    }, +host.dataset.replay)
+  }
+
+  let last = performance.now()
+  renderer.setAnimationLoop((now) => {
+    mixer.update(Math.min(Math.max(now - last, 0) / 1000, 0.1))
+    last = now
+    renderer.render(scene, camera)
+  })
+}
+</script>
+</body>
+</html>
