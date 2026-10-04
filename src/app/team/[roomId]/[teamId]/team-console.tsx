@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { TeamCrest } from '@/components/ui/team-crest'
-import { CricketerCard } from '@/components/auction/cricketer-card'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
@@ -357,7 +356,7 @@ export function TeamConsole({
 
   const teamCode = team.shortCode.toUpperCase()
   const theme = TEAM_THEMES[teamCode] || DEFAULT_THEME
-  const teamBgSvg = `/assets/teams/${teamCode.toLowerCase()}-team-bg.svg`
+  const teamBgSvg = `/assets/teams/${teamCode.toLowerCase()}-team-bg.webp`
 
   // Filter room players for the PLAYERS modal
   const filteredRoomPlayers = roomPlayers.filter((p) => {
@@ -375,9 +374,7 @@ export function TeamConsole({
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#0d0d0f] text-white select-none overflow-x-hidden">
       {/* Environmental Architectural Backdrop */}
-      <picture className="fixed inset-0 z-0 h-full w-full pointer-events-none select-none">
-        {teamCode === 'CSK' && <source srcSet="/assets/teams/csk-team-bg.webp" type="image/webp" />}
-        <source srcSet={teamBgSvg} type="image/svg+xml" />
+      <picture className="fixed inset-0 z-0 h-full w-full pointer-events-none select-none lg:hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={teamBgSvg}
@@ -385,7 +382,7 @@ export function TeamConsole({
           className="h-full w-full object-cover object-left-top opacity-95 pointer-events-none select-none"
         />
       </picture>
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-r from-transparent via-black/35 to-black/75" />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-r from-transparent via-black/35 to-black/75 lg:hidden" />
 
       {/* ── Top Broadcast Header Bar (Reference 3 Aesthetic) ── */}
       <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/10 bg-[#121214]/90 px-4 md:px-6 backdrop-blur-md">
@@ -502,52 +499,17 @@ export function TeamConsole({
         </div>
       </header>
 
-      {/* ── Main Composition: Left Architectural Flag Pillar + Main War Room ── */}
-      <div className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[230px_1fr] xl:grid-cols-[250px_1fr] min-h-0">
-        {/* ── Left Pillar: Next Lot Space with Expandable Cricketer Card ── */}
-        <aside className="hidden lg:flex flex-col justify-between border-r border-white/10 p-4 bg-black/20 select-none">
-          {/* Vertical Cricketer Card fitting the Next Lot Space */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/60">
-                ACTIVE LOT CARD
-              </span>
-              <span className="font-mono text-[9px] font-bold text-brand-yellow">
-                LIVE STATS
-              </span>
-            </div>
-
-            {lot ? (
-              <CricketerCard
-                player={lot.player}
-                teamColor={theme.primary}
-                teamName={team.name}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center border border-white/15 bg-[#141417]/80 p-6 text-center backdrop-blur-md">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
-                  NEXT LOT QUEUE
-                </span>
-                <p className="mt-2 font-condensed text-base font-bold uppercase text-white/70">
-                  Awaiting Lot Call
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Concrete Architectural Slogan */}
-          <div className="pt-4 border-t border-white/10">
-            <span className="font-condensed text-xs font-black uppercase leading-tight tracking-wider text-white/35 block">
-              SAME
-              <br />
-              GAME
-              <br />
-              DIFFERENT
-              <br />
-              BREED
-            </span>
-          </div>
-        </aside>
+      {/* ── Main Composition: left column sized to the flag in the backdrop (flag ends ~34% of the image height across) ── */}
+      <div className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[calc(max(23vh,13vw)_+_8px)_1fr] min-h-0">
+        {/* Team flag crop, fitted to this column on desktop */}
+        <div aria-hidden className="hidden lg:block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/assets/teams/${teamCode.toLowerCase()}-team-side.webp`}
+            alt=""
+            className="sticky top-14 h-[calc(100vh-3.5rem)] w-full object-contain object-top pointer-events-none select-none"
+          />
+        </div>
 
         {/* ── Main Content Area ── */}
         <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6 min-h-0">

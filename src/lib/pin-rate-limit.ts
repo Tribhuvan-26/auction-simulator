@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 
-const MAX_FAILURES = 5
-const BLOCK_MS = 15 * 60 * 1000
+const MAX_FAILURES = 10
+const BLOCK_MS = 60 * 1000
 
 type Record_ = { failures: number; blockedUntil: number }
 

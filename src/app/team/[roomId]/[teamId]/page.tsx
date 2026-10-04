@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getPublicSnapshot, getRoomPlayers } from '@/app/admin/[roomId]/actions'
 import { hasTeamAccess } from '@/lib/team-auth'
+import { resolveRoomId } from '@/lib/resolve-room'
 import { unlockTeam } from '@/lib/pin-actions'
 import { PinGate } from '@/components/ui/pin-gate'
 import { TeamConsole } from './team-console'
@@ -12,7 +13,9 @@ export default async function TeamPage({
   params: Promise<{ roomId: string; teamId: string }>
   searchParams: Promise<{ pin?: string }>
 }) {
-  const { roomId, teamId } = await params
+  const { roomId: roomCode, teamId } = await params
+  const roomId = await resolveRoomId(roomCode)
+  if (!roomId) notFound()
   const [initialSnapshot, roomPlayers] = await Promise.all([
     getPublicSnapshot(roomId),
     getRoomPlayers(roomId),

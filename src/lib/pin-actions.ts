@@ -14,7 +14,9 @@ function blockedMessage(minutes: number) {
  * null once the seat is unlocked.
  */
 export async function unlockTeam(roomId: string, teamId: string, passcode: string): Promise<string | null> {
-  const key = await callerKey()
+  // Per seat, not per IP: the whole venue shares one wifi IP, so one table's
+  // typos must not lock every other table out.
+  const key = `${await callerKey()}:team:${teamId}`
   const blocked = blockedFor(key)
   if (blocked) return blockedMessage(blocked)
 
@@ -40,7 +42,7 @@ export async function unlockTeam(roomId: string, teamId: string, passcode: strin
 
 /** Same exchange for the auctioneer's console, which is keyed by room. */
 export async function unlockAdmin(roomId: string, passcode: string): Promise<string | null> {
-  const key = await callerKey()
+  const key = `${await callerKey()}:admin:${roomId}`
   const blocked = blockedFor(key)
   if (blocked) return blockedMessage(blocked)
 
