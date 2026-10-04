@@ -7,6 +7,7 @@ import { TeamCrest } from '@/components/ui/team-crest'
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
+import { LandingScene } from '@/components/ui/landing-scene'
 import { ChevronLeft, ArrowRight, Menu } from 'lucide-react'
 
 type Room = {
@@ -106,15 +107,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
         - Concrete steps and tropical foliage
         ================================================================
       */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/assets/landing/ipl-auction-environment.jpg"
-        alt="IPL Brutalist Architecture"
-        className="fixed inset-0 z-0 h-full w-full object-cover object-[72%_center] lg:object-[center_right] pointer-events-none select-none"
-      />
-
-      {/* Subtle localized gradient on the far-left edge for typography contrast */}
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-r from-black/85 via-black/45 to-transparent lg:from-black/75 lg:via-black/25 lg:to-transparent" />
+      <LandingScene />
 
       {/* Content wrapper */}
       <div className="relative z-10 flex min-h-screen flex-col justify-between">

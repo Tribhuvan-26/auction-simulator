@@ -520,3 +520,35 @@
   }
 }
 
+
+
+/* Landing scene parts (src/components/ui/landing-scene.tsx); used via motion-safe: only */
+@keyframes scene-banner-sway {
+  0%, 100% { transform: rotate(-0.6deg); }
+  50% { transform: rotate(0.6deg); }
+}
+/* slow push-in of the whole scene; scale-up only, so no edge ever shows */
+@keyframes scene-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes scene-plant-sway {
+  0%, 100% { transform: skewX(-0.8deg); }
+  50% { transform: skewX(0.8deg); }
+}
+@keyframes scene-cloth-sheen {
+  0% { background-position: 0 100%; }
+  100% { background-position: 0 0%; }
+}
+@keyframes scene-glint {
+  0% { background-position: 160% 0; }
+  45%, 100% { background-position: -60% 0; }
+}
+@keyframes scene-sun-breathe {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.32; }
+}
+@keyframes scene-cloud-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-14%); }
+}
