@@ -192,14 +192,14 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
               <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 items-center my-auto py-2">
                 <div className="relative z-20 flex flex-col max-w-[620px] sm:max-w-[680px] lg:max-w-[760px] xl:max-w-[820px] py-1 select-none">
                   {/* Category Eyebrow */}
-                  <span className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.35em] text-white/75 mb-1.5 block">
+                  <span className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.35em] text-white/75 mb-4 sm:mb-5 block">
                     INDIAN PREMIER LEAGUE
                   </span>
 
                   {/* Monumental Headline: "IPL" with side tags, followed by "AUCTION" */}
                   <div className="flex flex-col select-none">
                     <div className="flex items-center gap-6 sm:gap-8">
-                      <h1 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[10rem] lg:text-[11.5rem] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                      <h1 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[min(10rem,18vh)] lg:text-[min(11.5rem,18vh)] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
                         IPL
                       </h1>
                       {/* Vertical Category Pillar from Reference Image */}
@@ -212,13 +212,13 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                       </div>
                     </div>
 
-                    <h2 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[10rem] lg:text-[11.5rem] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                    <h2 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[min(10rem,18vh)] lg:text-[min(11.5rem,18vh)] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
                       AUCTION
                     </h2>
                   </div>
 
                   {/* Editorial Tagline with trailing hairline */}
-                  <div className="mt-4 sm:mt-5 flex flex-col gap-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] text-white/75 uppercase">
+                  <div className="mt-4 sm:mt-5 [@media(max-height:760px)]:mt-3 flex flex-col gap-1 font-mono text-[11px] sm:text-xs tracking-[0.2em] text-white/75 uppercase">
                     <span>BIGGER PLAYERS. BOLDER MOVES.</span>
                     <span className="flex items-center gap-2">
                       A NEW CHAPTER AWAITS.
@@ -227,7 +227,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                   </div>
 
                   {/* Single Action Button: ENTER THE AUCTION matching reference card colorscheme & layout */}
-                  <div className="mt-7 sm:mt-8">
+                  <div className="mt-7 sm:mt-8 [@media(max-height:760px)]:mt-4">
                     <button
                       type="button"
                       data-testid="enter-auction-btn"
@@ -254,7 +254,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                     </button>
 
                     {/* Sub-tagline below button */}
-                    <div className="mt-5 flex items-center gap-2 font-mono text-xs tracking-[0.24em] text-white/60 uppercase">
+                    <div className="mt-5 [@media(max-height:760px)]:mt-3 flex items-center gap-2 font-mono text-xs tracking-[0.24em] text-white/60 uppercase">
                       <span className="flex items-center gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-full border border-white/50 inline-block" />
                         <span className="w-6 h-[1px] bg-white/40 inline-block" />
@@ -283,7 +283,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                 </span>
 
                 {/* Center: 10 Team Crests in Exact Order */}
-                <div className="flex items-center gap-5 sm:gap-7 md:gap-9 overflow-x-auto py-1 px-2">
+                <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 overflow-x-auto scrollbar-thin-dark py-2 px-2">
                   {conveyorTeams.map((team) => {
                     const uniqueKey = team.shortCode
                     const isHovered = hoveredTeamKey === uniqueKey
@@ -316,20 +316,23 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                           </div>
                         )}
 
-                        {/* Monochrome silver-white vector icon that illuminates in color on hover */}
-                        <div className="relative h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 flex items-center justify-center">
+                        {/* Full-colour crest on a dark tile, team colour along the bottom */}
+                        <div
+                          className="relative h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-md border border-b-2 p-1.5 bg-black/55 backdrop-blur-sm transition-all duration-300 ease-out flex items-center justify-center"
+                          style={{
+                            // dark glass so every crest pops; team colour on the bottom edge, full tint on hover
+                            backgroundImage: isHovered ? `linear-gradient(${team.colorAccent}40, ${team.colorAccent}40)` : undefined,
+                            borderColor: isHovered ? team.colorAccent : 'rgba(255,255,255,0.12)',
+                            borderBottomColor: team.colorAccent,
+                            boxShadow: isHovered ? `0 0 18px ${team.colorAccent}80` : '0 2px 8px rgba(0,0,0,0.5)',
+                            transform: isHovered ? 'translateY(-3px)' : 'none',
+                          }}
+                        >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={team.logoUrl}
                             alt={team.name}
-                            className="h-full w-full object-contain transition-all duration-300 ease-out"
-                            style={{
-                              filter: isHovered
-                                ? `drop-shadow(0 0 14px ${team.colorAccent}) drop-shadow(0 0 4px ${team.colorAccent})`
-                                : 'grayscale(100%) brightness(1.6) contrast(1.1) drop-shadow(0 2px 6px rgba(0,0,0,0.8))',
-                              opacity: isHovered ? 1 : 0.65,
-                              transform: isHovered ? 'scale(1.2) translateY(-2px)' : 'scale(1)',
-                            }}
+                            className="h-full w-full object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
                           />
                         </div>
                       </div>
