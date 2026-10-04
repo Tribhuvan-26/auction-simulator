@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ConfettiBurst } from '@/components/ui/confetti-burst'
+import { Model3D } from '@/components/ui/model-3d'
 
 /**
  * Full-screen SOLD/UNSOLD overlay, GSAP timeline per the spec:
@@ -35,7 +36,7 @@ export function SoldStamp({ kind }: { kind: 'SOLD' | 'UNSOLD' }) {
           stamp,
           { scale: 2.4, rotate: -14, opacity: 0 },
           { scale: 1, rotate: -7, opacity: 1, duration: 0.5, ease: 'back.out(2.2)' },
-          '<'
+          '<+0.45'
         )
     } else {
       tl.set(flash, { opacity: 0 })
@@ -55,20 +56,31 @@ export function SoldStamp({ kind }: { kind: 'SOLD' | 'UNSOLD' }) {
     }
   }, [kind])
 
+  const stampText = (
+    <p
+      ref={stampRef}
+      className={`border-[10px] px-12 py-6 font-heading text-8xl font-bold ${
+        kind === 'SOLD'
+          ? 'border-brand-pink bg-brand-white text-brand-pink'
+          : 'border-brand-charcoal bg-brand-white/80 text-brand-charcoal'
+      }`}
+    >
+      {kind}
+    </p>
+  )
+
   return (
     <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
       <div ref={flashRef} className="absolute inset-0 bg-brand-white" />
       {kind === 'SOLD' && <ConfettiBurst />}
-      <p
-        ref={stampRef}
-        className={`border-[10px] px-12 py-6 font-heading text-8xl font-bold ${
-          kind === 'SOLD'
-            ? 'border-brand-pink bg-brand-white text-brand-pink'
-            : 'border-brand-charcoal bg-brand-white/80 text-brand-charcoal'
-        }`}
-      >
-        {kind}
-      </p>
+      {kind === 'SOLD' ? (
+        <div className="flex flex-col items-center">
+          <Model3D src="/models/gavel.glb" className="aspect-video w-[min(90vw,560px)] -mb-10" />
+          {stampText}
+        </div>
+      ) : (
+        <Model3D src="/models/unsold.glb" fallback={stampText} className="aspect-video w-[min(90vw,720px)]" />
+      )}
     </div>
   )
 }
