@@ -18,6 +18,7 @@ import {
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { useLotEntrance } from '@/hooks/use-lot-entrance'
 import { SoldStamp } from '@/components/ui/sold-stamp'
+import { Model3D } from '@/components/ui/model-3d'
 import { GlobalHeader } from '@/components/ui/global-header'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { CircularCountdown } from '@/components/auction/circular-countdown'
@@ -446,7 +447,9 @@ export function DisplayBoard({
                 <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-yellow z-10" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-yellow z-10" />
 
-                {displayPhoto ? (
+                {!activeDisplayPlayer ? (
+                  <Model3D src="/models/trophy.glb" loop className="h-full w-full" />
+                ) : displayPhoto ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={displayPhoto}
