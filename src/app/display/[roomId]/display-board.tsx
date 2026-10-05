@@ -21,11 +21,11 @@ import { SoldStamp } from '@/components/ui/sold-stamp'
 import { Model3D } from '@/components/ui/model-3d'
 import { GlobalHeader } from '@/components/ui/global-header'
 import { GlobalFooter } from '@/components/ui/global-footer'
-import { CircularCountdown } from '@/components/auction/circular-countdown'
 import { BiddingLogTable } from '@/components/auction/bidding-log-table'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { CricketerCard } from '@/components/auction/cricketer-card'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
+import { ResultsTicker } from '@/components/auction/results-ticker'
 import {
   getPublicSnapshot,
   type PublicSnapshot,
@@ -192,7 +192,7 @@ export function DisplayBoard({
   const displayPhoto = activeDisplayPlayer?.photoUrl || null
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col text-white overflow-x-hidden">
+    <div className="relative flex min-h-screen w-full flex-col pb-16 text-white overflow-x-hidden">
       {/* Brutalist Environmental Backdrop matching Reference & Figma Asset */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -591,8 +591,8 @@ export function DisplayBoard({
             </div>
           </div>
 
-          {/* 3-Column Action Strip: CURRENT BID (Yellow) | PLACE YOUR BID | TIME REMAINING */}
-          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1.4fr_1fr] gap-4">
+          {/* Action Strip: CURRENT BID (Yellow) | PLACE YOUR BID */}
+          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1.4fr] gap-4">
             {/* CURRENT BID - Monumental Yellow Plate */}
             <div className="flex flex-col justify-between border border-brand-yellow bg-brand-yellow p-4 text-[#282828] shadow-[0_0_20px_rgba(249,212,123,0.25)]">
               <div>
@@ -690,25 +690,10 @@ export function DisplayBoard({
                 </button>
               </div>
             </div>
-
-            {/* TIME REMAINING - Circular Countdown Ring */}
-            <div className="flex flex-col justify-between border border-white/10 bg-[#1A1A1A] p-4 text-center">
-              <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/70 block mb-1">
-                TIME REMAINING
-              </span>
-
-              <CircularCountdown
-                seconds={lot?.timerSeconds ?? null}
-                totalSeconds={30}
-                size={110}
-                strokeWidth={7}
-                className="my-auto py-1"
-              />
-            </div>
           </div>
 
-          {/* Bottom Row: Bidding Log & Squad Preview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Bottom Row: Bidding Log */}
+          <div className="grid grid-cols-1 gap-4">
             <BiddingLogTable
               title="BIDDING LOG"
               rows={[...(lot?.bidHistory ?? [])].reverse().map((bid) => {
@@ -723,44 +708,6 @@ export function DisplayBoard({
                 }
               })}
             />
-
-            {/* Live Teams Purse & Standing Snapshot */}
-            <div className="flex flex-col border border-white/10 bg-[#161619] p-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/50">
-                  FRANCHISE PURSE STATUS
-                </span>
-                <span className="font-mono text-[9px] text-white/40">
-                  {snapshot.teams.length} FRANCHISES
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 overflow-y-auto max-h-[160px] pr-1">
-                {snapshot.teams.map((t) => (
-                  <Link
-                    key={t.id}
-                    href={`/team/${roomId}/${t.id}`}
-                    className="flex items-center justify-between border border-white/10 bg-[#1F1F24] px-1.5 py-1 hover:border-white/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-1.5 truncate max-w-[90px]">
-                      <TeamCrest
-                        shortCode={t.shortCode}
-                        name={t.name}
-                        colorAccent={t.colorAccent}
-                        logoUrl={t.logoUrl}
-                        mark
-                        className="h-3.5 w-3.5"
-                      />
-                      <span className="font-condensed text-xs font-bold uppercase text-white truncate">
-                        {t.shortCode}
-                      </span>
-                    </div>
-                    <span className="font-mono text-[10px] font-black text-brand-yellow tabular-nums">
-                      {formatMoney(t.purseRemaining)}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -806,20 +753,8 @@ export function DisplayBoard({
         </aside>
       </main>
 
-      {/* Ticker / Running Sold Ledger */}
-      {snapshot.soldLog.length > 0 && (
-        <div className="shrink-0 overflow-hidden border-t border-white/10 bg-[#161619] py-2">
-          <div className="anim-marquee flex w-max gap-12 whitespace-nowrap font-mono text-xs text-white">
-            {[...snapshot.soldLog, ...snapshot.soldLog].map((s, i) => (
-              <span key={`${s.id}-${i}`}>
-                {s.playerName}
-                <span className="mx-2 text-brand-yellow font-black tabular-nums">{formatMoney(s.price)}</span>
-                <span className="text-brand-blue font-bold">[{s.teamShortCode}]</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* News-channel results ticker, pinned to the bottom */}
+      <ResultsTicker results={snapshot.resultLog} />
 
       {/* Global Architectural Footer */}
       <GlobalFooter
@@ -877,9 +812,6 @@ export function DisplayBoard({
                       <div>
                         <span className="font-condensed text-base font-bold uppercase text-white block group-hover:text-brand-yellow">
                           {t.shortCode}
-                        </span>
-                        <span className="font-mono text-[9px] text-white/40 block">
-                          {t.squadCount}/{t.squadMax} Slots
                         </span>
                       </div>
                     </div>
@@ -1026,7 +958,7 @@ export function DisplayBoard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 border border-white/20 bg-[#1C1C20] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-2xl"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 border border-white/20 bg-[#1C1C20] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-2xl"
           >
             <AlertCircle className="h-4 w-4 text-brand-yellow" />
             <span>{toastMessage}</span>
