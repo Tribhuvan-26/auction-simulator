@@ -483,9 +483,25 @@ export function DisplayBoard({
                     <h1 className="font-condensed text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-none">
                       {activeDisplayPlayer?.name || 'AWAITING NEXT LOT'}
                     </h1>
-                    <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/85 mt-1">
-                      {activeDisplayPlayer?.setNumber || 'SET 1'} • {displayRole}
-                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-white/85">
+                      <span>
+                        {activeDisplayPlayer?.setNumber || 'SET 1'} • {displayRole}
+                      </span>
+                      {activeDisplayPlayer && (
+                        <>
+                          <span
+                            className={`border-2 border-brand-charcoal px-2 py-0.5 font-condensed text-sm font-black tracking-widest text-brand-charcoal shadow-[2px_2px_0_#282828] ${
+                              activeDisplayPlayer.isOverseas ? 'bg-brand-yellow' : 'bg-brand-white'
+                            }`}
+                          >
+                            {activeDisplayPlayer.isOverseas ? 'OVERSEAS' : 'INDIAN'}
+                          </span>
+                          <span className="text-[9px] font-medium normal-case text-white/60">
+                            {activeDisplayPlayer.nationality}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <button
                     onClick={() => setExpandedCricketer(activeDisplayPlayer)}
