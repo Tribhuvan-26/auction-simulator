@@ -49,6 +49,7 @@ function snapshot(over: Partial<PublicSnapshot> = {}, teamOver = {}): PublicSnap
     },
     teams: [team(teamOver), team({ id: 'team-2', name: 'Chennai Super Kings', shortCode: 'CSK' })],
     soldLog: [],
+    resultLog: [],
     ...over,
   }
 }

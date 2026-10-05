@@ -33,6 +33,11 @@ export type AdminSnapshot = {
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
+  /** Every closed lot in the room, newest first — feeds the display's ticker. */
+  resultLog: {
+    id: string; playerName: string; status: 'SOLD' | 'UNSOLD'
+    price: number | null; teamShortCode: string | null; colorAccent: string | null
+  }[]
 }
 
 /**
@@ -47,7 +52,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
   // These five reads are independent of each other, so they run in parallel —
   // this function is called on every client's refetch after every bid, and
   // the DB round-trip latency here is the room's actual lag budget.
-  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw] = await Promise.all([
+  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw] = await Promise.all([
     prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
     // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
     // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
@@ -71,6 +76,16 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
       include: { team: true },
       orderBy: { id: 'desc' },
       take: 12,
+    }),
+    // ponytail: whole history, no cap — ~250 lots of a few short fields at most.
+    prisma.auctionLot.findMany({
+      where: { roomId, status: { in: ['SOLD', 'UNSOLD'] } },
+      orderBy: { id: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        player: { select: { name: true, soldPrice: true, team: { select: { shortCode: true, colorAccent: true } } } },
+      },
     }),
   ])
 
@@ -143,6 +158,14 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
       playerName: p.name,
       price: p.soldPrice ?? 0,
       teamShortCode: p.team?.shortCode ?? '',
+    })),
+    resultLog: resultsRaw.map((l) => ({
+      id: l.id,
+      playerName: l.player.name,
+      status: l.status as 'SOLD' | 'UNSOLD',
+      price: l.player.soldPrice,
+      teamShortCode: l.player.team?.shortCode ?? null,
+      colorAccent: l.player.team?.colorAccent ?? null,
     })),
   }
 }

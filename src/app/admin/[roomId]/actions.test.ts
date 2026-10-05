@@ -78,6 +78,7 @@ describe('getAdminSnapshot', () => {
     expect(pub.currentLot).toEqual(admin.currentLot)
     expect(pub.teams).toEqual(admin.teams)
     expect(pub.soldLog).toEqual(admin.soldLog)
+    expect(pub.resultLog).toEqual(admin.resultLog)
   })
 
   it('returns the upcoming-player queue excluding the current lot player', async () => {
@@ -186,6 +187,13 @@ describe('markSold', () => {
     const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId } })
     expect(team.purseRemaining).toBe(9920)
   })
+
+  it('adds the sale to the result log with the winning team', async () => {
+    const { resultLog } = await getPublicSnapshot(roomId)
+    expect(resultLog).toEqual([
+      { id: lotId, playerName: 'Sold Player', status: 'SOLD', price: 80, teamShortCode: 'SLD', colorAccent: '#2074D5' },
+    ])
+  })
 })
 
 describe('markUnsold', () => {
@@ -215,6 +223,11 @@ describe('markUnsold', () => {
     const player = await prisma.player.findUniqueOrThrow({ where: { id: playerId } })
     expect(player.status).toBe('UNSOLD')
     expect(player.teamId).toBeNull()
+  })
+
+  it('adds the lot to the result log with no team or price', async () => {
+    const { resultLog } = await getPublicSnapshot(roomId)
+    expect(resultLog).toMatchObject([{ playerName: 'Unsold Player', status: 'UNSOLD', price: null, teamShortCode: null, colorAccent: null }])
   })
 })
 

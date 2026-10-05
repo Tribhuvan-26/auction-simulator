@@ -43,6 +43,7 @@ const baseSnapshot: AdminSnapshot = {
   teams: [team('team-1', 'DC'), team('team-2', 'CSK')],
   queue: [],
   soldLog: [],
+    resultLog: [],
 }
 
 const liveSnapshot: AdminSnapshot = {
