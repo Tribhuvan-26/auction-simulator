@@ -11,7 +11,6 @@ import {
   Shield,
   Award,
   Users,
-  AlertCircle,
   Tv,
   ArrowRight,
 } from 'lucide-react'
@@ -23,7 +22,6 @@ import { GlobalHeader } from '@/components/ui/global-header'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { BiddingLogTable } from '@/components/auction/bidding-log-table'
 import { TeamCrest } from '@/components/ui/team-crest'
-import { CricketerCard } from '@/components/auction/cricketer-card'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { ResultsTicker } from '@/components/auction/results-ticker'
 import {
@@ -31,7 +29,6 @@ import {
   type PublicSnapshot,
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
-import { getNextBidAmount } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
 
 type CategoryFilter = 'LIVE' | 'BATTER' | 'BOWLER' | 'ALL_ROUNDER' | 'WICKET_KEEPER'
@@ -113,9 +110,7 @@ export function DisplayBoard({
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('LIVE')
   const [selectedPlayer, setSelectedPlayer] = useState<RoomPlayerItem | null>(null)
   const [expandedCricketer, setExpandedCricketer] = useState<RoomPlayerItem | NonNullable<PublicSnapshot['currentLot']>['player'] | null>(null)
-  const [bidStepMultiplier, setBidStepMultiplier] = useState(1)
   const [showTeamPicker, setShowTeamPicker] = useState(false)
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
@@ -152,25 +147,9 @@ export function DisplayBoard({
     []
   )
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(null), 3500)
-  }
-
   const lot = snapshot.currentLot
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
   const cardRef = useLotEntrance<HTMLDivElement>(lot?.id ?? 'none')
-
-  const baseNextBid = lot
-    ? lot.status === 'BIDDING'
-      ? getNextBidAmount(lot.currentBid, lot.player.basePrice)
-      : lot.currentBid
-    : 0
-
-  // Calculate bid ladder preview with multiplier
-  const nextBid = lot
-    ? Math.max(lot.player.basePrice, lot.currentBid + (baseNextBid - lot.currentBid) * bidStepMultiplier)
-    : 0
 
   // Filter players by category
   const filteredPlayers = React.useMemo(() => {
@@ -252,8 +231,8 @@ export function DisplayBoard({
         </div>
       </div>
 
-      {/* Main Composition: Left Pillar | Center Stage | Right Pillar */}
-      <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr_200px] xl:grid-cols-[180px_1fr_220px] gap-4 p-4 lg:px-6 min-h-0">
+      {/* Main Composition: Left Pillar | Center Stage */}
+      <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-4 p-4 lg:px-6 min-h-0">
         {/* ── Left Pillar: Lot Number & Functional Category Navigation ── */}
         <aside className="flex flex-col justify-between border-r border-white/10 pr-4 py-2">
           <div className="flex flex-col gap-5">
@@ -591,8 +570,8 @@ export function DisplayBoard({
             </div>
           </div>
 
-          {/* Action Strip: CURRENT BID (Yellow) | PLACE YOUR BID */}
-          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1.4fr] gap-4">
+          {/* Action Strip: CURRENT BID (Yellow) */}
+          <div className="grid grid-cols-1 gap-4">
             {/* CURRENT BID - Monumental Yellow Plate */}
             <div className="flex flex-col justify-between border border-brand-yellow bg-brand-yellow p-4 text-[#282828] shadow-[0_0_20px_rgba(249,212,123,0.25)]">
               <div>
@@ -628,68 +607,6 @@ export function DisplayBoard({
               </div>
             </div>
 
-            {/* PLACE YOUR BID - Interactive Rung Stepper & Action Buttons */}
-            <div className="flex flex-col justify-between border border-white/10 bg-[#1A1A1A] p-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/70 block">
-                    NEXT LADDER RUNG
-                  </span>
-                  <span className="font-mono text-[9px] text-white/40">
-                    STEP {bidStepMultiplier}x
-                  </span>
-                </div>
-
-                {/* Stepper with functional rung adjustments */}
-                <div className="mt-2 flex items-center justify-between border border-white/15 bg-[#222222] px-3 py-2">
-                  <button
-                    onClick={() => setBidStepMultiplier((prev) => Math.max(1, prev - 1))}
-                    disabled={bidStepMultiplier <= 1}
-                    className="font-mono text-lg font-bold text-white hover:text-brand-yellow disabled:text-white/20 px-2 cursor-pointer transition-colors"
-                    title="Decrease ladder step"
-                  >
-                    —
-                  </button>
-                  <span className="font-condensed text-2xl font-black text-white tabular-nums tracking-wide">
-                    {formatMoney(nextBid)}
-                  </span>
-                  <button
-                    onClick={() => setBidStepMultiplier((prev) => Math.min(5, prev + 1))}
-                    disabled={bidStepMultiplier >= 5}
-                    className="font-mono text-lg font-bold text-white hover:text-brand-yellow disabled:text-white/20 px-2 cursor-pointer transition-colors"
-                    title="Increase ladder step"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons Row */}
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => setShowTeamPicker(true)}
-                  className="flex items-center justify-center bg-[#2074D5] hover:bg-blue-600 active:scale-[0.98] px-3 py-2.5 font-condensed text-base font-black uppercase tracking-wider text-white shadow-[0_0_12px_rgba(32,116,213,0.4)] transition-all cursor-pointer"
-                >
-                  BID
-                </button>
-                <button
-                  onClick={() =>
-                    showToast('Spectator Screen: Use the team console seat to pass on active lots.')
-                  }
-                  className="flex items-center justify-center border border-white/15 bg-[#222222] hover:bg-[#2a2a2e] px-3 py-2.5 font-condensed text-sm font-bold uppercase tracking-wider text-white/80 transition-colors cursor-pointer"
-                >
-                  PASS
-                </button>
-                <button
-                  onClick={() =>
-                    showToast('AUCTION REGULATION: Once placed, bids cannot be retracted on the floor (Clause 4.2).')
-                  }
-                  className="flex items-center justify-center border border-white/10 bg-[#1E1E1E] hover:bg-[#252528] px-3 py-2.5 font-condensed text-sm font-bold uppercase tracking-wider text-white/50 transition-colors cursor-pointer"
-                >
-                  WITHDRAW
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Bottom Row: Bidding Log */}
@@ -710,47 +627,6 @@ export function DisplayBoard({
             />
           </div>
         </section>
-
-        {/* ── Right Pillar: Cricketer Card & Concrete Slogans ── */}
-        <aside className="hidden lg:flex flex-col justify-between border-l border-white/10 pl-4 py-2 select-none">
-          <div className="flex flex-col gap-3">
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-white/50 block">
-              LOT PROFILE //
-            </span>
-
-            {/* Embed CricketerCard in Right Pillar */}
-            {activeDisplayPlayer ? (
-              <CricketerCard
-                player={activeDisplayPlayer}
-                teamColor={leader?.colorAccent || '#2074D5'}
-                compact={true}
-              />
-            ) : (
-              <div className="border border-white/15 bg-black/20 p-4 text-center">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-white/30">
-                  NEXT IN LINE
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Architectural Concrete Slogan */}
-          <div className="my-auto py-6">
-            <span className="font-condensed text-[16px] xl:text-[18px] font-black uppercase leading-tight tracking-wider text-white/35 block border-y border-white/10 py-3 text-right">
-              TALENT
-              <br />
-              FUELS
-              <br />
-              TOMORROW
-            </span>
-          </div>
-
-          <div className="h-24 w-full flex flex-col items-end justify-end">
-            <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">
-              OFFICIAL TROPHY //
-            </span>
-          </div>
-        </aside>
       </main>
 
       {/* News-channel results ticker, pinned to the bottom */}
@@ -948,21 +824,6 @@ export function DisplayBoard({
               </div>
             </motion.div>
           </div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Toast Notification */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 border border-white/20 bg-[#1C1C20] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-2xl"
-          >
-            <AlertCircle className="h-4 w-4 text-brand-yellow" />
-            <span>{toastMessage}</span>
-          </motion.div>
         )}
       </AnimatePresence>
 
