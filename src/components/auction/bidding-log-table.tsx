@@ -44,15 +44,12 @@ export function BiddingLogTable({
     return accents[code.toUpperCase()] || '#2074D5'
   }
 
+  // Pinned to IST so the server render and the browser agree (no hydration
+  // mismatch when the server runs in UTC).
   const formatTime = (ts?: string | number | Date) => {
-    if (!ts) return '18:42:15'
-    try {
-      const d = new Date(ts)
-      if (isNaN(d.getTime())) return '18:42:15'
-      return d.toLocaleTimeString('en-GB', { hour12: false })
-    } catch {
-      return '18:42:15'
-    }
+    const d = ts ? new Date(ts) : null
+    if (!d || isNaN(d.getTime())) return '—'
+    return d.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false })
   }
 
   return (
