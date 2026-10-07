@@ -274,8 +274,18 @@ export function DisplayBoard({
                         <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
                           HIGHEST BIDDER
                         </span>
-                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
-                          {leader ? leader.name : 'Waiting for bid'}
+                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate mt-0.5 flex items-center gap-1.5">
+                          {leader && (
+                            <TeamCrest
+                              shortCode={leader.shortCode}
+                              name={leader.name}
+                              colorAccent={leader.colorAccent}
+                              logoUrl={leader.logoUrl}
+                              mark
+                              className="h-4 w-4 shrink-0"
+                            />
+                          )}
+                          <span className="truncate">{leader ? leader.name : 'Waiting for bid'}</span>
                         </span>
                       </div>
 
@@ -326,45 +336,6 @@ export function DisplayBoard({
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Action Strip: CURRENT BID (Yellow) */}
-          <div className="grid grid-cols-1 gap-4">
-            {/* CURRENT BID - Monumental Yellow Plate */}
-            <div className="flex flex-col justify-between border border-brand-yellow bg-brand-yellow p-4 text-[#282828] shadow-[0_0_20px_rgba(249,212,123,0.25)]">
-              <div>
-                <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#282828]/80 block">
-                  ACTIVE FLOOR BID
-                </span>
-                <div className="font-condensed text-4xl sm:text-5xl font-black leading-none tracking-tight text-[#282828] mt-1 tabular-nums">
-                  {formatMoney(lot ? lot.currentBid : 0)}
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-center justify-between border-t border-[#282828]/20 pt-2">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#282828]/70">
-                  HIGHEST BIDDER
-                </span>
-                <div className="flex items-center gap-1.5 font-condensed text-base font-black uppercase text-[#282828]">
-                  {leader ? (
-                    <>
-                      <TeamCrest
-                        shortCode={leader.shortCode}
-                        name={leader.name}
-                        colorAccent={leader.colorAccent}
-                        logoUrl={leader.logoUrl}
-                        mark
-                        className="h-4 w-4"
-                      />
-                      <span>{leader.shortCode}</span>
-                    </>
-                  ) : (
-                    <span>OPENING FLOOR</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
           </div>
 
           {/* Bottom Row: Bidding Log */}
