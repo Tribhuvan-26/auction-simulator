@@ -136,7 +136,7 @@ describe('placeBid', () => {
 
   it('rejects the slower of two bids computed against the same price', async () => {
     // Both bids see 25 L and both compute 30 L; only one may land.
-    await prisma.auctionLot.update({ where: { id: lotId }, data: { currentBid: 25, status: 'BIDDING' } })
+    await prisma.auctionLot.update({ where: { id: lotId }, data: { currentBid: 25, status: 'BIDDING', currentBiddingTeamId: null } })
     const results = await Promise.allSettled([
       placeBid(roomId, teamId, 30),
       placeBid(roomId, teamId, 30),
@@ -193,6 +193,48 @@ describe('markSold', () => {
     expect(resultLog).toEqual([
       { id: lotId, playerName: 'Sold Player', status: 'SOLD', price: 80, teamShortCode: 'SLD', colorAccent: '#2074D5' },
     ])
+  })
+
+  it('a second sold call and a late bid leave the sale untouched', async () => {
+    await expect(markSold(roomId)).rejects.toThrow(/no lot on the block/i)
+    await expect(placeBid(roomId, teamId, 85)).rejects.toThrow()
+    const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId } })
+    expect(team.purseRemaining).toBe(9920)
+    const lot = await prisma.auctionLot.findUniqueOrThrow({ where: { id: lotId } })
+    expect(lot.status).toBe('SOLD')
+  })
+})
+
+describe('concurrent sold calls', () => {
+  let roomId: string, teamId: string
+
+  beforeAll(async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Race Room', phase: 'LIVE' } })
+    roomId = room.id
+    const team = await prisma.team.create({
+      data: { roomId, name: 'Race Team', shortCode: 'RCE', purseTotal: 1000, purseRemaining: 1000, squadMax: 25, squadMin: 18, passcode: '9007', overseasSlotsMax: 8 },
+    })
+    teamId = team.id
+    const player = await prisma.player.create({
+      data: { roomId, name: 'Race Player', role: 'BATTER', basePrice: 20, nationality: 'India', matches: 10, setNumber: 'Set 1', status: 'LIVE' },
+    })
+    await prisma.auctionLot.create({
+      data: { roomId, playerId: player.id, currentBid: 100, currentBiddingTeamId: teamId, status: 'BIDDING', timerSeconds: 30 },
+    })
+  })
+
+  afterAll(async () => {
+    await prisma.auctionLot.deleteMany({ where: { roomId } })
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.team.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+  })
+
+  it('debits the purse once when SOLD is pressed twice at the same time', async () => {
+    const results = await Promise.allSettled([markSold(roomId), markSold(roomId)])
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1)
+    const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId } })
+    expect(team.purseRemaining).toBe(900)
   })
 })
 
@@ -404,6 +446,12 @@ describe('placeBid validation', () => {
 
   it('rejects an overseas player when no overseas slots remain', async () => {
     await expect(placeBid(roomId, teamId, 55)).rejects.toThrow(/overseas slots full/i)
+  })
+
+  it('rejects a team raising its own winning bid', async () => {
+    await prisma.auctionLot.update({ where: { id: lotId }, data: { currentBiddingTeamId: poorTeamId } })
+    await expect(placeBid(roomId, poorTeamId, 55)).rejects.toThrow(/already hold the highest bid/i)
+    await prisma.auctionLot.update({ where: { id: lotId }, data: { currentBiddingTeamId: null } })
   })
 })
 
