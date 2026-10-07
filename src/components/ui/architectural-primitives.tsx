@@ -14,13 +14,20 @@ export function StatusBeacon({
   label?: string
   className?: string
 }) {
+  // Only a live room gets the pulsing pink dot; SETUP/PAUSED/COMPLETED sit still.
+  const live = label.toUpperCase() === 'LIVE'
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <span className="relative flex h-2.5 w-2.5">
-        <span className="anim-beacon absolute inline-flex h-full w-full rounded-full bg-brand-pink opacity-75" />
-        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-pink" />
+        {live && <span className="anim-beacon absolute inline-flex h-full w-full rounded-full bg-brand-pink opacity-75" />}
+        <span className={cn('relative inline-flex h-2.5 w-2.5 rounded-full', live ? 'bg-brand-pink' : 'bg-white/40')} />
       </span>
-      <span className="font-mono text-[11px] font-bold tracking-[0.2em] text-brand-pink uppercase">
+      <span
+        className={cn(
+          'font-mono text-[11px] font-bold tracking-[0.2em] uppercase',
+          live ? 'text-brand-pink' : 'text-white/60'
+        )}
+      >
         {label}
       </span>
     </div>

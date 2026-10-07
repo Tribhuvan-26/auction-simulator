@@ -149,13 +149,7 @@ export function DisplayBoard({
       <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
 
       {/* Global Broadcast Header */}
-      <GlobalHeader
-        activeTab="auction"
-        roomId={roomId}
-        roomName={snapshot.room.name || 'ROOM 1'}
-        liveBeacon={true}
-        location="CHENNAI, INDIA"
-      />
+      <GlobalHeader roomName={snapshot.room.name || 'ROOM 1'} phase={snapshot.room.phase} />
 
       {/* Broadcast Sub-Banner (Screenshot 2 Aesthetic) */}
       <div className="relative z-10 flex flex-wrap items-center justify-between border-b border-white/10 bg-[#121215]/90 px-4 md:px-8 py-2.5 backdrop-blur-md">
