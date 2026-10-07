@@ -29,66 +29,6 @@ import {
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
 
-interface PerformanceGraphProps {
-  stats: {
-    matches?: number | null
-    runs?: number | null
-    wickets?: number | null
-    average?: number | null
-    strikeRate?: number | null
-  }
-}
-
-function PerformanceGraph({ stats }: PerformanceGraphProps) {
-  const m = stats.matches ?? 0
-  const r = stats.runs ?? 0
-  const w = stats.wickets ?? 0
-  const avg = stats.average ?? 0
-  const sr = stats.strikeRate ?? 0
-
-  // Calculate normalized bar heights
-  const mHeight = m > 0 ? Math.min(95, Math.max(12, Math.round((m / 350) * 90))) : 8
-  const rHeight = r > 0 ? Math.min(95, Math.max(12, Math.round((r / 8000) * 90))) : 8
-  const wHeight = w > 0 ? Math.min(95, Math.max(12, Math.round((w / 180) * 90))) : 8
-  const avgHeight = avg > 0 ? Math.min(95, Math.max(12, Math.round((avg / 55) * 90))) : 8
-  const srHeight = sr > 0 ? Math.min(95, Math.max(12, Math.round((sr / 180) * 90))) : 8
-
-  const items = [
-    { label: 'M', value: m, height: mHeight, color: 'bg-[#2074D5]' },
-    { label: 'R', value: r, height: rHeight, color: 'bg-[#F9D47B]' },
-    { label: 'W', value: w, height: wHeight, color: 'bg-[#EB547C]' },
-    { label: 'AVG', value: avg, height: avgHeight, color: 'bg-white' },
-    { label: 'SR', value: sr, height: srHeight, color: 'bg-[#2074D5]' },
-  ]
-
-  return (
-    <div className="flex h-full flex-col justify-between border border-white/10 bg-[#161619] p-3">
-      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 block mb-1">
-        PERFORMANCE GRAPH
-      </span>
-
-      <div className="flex flex-1 items-end justify-between gap-2 px-1 pb-1 pt-2">
-        {items.map((item) => (
-          <div key={item.label} className="flex flex-1 flex-col items-center gap-1.5 h-full justify-end group">
-            <span className="font-mono text-[8px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity tabular-nums">
-              {item.value}
-            </span>
-            <div className="w-full max-w-[22px] bg-white/5 flex items-end h-28 border-b border-white/15">
-              <div
-                className={`w-full ${item.color} transition-all duration-500 rounded-none shadow-[0_0_6px_rgba(255,255,255,0.1)]`}
-                style={{ height: `${item.height}%` }}
-              />
-            </div>
-            <span className="font-mono text-[9px] font-extrabold uppercase tracking-wider text-white/70">
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 interface TeamThemeConfig {
   primary: string
   purseBg: string
@@ -97,7 +37,6 @@ interface TeamThemeConfig {
   buttonTextColor?: string
   glow: string
   accentBorder: string
-  mottoQuote: string
 }
 
 const DEFAULT_THEME: TeamThemeConfig = {
@@ -108,7 +47,6 @@ const DEFAULT_THEME: TeamThemeConfig = {
   buttonTextColor: '#FFFFFF',
   glow: 'rgba(32, 116, 213, 0.45)',
   accentBorder: 'border-[#2074D5]/50',
-  mottoQuote: 'SAME // GAME // DIFFERENT // BREED',
 }
 
 const TEAM_THEMES: Record<string, TeamThemeConfig> = {
@@ -120,7 +58,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#0D0D0F',
     glow: 'rgba(249, 205, 5, 0.45)',
     accentBorder: 'border-[#F9CD05]/50',
-    mottoQuote: 'PRIDE // LOYALTY // YELLOW // FOREVER',
   },
   MI: {
     primary: '#005DAA',
@@ -130,7 +67,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(0, 93, 170, 0.45)',
     accentBorder: 'border-[#005DAA]/50',
-    mottoQuote: 'PRIDE // POWER // DOMINANCE // LEGACY',
   },
   RCB: {
     primary: '#EC1C24',
@@ -140,7 +76,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(236, 28, 36, 0.45)',
     accentBorder: 'border-[#EC1C24]/50',
-    mottoQuote: 'PLAY // BOLD // RED // ARMY',
   },
   KKR: {
     primary: '#3A225D',
@@ -150,7 +85,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#F9CD05',
     glow: 'rgba(58, 34, 93, 0.45)',
     accentBorder: 'border-[#3A225D]/50',
-    mottoQuote: 'KORBO // LORBO // JEETBO // RE',
   },
   SRH: {
     primary: '#F26522',
@@ -160,7 +94,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(242, 101, 34, 0.45)',
     accentBorder: 'border-[#F26522]/50',
-    mottoQuote: 'ORANGE // ARMY // RISE // UP',
   },
   DC: {
     primary: '#17479E',
@@ -170,7 +103,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(23, 71, 158, 0.45)',
     accentBorder: 'border-[#17479E]/50',
-    mottoQuote: 'ROAR // MACHA // BLUE // SQUAD',
   },
   RR: {
     primary: '#EA1B86',
@@ -180,7 +112,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(234, 27, 134, 0.45)',
     accentBorder: 'border-[#EA1B86]/50',
-    mottoQuote: 'HALLA // BOL // ROYAL // PINK',
   },
   GT: {
     primary: '#1B2133',
@@ -190,7 +121,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#B89B5E',
     glow: 'rgba(27, 33, 51, 0.45)',
     accentBorder: 'border-[#1B2133]/50',
-    mottoQuote: 'AAVA // DE // TITANS // SPIRIT',
   },
   LSG: {
     primary: '#A72056',
@@ -200,7 +130,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(167, 32, 86, 0.45)',
     accentBorder: 'border-[#A72056]/50',
-    mottoQuote: 'NAWABI // AMBITION // FEARLESS // ROAR',
   },
   PBKS: {
     primary: '#ED1B24',
@@ -210,7 +139,6 @@ const TEAM_THEMES: Record<string, TeamThemeConfig> = {
     buttonTextColor: '#FFFFFF',
     glow: 'rgba(237, 27, 36, 0.45)',
     accentBorder: 'border-[#ED1B24]/50',
-    mottoQuote: 'PASSION // PRIDE // BELIEF // RISE',
   },
 }
 
@@ -240,7 +168,6 @@ export function TeamConsole({
   }, [])
 
   // Interactive modal states
-  const [showFranchiseDropdown, setShowFranchiseDropdown] = useState(false)
   const [showSquadModal, setShowSquadModal] = useState(false)
   const [showPlayersModal, setShowPlayersModal] = useState(false)
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false)
@@ -441,61 +368,21 @@ export function TeamConsole({
           </nav>
         </div>
 
-        {/* Right side: Franchise Selector & User Avatar */}
-        <div className="flex items-center gap-3 relative">
-          <div className="relative">
-            <button
-              onClick={() => setShowFranchiseDropdown((prev) => !prev)}
-              className="flex items-center gap-2 border bg-[#1C1C20] hover:bg-[#242429] px-3 py-1.5 font-condensed text-sm font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
-              style={{ borderColor: `${theme.primary}50` }}
-            >
-              <TeamCrest
-                shortCode={team.shortCode}
-                name={team.name}
-                colorAccent={team.colorAccent}
-                logoUrl={team.logoUrl}
-                mark
-                className="h-4 w-4"
-              />
-              <span>{team.name}</span>
-              <span className="text-white/40 text-xs ml-1">⌄</span>
-            </button>
-
-            {/* Franchise Dropdown Menu */}
-            {showFranchiseDropdown && (
-              <div className="absolute right-0 mt-1 w-64 border border-white/20 bg-[#16161A] p-2 shadow-2xl z-50 flex flex-col gap-1 backdrop-blur-md">
-                <span className="font-mono text-[9px] font-black uppercase tracking-wider text-white/50 px-2 py-1 border-b border-white/10">
-                  SWITCH TEAM CONSOLE
-                </span>
-                <div className="max-h-64 overflow-y-auto flex flex-col gap-1 pr-1">
-                  {snapshot.teams.map((t) => (
-                    <Link
-                      key={t.id}
-                      href={`/team/${roomId}/${t.id}`}
-                      onClick={() => setShowFranchiseDropdown(false)}
-                      className={`flex items-center justify-between px-2 py-1.5 text-xs font-condensed uppercase tracking-wider hover:bg-white/10 transition-colors ${
-                        t.id === team.id ? 'bg-white/15 text-white font-bold' : 'text-white/70'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <TeamCrest
-                          shortCode={t.shortCode}
-                          name={t.name}
-                          colorAccent={t.colorAccent}
-                          logoUrl={t.logoUrl}
-                          mark
-                          className="h-4 w-4"
-                        />
-                        <span>{t.shortCode}</span>
-                      </div>
-                      <span className="font-mono text-[10px] text-brand-yellow tabular-nums">
-                        {formatMoney(t.purseRemaining)}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Right side: Franchise Badge & User Avatar */}
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-2 border bg-[#1C1C20] px-3 py-1.5 font-condensed text-sm font-bold uppercase tracking-wider text-white shadow-sm"
+            style={{ borderColor: `${theme.primary}50` }}
+          >
+            <TeamCrest
+              shortCode={team.shortCode}
+              name={team.name}
+              colorAccent={team.colorAccent}
+              logoUrl={team.logoUrl}
+              mark
+              className="h-4 w-4"
+            />
+            <span>{team.name}</span>
           </div>
 
           <div
@@ -523,14 +410,9 @@ export function TeamConsole({
         <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6 min-h-0">
           {/* Top Row: Team Name & Monumental Hero Metrics Plates (Reference 3) */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <h1 className="font-condensed text-4xl sm:text-5xl font-black uppercase tracking-tight text-white leading-none">
-                {team.name}
-              </h1>
-              <p className="mt-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-                OFFICIAL FRANCHISE WAR ROOM
-              </p>
-            </div>
+            <h1 className="font-condensed text-4xl sm:text-5xl font-black uppercase tracking-tight text-white leading-none">
+              {team.name}
+            </h1>
 
             <div className="flex flex-wrap items-center gap-3">
               {/* REMAINING PURSE: Monumental Box */}
@@ -656,8 +538,8 @@ export function TeamConsole({
                     )}
                   </div>
 
-                  {/* Sub-Layout: CURRENT BID & 2x2 Grid | PERFORMANCE GRAPH */}
-                  <div className="grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-3 flex-1">
+                  {/* Sub-Layout: CURRENT BID & 2x2 Grid */}
+                  <div className="grid grid-cols-1 gap-3 flex-1">
                     {/* Left: CURRENT BID Plate & 2x2 Info Grid */}
                     <div className="flex flex-col justify-between gap-2.5">
                       {/* CURRENT BID Plate (Vibrant Pink) */}
@@ -670,7 +552,7 @@ export function TeamConsole({
                         </div>
                       </div>
 
-                      {/* 2x2 Info Grid: TEAM | ROLE | BASE | PURSE */}
+                      {/* 2x2 Info Grid: TEAM | ROLE | BASE | ORIGIN */}
                       <div className="grid grid-cols-2 gap-px bg-white/15 border border-white/15">
                         {/* TEAM */}
                         <div className="bg-[#17171A] p-2">
@@ -702,29 +584,16 @@ export function TeamConsole({
                           </span>
                         </div>
 
-                        {/* PURSE */}
+                        {/* ORIGIN */}
                         <div className="bg-[#17171A] p-2">
                           <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                            PURSE
+                            ORIGIN
                           </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5 tabular-nums">
-                            {formatMoney(team.purseRemaining)}
+                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
+                            {lot ? (lot.player.isOverseas ? 'OVERSEAS' : 'INDIAN') : '—'}
                           </span>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Right: PERFORMANCE GRAPH with M, R, W, AVG, SR */}
-                    <div className="h-full min-h-[140px]">
-                      <PerformanceGraph
-                        stats={{
-                          matches: lot?.player.matches,
-                          runs: lot?.player.runs,
-                          wickets: lot?.player.wickets,
-                          average: lot?.player.average,
-                          strikeRate: lot?.player.strikeRate,
-                        }}
-                      />
                     </div>
                   </div>
                 </div>
@@ -736,16 +605,11 @@ export function TeamConsole({
               id="bidding-panel"
               className="flex flex-col border border-white/10 bg-[#141417]/85 backdrop-blur-md shadow-2xl"
             >
-              {/* Header */}
-              <div className="bg-[#0D0D0F] border-b border-white/10 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/80">
-                BIDDING CONTROL PANEL
-              </div>
-
               <div className="p-4 flex flex-col justify-between flex-1 gap-3">
-                {/* YOUR BIDDING ACTIONS strip */}
+                {/* NEXT BID strip */}
                 <div className="flex items-center justify-between border border-white/15 bg-[#1C1C20] px-3.5 py-2.5 shadow-inner">
                   <span className="font-mono text-[9px] font-black uppercase tracking-wider text-white/70">
-                    YOUR BIDDING ACTIONS
+                    NEXT BID
                   </span>
                   <span className="font-condensed text-2xl font-black text-white tabular-nums">
                     {canBid ? formatMoney(nextBid) : formatMoney(lot?.currentBid ?? 0)}
@@ -809,55 +673,9 @@ export function TeamConsole({
             </div>
           </div>
 
-          {/* Bottom Grid: YOUR TEAM STATUS | BIDDING LOG */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
-            {/* Left: YOUR TEAM STATUS (Slots Grid) */}
-            <div className="flex flex-col border border-white/10 bg-[#141417]/85 backdrop-blur-md shadow-2xl">
-              {/* Header */}
-              <div className="flex items-center justify-between bg-[#0D0D0F] border-b border-white/10 px-4 py-2">
-                <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/80">
-                  YOUR TEAM STATUS
-                </span>
-                <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-white/60">
-                  PURSE {formatMoney(team.purseRemaining).toUpperCase()} • SQUAD {team.squadCount}/{team.squadMax}
-                </span>
-              </div>
-
-              {/* Slots Grid: 4 or 5 rows of 5 slots */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3.5">
-                {Array.from({ length: team.squadMax || 25 }).map((_, idx) => {
-                  const slotNum = idx + 1
-                  const player = team.squad[idx]
-                  return (
-                    <div
-                      key={slotNum}
-                      className={`border px-3 py-2 min-h-[38px] flex items-center justify-between transition-colors ${
-                        player
-                          ? 'border-white/30 bg-[#202024] text-white shadow-sm'
-                          : 'border-white/10 bg-[#151518] text-white/40'
-                      }`}
-                    >
-                      {player ? (
-                        <>
-                          <span className="font-condensed text-xs font-bold uppercase text-white truncate max-w-[95px]">
-                            {player.name}
-                          </span>
-                          <span className="font-mono text-[9px] text-brand-yellow font-black tabular-nums">
-                            {formatMoney(player.price)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/40">
-                          Slot {slotNum}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Right: BIDDING LOG */}
+          {/* Bottom: BIDDING LOG */}
+          <div className="grid grid-cols-1 gap-4">
+            {/* BIDDING LOG */}
             <div className="flex flex-col border border-white/10 bg-[#141417]/85 backdrop-blur-md shadow-2xl">
               {/* Header */}
               <div className="bg-[#0D0D0F] border-b border-white/10 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/80">
@@ -885,7 +703,7 @@ export function TeamConsole({
                           {formatMoney(bid.amount)}
                         </span>
                         <span className="font-mono text-[9px] text-white/40">
-                          {bid.timestamp}
+                          {new Date(bid.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false })}
                         </span>
                       </div>
                     ))}
@@ -893,20 +711,6 @@ export function TeamConsole({
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Bottom Hairline Rule with Team Slogan (Reference 3 Aesthetic) */}
-          <div className="mt-auto pt-3 border-t border-white/10 flex items-center justify-between">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-white/30 hidden sm:inline">
-              IPL AUCTION PROTOCOL // TEAM CONSOLE
-            </span>
-
-            <span
-              className="font-mono text-[10px] uppercase tracking-widest font-bold ml-auto"
-              style={{ color: `${theme.primary}CC` }}
-            >
-              {theme.mottoQuote}
-            </span>
           </div>
         </main>
       </div>
@@ -1086,7 +890,7 @@ export function TeamConsole({
                     {team.name} WAR ROOM ANALYTICS
                   </h3>
                   <p className="font-mono text-xs text-white/50">
-                    Purse liquidity, slot reservation, and valuation telemetry
+                    Purse usage
                   </p>
                 </div>
                 <button
@@ -1109,46 +913,11 @@ export function TeamConsole({
 
                 <div className="border border-white/10 bg-[#1A1A1E] p-3.5">
                   <span className="font-mono text-[9px] uppercase tracking-wider text-white/40 block">
-                    PURSE REMAINING
-                  </span>
-                  <span className="font-condensed text-2xl font-black text-brand-yellow tabular-nums mt-0.5 block">
-                    {formatMoney(team.purseRemaining)}
-                  </span>
-                </div>
-
-                <div className="border border-white/10 bg-[#1A1A1E] p-3.5">
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-white/40 block">
                     PURSE UTILIZATION
                   </span>
                   <span className="font-condensed text-2xl font-black text-[#2074D5] tabular-nums mt-0.5 block">
                     {Math.round(((team.purseTotal - team.purseRemaining) / team.purseTotal) * 100)}%
                   </span>
-                </div>
-
-                <div className="border border-white/10 bg-[#1A1A1E] p-3.5">
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-white/40 block">
-                    MAXIMUM SINGLE BID
-                  </span>
-                  <span className="font-condensed text-2xl font-black text-[#EB547C] tabular-nums mt-0.5 block">
-                    {formatMoney(
-                      Math.max(0, team.purseRemaining - Math.max(0, team.squadMax - team.squadCount - 1) * 20)
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-white/10 pt-3">
-                <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-2">
-                  <span>SQUAD CAPACITY FILLED</span>
-                  <span>
-                    {team.squadCount} / {team.squadMax} Slots ({Math.round((team.squadCount / team.squadMax) * 100)}%)
-                  </span>
-                </div>
-                <div className="h-2 w-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full bg-brand-yellow transition-all duration-500"
-                    style={{ width: `${(team.squadCount / team.squadMax) * 100}%` }}
-                  />
                 </div>
               </div>
             </motion.div>
@@ -1261,18 +1030,6 @@ export function TeamConsole({
                         {previewPlayer.strikeRate ? previewPlayer.strikeRate.toFixed(1) : '—'}
                       </span>
                     </div>
-                  </div>
-
-                  <div className="h-28 border border-white/10">
-                    <PerformanceGraph
-                      stats={{
-                        matches: previewPlayer.matches,
-                        runs: previewPlayer.runs,
-                        wickets: previewPlayer.wickets,
-                        average: previewPlayer.average,
-                        strikeRate: previewPlayer.strikeRate,
-                      }}
-                    />
                   </div>
                 </div>
               </div>

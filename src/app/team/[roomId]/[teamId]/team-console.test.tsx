@@ -119,12 +119,6 @@ describe('TeamConsole bidding control panel', () => {
 })
 
 describe('TeamConsole team status', () => {
-  it('shows an empty slot per unfilled squad place', () => {
-    renderConsole(snapshot())
-    expect(screen.getByText('Slot 1')).toBeInTheDocument()
-    expect(screen.getByText('Slot 25')).toBeInTheDocument()
-  })
-
   it('shows signed players with their price', () => {
     renderConsole(
       snapshot({}, {
@@ -132,6 +126,7 @@ describe('TeamConsole team status', () => {
         squad: [{ id: 'p9', name: 'KL Rahul', role: 'WICKET_KEEPER', price: 1400, photoUrl: null, isOverseas: false }],
       })
     )
+    fireEvent.click(screen.getByRole('button', { name: /^squad$/i }))
     expect(screen.getByText(/KL Rahul/)).toBeInTheDocument()
     expect(screen.getByText('14 Cr')).toBeInTheDocument()
   })
