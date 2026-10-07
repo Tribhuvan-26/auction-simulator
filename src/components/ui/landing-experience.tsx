@@ -152,18 +152,6 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                   <IplLogo size="md" showText={false} />
                 </div>
 
-                {/* Center: Navigation Links */}
-                <nav className="hidden md:flex items-center gap-8 lg:gap-11">
-                  {['AUCTION', 'TEAMS', 'PLAYERS', 'HISTORY', 'ABOUT'].map((item) => (
-                    <span
-                      key={item}
-                      className="font-mono text-[11px] lg:text-xs font-semibold uppercase tracking-[0.25em] text-white/70 hover:text-white transition-colors cursor-pointer"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </nav>
-
                 {/* Right: Live Badge, Clock, Hamburger Menu */}
                 <div className="flex items-center gap-4 sm:gap-6">
                   {/* Live Status Indicator */}
