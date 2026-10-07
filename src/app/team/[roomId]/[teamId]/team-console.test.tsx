@@ -105,6 +105,16 @@ describe('TeamConsole bidding control panel', () => {
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 25))
   })
 
+  it('ignores the spacebar while a modal is open or the key is held down', async () => {
+    const { placeBid } = await import('@/app/admin/[roomId]/actions')
+    vi.mocked(placeBid).mockClear()
+    renderConsole(snapshot())
+    fireEvent.keyDown(window, { key: ' ', repeat: true })
+    fireEvent.click(screen.getByRole('button', { name: /^squad$/i }))
+    fireEvent.keyDown(window, { key: ' ' })
+    expect(placeBid).not.toHaveBeenCalled()
+  })
+
   it('passing sits the lot out until the auctioneer loads the next one', () => {
     renderConsole(snapshot())
     fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))

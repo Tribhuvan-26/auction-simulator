@@ -241,10 +241,19 @@ export function TeamConsole({
     }
   }
 
-  // Spacebar triggers BID
+  // A rejected bid is news for a moment, not for the rest of the lot.
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(null), 4000)
+    return () => clearTimeout(t)
+  }, [error])
+
+  // Spacebar triggers BID — but never while a modal is open over the panel, and
+  // never from a held-down key repeating.
+  const modalOpen = showSquadModal || showPlayersModal || showAnalyticsModal || !!previewPlayer
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key !== ' ') return
+      if (e.key !== ' ' || e.repeat || modalOpen) return
       const target = e.target as HTMLElement | null
       if (target && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)) return
       e.preventDefault()
