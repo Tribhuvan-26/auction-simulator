@@ -299,10 +299,10 @@ export function DisplayBoard({
                         </span>
                       </div>
 
-                      {/* CAPS */}
+                      {/* MATCHES */}
                       <div className="bg-[#17171A] p-2">
                         <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                          T20 CAPS
+                          MATCHES
                         </span>
                         <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5 tabular-nums">
                           {activeDisplayPlayer?.matches ?? 0}
