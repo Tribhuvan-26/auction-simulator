@@ -37,6 +37,13 @@ describe('PinGate', () => {
     await vi.waitFor(() => expect(refresh).toHaveBeenCalled())
   })
 
+  it('recovers from a network failure instead of sticking on verifying', async () => {
+    renderGate(vi.fn().mockRejectedValue(new Error('fetch failed')), '1234')
+    fireEvent.click(screen.getByRole('button', { name: /unlock/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not reach the server/i)
+    expect(screen.getByRole('button', { name: /unlock/i })).not.toBeDisabled()
+  })
+
   it('shows the rejection and stays locked on a wrong PIN', async () => {
     renderGate(vi.fn().mockResolvedValue('That PIN does not match this team seat.'), '0000')
     fireEvent.click(screen.getByRole('button', { name: /unlock/i }))

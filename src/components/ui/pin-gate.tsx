@@ -31,13 +31,18 @@ export function PinGate({
     e.preventDefault()
     setPending(true)
     setError(null)
-    const message = await unlock(pin)
-    setPending(false)
-    if (message) {
-      setError(message)
-      return
+    try {
+      const message = await unlock(pin)
+      if (message) {
+        setError(message)
+        return
+      }
+      router.refresh()
+    } catch {
+      setError('Could not reach the server. Check the connection and try again.')
+    } finally {
+      setPending(false)
     }
-    router.refresh()
   }
 
   return (
