@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { teamCookieName, adminCookieName, TEAM_COOKIE_MAX_AGE } from '@/lib/team-auth'
+import { teamCookieName, adminCookieName, TEAM_COOKIE_MAX_AGE, seatToken } from '@/lib/team-auth'
 import { callerKey, blockedFor, recordFailure, recordSuccess } from '@/lib/pin-rate-limit'
 
 function blockedMessage(minutes: number) {
@@ -30,7 +30,7 @@ export async function unlockTeam(roomId: string, teamId: string, passcode: strin
   }
 
   recordSuccess(key)
-  ;(await cookies()).set(teamCookieName(teamId), team.passcode, {
+  ;(await cookies()).set(teamCookieName(teamId), seatToken('team', teamId, team.passcode), {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
@@ -56,7 +56,7 @@ export async function unlockAdmin(roomId: string, passcode: string): Promise<str
   }
 
   recordSuccess(key)
-  ;(await cookies()).set(adminCookieName(roomId), room.adminPasscode, {
+  ;(await cookies()).set(adminCookieName(roomId), seatToken('admin', roomId, room.adminPasscode), {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',

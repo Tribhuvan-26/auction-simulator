@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
@@ -9,18 +10,31 @@ export const adminCookieName = (roomId: string) => `admin_${roomId}`
 export const TEAM_COOKIE_MAX_AGE = 60 * 60 * 12 // an auction sitting
 
 /**
- * Has this browser unlocked this team seat? The cookie holds the passcode
- * itself and is httpOnly, so it can't be read back out by page scripts.
+ * What an unlocked seat's cookie holds: an HMAC of the seat and its PIN, never
+ * the PIN itself. Guessing a cookie means guessing a 256-bit MAC, so the only
+ * way in is the rate-limited unlock form. Changing a PIN logs its seat out.
  *
- * ponytail: passcode-in-cookie, no session table — a 4-digit PIN in a room
- * where everyone can see each other. Move to signed sessions the moment this
- * is reachable from outside the room.
+ * ponytail: falls back to DATABASE_URL as the key so deploys need no new env
+ * var; set AUTH_SECRET to rotate sessions without touching the database.
  */
+export function seatToken(kind: 'team' | 'admin', id: string, passcode: string): string {
+  const key = process.env.AUTH_SECRET || process.env.DATABASE_URL
+  if (!key) throw new Error('AUTH_SECRET or DATABASE_URL must be set to sign seat cookies')
+  return createHmac('sha256', key).update(`${kind}:${id}:${passcode}`).digest('base64url')
+}
+
+function matches(given: string, expected: string): boolean {
+  const a = Buffer.from(given)
+  const b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
+/** Has this browser unlocked this team seat? */
 export async function hasTeamAccess(teamId: string): Promise<boolean> {
   const given = (await cookies()).get(teamCookieName(teamId))?.value
   if (!given) return false
   const team = await prisma.team.findUnique({ where: { id: teamId }, select: { passcode: true } })
-  return team !== null && given === team.passcode
+  return team !== null && matches(given, seatToken('team', teamId, team.passcode))
 }
 
 /**
@@ -35,7 +49,7 @@ export async function hasAdminAccess(roomId: string): Promise<boolean> {
     where: { id: roomId },
     select: { adminPasscode: true },
   })
-  return room !== null && room.adminPasscode !== '' && given === room.adminPasscode
+  return room !== null && room.adminPasscode !== '' && matches(given, seatToken('admin', roomId, room.adminPasscode))
 }
 
 /**
