@@ -32,11 +32,20 @@ export function useLiveSnapshot<T>(
   })
 
   useEffect(() => {
+    // Two quick events mean two refetches that can land in either order; only
+    // the newest request may write, so an older response never rolls the
+    // board back to a stale bid. A failed refetch keeps the last good snapshot.
+    let latest = 0
     const channel = supabase()
       .channel(roomChannel(roomId))
       .on('broadcast', { event: 'auction:event' }, ({ payload }) => {
         handler.current?.(payload as AuctionEvent)
-        fetchSnapshot(roomId).then(setSnapshot)
+        const request = ++latest
+        fetchSnapshot(roomId)
+          .then((next) => {
+            if (request === latest) setSnapshot(next)
+          })
+          .catch(() => {})
       })
       .subscribe()
     return () => {
