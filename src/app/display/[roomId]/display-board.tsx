@@ -102,16 +102,13 @@ export function DisplayBoard({
       pulseTimer.current = setTimeout(() => setBidPulse(false), 1400)
       return
     }
-    if (event.type === 'SOLD') {
-      setSoldTrigger((t) => t + 1)
-    }
     if (event.type !== 'SOLD' && event.type !== 'UNSOLD') return
     setStamp(event.type)
     clearTimeout(stampTimer.current)
     stampTimer.current = setTimeout(() => setStamp(null), 4000)
   })
 
-  // Also trigger if snapshot lot transitions to SOLD (e.g. initial re-fetch or socket catchup)
+  // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {
     const currentStatus = snapshot.currentLot?.status
     if (lastLotStatusRef.current !== 'SOLD' && currentStatus === 'SOLD') {

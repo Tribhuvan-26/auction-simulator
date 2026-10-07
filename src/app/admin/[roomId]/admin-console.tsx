@@ -65,11 +65,7 @@ export function AdminConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, (event) => {
-    if (event.type === 'SOLD') {
-      setSoldTrigger((t) => t + 1)
-    }
-  })
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
   const [disputeMessage, setDisputeMessage] = useState<string | null>(null)
@@ -78,7 +74,7 @@ export function AdminConsole({
   const [jumpTeamId, setJumpTeamId] = useState('')
   const [pending, setPending] = useState(false)
 
-  // Watch for lot status transitioning to SOLD
+  // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {
     const currentStatus = snapshot.currentLot?.status
     if (lastLotStatusRef.current !== 'SOLD' && currentStatus === 'SOLD') {

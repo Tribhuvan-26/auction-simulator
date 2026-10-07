@@ -178,9 +178,6 @@ export function TeamConsole({
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
   const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
-    if (event.type === 'SOLD') {
-      setSoldTrigger((t) => t + 1)
-    }
     if (event.type !== 'BID') return
     const weWereLeading = leaderRef.current === teamId
     const weLead = event.teamId === teamId
@@ -195,7 +192,7 @@ export function TeamConsole({
     outbidTimer.current = setTimeout(() => setOutbid(false), 6000)
   })
 
-  // Trigger celebration if snapshot lot transitions to SOLD
+  // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {
     const currentStatus = snapshot.currentLot?.status
     if (lastLotStatusRef.current !== 'SOLD' && currentStatus === 'SOLD') {
