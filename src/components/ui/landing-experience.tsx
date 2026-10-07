@@ -9,7 +9,7 @@ import { GlobalFooter } from '@/components/ui/global-footer'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { LandingScene } from '@/components/ui/landing-scene'
 import { Loader } from '@/components/ui/Loader'
-import { ChevronLeft, ArrowRight, Menu } from 'lucide-react'
+import { ChevronLeft, ArrowRight } from 'lucide-react'
 
 type Room = {
   id: string
@@ -152,7 +152,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                   <IplLogo size="md" showText={false} />
                 </div>
 
-                {/* Right: Live Badge, Clock, Hamburger Menu */}
+                {/* Right: Live Badge, Clock */}
                 <div className="flex items-center gap-4 sm:gap-6">
                   {/* Live Status Indicator */}
                   <div className="flex items-center gap-2">
@@ -169,15 +169,6 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                   <span className="font-mono text-[11px] sm:text-xs tracking-widest text-white/70">
                     {istTime}
                   </span>
-
-                  {/* Mobile / Global Menu Hamburger */}
-                  <button
-                    type="button"
-                    aria-label="Navigation Menu"
-                    className="text-white/80 hover:text-white transition-colors p-1 cursor-pointer"
-                  >
-                    <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
                 </div>
               </div>
 
