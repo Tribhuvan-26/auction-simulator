@@ -448,7 +448,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                               Admin Console
                             </div>
                             <p className="font-sans text-xs text-white/50">
-                              Load lots, advance round, call sold/unsold, pause timer.
+                              Load lots, call sold/unsold, undo bids.
                             </p>
                           </div>
                           <span className="font-mono text-lg text-white/40">↗</span>

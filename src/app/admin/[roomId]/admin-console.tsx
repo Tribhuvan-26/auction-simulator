@@ -213,7 +213,7 @@ export function AdminConsole({
             </button>
             <span className="text-white/40">•</span>
             <span className="text-white/80">
-              ROUND {snapshot.room.round} • {remainingPlayersCount} PLAYERS LEFT
+              {remainingPlayersCount} PLAYERS LEFT
             </span>
             <span className="text-white/40">•</span>
             <Link

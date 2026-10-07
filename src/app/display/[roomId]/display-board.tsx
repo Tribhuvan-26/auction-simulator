@@ -156,7 +156,6 @@ export function DisplayBoard({
         activeTab="auction"
         roomId={roomId}
         roomName={snapshot.room.name || 'ROOM 1'}
-        round={snapshot.room.round || 1}
         liveBeacon={true}
         location="CHENNAI, INDIA"
       />
@@ -171,7 +170,7 @@ export function DisplayBoard({
             {snapshot.room.phase || 'LIVE'}
           </span>
           <span className="font-mono text-[10px] text-white/50 tracking-wider">
-            ROUND {snapshot.room.round || 1} • {roomPlayers.length > 0 ? roomPlayers.filter((p) => p.status === 'UPCOMING').length : 253} PLAYERS LEFT
+            {roomPlayers.length > 0 ? roomPlayers.filter((p) => p.status === 'UPCOMING').length : 253} PLAYERS LEFT
           </span>
         </div>
       </div>

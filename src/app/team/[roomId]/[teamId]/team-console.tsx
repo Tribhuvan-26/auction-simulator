@@ -454,16 +454,6 @@ export function TeamConsole({
                   {team.overseasSlotsUsed} / {team.overseasSlotsMax}
                 </span>
               </div>
-
-              {/* ROUND */}
-              <div className="flex flex-col border border-white/15 bg-[#17171A] px-4 py-2.5 shadow-sm">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/50">
-                  ROUND
-                </span>
-                <span className="font-condensed text-2xl sm:text-3xl font-black text-white leading-none mt-0.5 tabular-nums">
-                  {snapshot.room.round || 1}
-                </span>
-              </div>
             </div>
           </div>
 

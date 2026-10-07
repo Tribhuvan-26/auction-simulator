@@ -14,7 +14,6 @@ export interface GlobalHeaderProps {
   roomName?: string
   teamName?: string
   phase?: string
-  round?: number
   className?: string
   activeTab?: 'auction' | 'teams' | 'players' | 'history' | 'admin' | string
   location?: string
@@ -30,7 +29,6 @@ export function GlobalHeader({
   roomName,
   teamName,
   phase = 'LIVE',
-  round,
   className,
   activeTab,
   location = 'CHENNAI, INDIA',
@@ -120,7 +118,6 @@ export function GlobalHeader({
       {(roomName || teamName) && (
         <div className="hidden lg:flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
           {roomName && <span>ROOM: <strong className="text-white font-heading text-xs">{roomName}</strong></span>}
-          {round !== undefined && <span>• ROUND {round}</span>}
           {teamName && <span>• SEAT: <strong className="text-brand-yellow font-heading text-xs">{teamName}</strong></span>}
         </div>
       )}
