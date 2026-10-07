@@ -1,19 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  X,
-  Shield,
-  Award,
-  Users,
-  Tv,
-  ArrowRight,
-} from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { useLotEntrance } from '@/hooks/use-lot-entrance'
 import { SoldStamp } from '@/components/ui/sold-stamp'
@@ -30,8 +18,6 @@ import {
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
 import { formatMoney } from '@/lib/money'
-
-type CategoryFilter = 'LIVE' | 'BATTER' | 'BOWLER' | 'ALL_ROUNDER' | 'WICKET_KEEPER'
 
 interface PerformanceGraphProps {
   stats: {
@@ -106,11 +92,6 @@ export function DisplayBoard({
   const [bidPulse, setBidPulse] = useState(false)
   const pulseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  // Category switcher state
-  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('LIVE')
-  const [selectedPlayer, setSelectedPlayer] = useState<RoomPlayerItem | null>(null)
-  const [expandedCricketer, setExpandedCricketer] = useState<RoomPlayerItem | NonNullable<PublicSnapshot['currentLot']>['player'] | null>(null)
-  const [showTeamPicker, setShowTeamPicker] = useState(false)
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
@@ -151,21 +132,7 @@ export function DisplayBoard({
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
   const cardRef = useLotEntrance<HTMLDivElement>(lot?.id ?? 'none')
 
-  // Filter players by category
-  const filteredPlayers = React.useMemo(() => {
-    if (selectedCategory === 'LIVE') return []
-    return roomPlayers.filter((p) => {
-      const r = p.role.toUpperCase()
-      if (selectedCategory === 'BATTER') return r.includes('BAT')
-      if (selectedCategory === 'BOWLER') return r.includes('BOWL')
-      if (selectedCategory === 'ALL_ROUNDER') return r.includes('ALL')
-      if (selectedCategory === 'WICKET_KEEPER') return r.includes('WICKET') || r === 'WK'
-      return false
-    })
-  }, [roomPlayers, selectedCategory])
-
-  // Current featured player (either from selected category or live lot)
-  const activeDisplayPlayer = selectedCategory !== 'LIVE' && selectedPlayer ? selectedPlayer : lot?.player ?? null
+  const activeDisplayPlayer = lot?.player ?? null
 
   const displayRole = (activeDisplayPlayer?.role || 'BATTER').replace('_', ' ').toUpperCase()
   const displayPhoto = activeDisplayPlayer?.photoUrl || null
@@ -207,33 +174,11 @@ export function DisplayBoard({
             ROUND {snapshot.room.round || 1} • {roomPlayers.length > 0 ? roomPlayers.filter((p) => p.status === 'UPCOMING').length : 253} PLAYERS LEFT
           </span>
         </div>
-
-        <div className="flex items-center gap-2">
-          {selectedCategory !== 'LIVE' && (
-            <button
-              onClick={() => {
-                setSelectedCategory('LIVE')
-                setSelectedPlayer(null)
-              }}
-              className="flex items-center gap-1.5 bg-[#EB547C] hover:bg-pink-600 px-3 py-1 font-condensed text-xs font-black uppercase tracking-wider text-white shadow transition-all cursor-pointer"
-            >
-              <Tv className="h-3 w-3" />
-              <span>RETURN TO LIVE LOT</span>
-            </button>
-          )}
-          <button
-            onClick={() => setShowTeamPicker(true)}
-            className="flex items-center gap-1.5 border border-white/20 bg-white/10 hover:bg-white/20 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer"
-          >
-            <Users className="h-3.5 w-3.5 text-brand-yellow" />
-            <span>FRANCHISE SEATS</span>
-          </button>
-        </div>
       </div>
 
       {/* Main Composition: Left Pillar | Center Stage */}
       <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-4 p-4 lg:px-6 min-h-0">
-        {/* ── Left Pillar: Lot Number & Functional Category Navigation ── */}
+        {/* ── Left Pillar: Lot Number ── */}
         <aside className="flex flex-col justify-between border-r border-white/10 pr-4 py-2">
           <div className="flex flex-col gap-5">
             {/* LOT X / 577 */}
@@ -246,149 +191,6 @@ export function DisplayBoard({
                 <span className="text-white/30 text-xl font-normal">/ {roomPlayers.length || 254}</span>
               </div>
             </div>
-
-            {/* CATEGORY SELECTOR LIST (Interactive Category Switcher) */}
-            <div className="flex flex-col gap-2.5">
-              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-white/40 block">
-                CATEGORY
-              </span>
-
-              <nav className="flex flex-col gap-1.5 font-mono text-[11px] font-bold tracking-wider">
-                {/* LIVE LOT BUTTON */}
-                <button
-                  onClick={() => {
-                    setSelectedCategory('LIVE')
-                    setSelectedPlayer(null)
-                  }}
-                  className={`flex items-center justify-between text-left py-1.5 px-2 transition-all cursor-pointer ${
-                    selectedCategory === 'LIVE'
-                      ? 'border-l-2 border-[#EB547C] bg-white/10 text-white font-extrabold shadow'
-                      : 'border-l-2 border-transparent text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>LIVE LOT</span>
-                  {selectedCategory === 'LIVE' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#EB547C] animate-ping" />
-                  )}
-                </button>
-
-                {/* BATSMAN */}
-                <button
-                  onClick={() => {
-                    setSelectedCategory('BATTER')
-                    const first = roomPlayers.find((p) => p.role.toUpperCase().includes('BAT'))
-                    setSelectedPlayer(first || null)
-                  }}
-                  className={`flex items-center justify-between text-left py-1.5 px-2 transition-all cursor-pointer ${
-                    selectedCategory === 'BATTER'
-                      ? 'border-l-2 border-[#2074D5] bg-white/10 text-white font-extrabold shadow'
-                      : 'border-l-2 border-transparent text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>BATSMAN</span>
-                  <span className="font-mono text-[9px] text-white/40">
-                    {roomPlayers.filter((p) => p.role.toUpperCase().includes('BAT')).length || 48}
-                  </span>
-                </button>
-
-                {/* BOWLER */}
-                <button
-                  onClick={() => {
-                    setSelectedCategory('BOWLER')
-                    const first = roomPlayers.find((p) => p.role.toUpperCase().includes('BOWL'))
-                    setSelectedPlayer(first || null)
-                  }}
-                  className={`flex items-center justify-between text-left py-1.5 px-2 transition-all cursor-pointer ${
-                    selectedCategory === 'BOWLER'
-                      ? 'border-l-2 border-[#2074D5] bg-white/10 text-white font-extrabold shadow'
-                      : 'border-l-2 border-transparent text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>BOWLER</span>
-                  <span className="font-mono text-[9px] text-white/40">
-                    {roomPlayers.filter((p) => p.role.toUpperCase().includes('BOWL')).length || 52}
-                  </span>
-                </button>
-
-                {/* ALL-ROUNDER */}
-                <button
-                  onClick={() => {
-                    setSelectedCategory('ALL_ROUNDER')
-                    const first = roomPlayers.find((p) => p.role.toUpperCase().includes('ALL'))
-                    setSelectedPlayer(first || null)
-                  }}
-                  className={`flex items-center justify-between text-left py-1.5 px-2 transition-all cursor-pointer ${
-                    selectedCategory === 'ALL_ROUNDER'
-                      ? 'border-l-2 border-[#2074D5] bg-white/10 text-white font-extrabold shadow'
-                      : 'border-l-2 border-transparent text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>ALL-ROUNDER</span>
-                  <span className="font-mono text-[9px] text-white/40">
-                    {roomPlayers.filter((p) => p.role.toUpperCase().includes('ALL')).length || 38}
-                  </span>
-                </button>
-
-                {/* WICKETKEEPER */}
-                <button
-                  onClick={() => {
-                    setSelectedCategory('WICKET_KEEPER')
-                    const first = roomPlayers.find(
-                      (p) => p.role.toUpperCase().includes('WICKET') || p.role.toUpperCase() === 'WK'
-                    )
-                    setSelectedPlayer(first || null)
-                  }}
-                  className={`flex items-center justify-between text-left py-1.5 px-2 transition-all cursor-pointer ${
-                    selectedCategory === 'WICKET_KEEPER'
-                      ? 'border-l-2 border-[#2074D5] bg-white/10 text-white font-extrabold shadow'
-                      : 'border-l-2 border-transparent text-white/50 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>WICKETKEEPER</span>
-                  <span className="font-mono text-[9px] text-white/40">
-                    {roomPlayers.filter((p) => p.role.toUpperCase().includes('WICKET') || p.role.toUpperCase() === 'WK').length || 20}
-                  </span>
-                </button>
-              </nav>
-            </div>
-
-            {/* Quick Category Player Switcher strip */}
-            {selectedCategory !== 'LIVE' && filteredPlayers.length > 0 && (
-              <div className="flex flex-col gap-1.5 border-t border-white/10 pt-3">
-                <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/40">
-                  {selectedCategory.replace('_', ' ')} ROSTER ({filteredPlayers.length})
-                </span>
-                <div className="flex flex-col gap-1 max-h-[160px] overflow-y-auto pr-1">
-                  {filteredPlayers.slice(0, 15).map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelectedPlayer(p)}
-                      className={`flex items-center justify-between text-left px-2 py-1 border text-[10px] font-condensed uppercase tracking-wider transition-all cursor-pointer ${
-                        selectedPlayer?.id === p.id
-                          ? 'border-brand-yellow bg-brand-yellow/15 text-white font-black'
-                          : 'border-white/10 bg-black/20 text-white/60 hover:text-white hover:border-white/30'
-                      }`}
-                    >
-                      <span className="truncate max-w-[95px]">{p.name}</span>
-                      <span className="font-mono text-[8px] text-brand-yellow tabular-nums">
-                        {formatMoney(p.basePrice)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Architectural Concrete Slogan */}
-          <div className="py-4 border-t border-white/10">
-            <span className="font-condensed text-[13px] font-black uppercase leading-tight tracking-wider text-white/25 block">
-              SAME GAME
-              <br />
-              DIFFERENT
-              <br />
-              LEGENDS
-            </span>
           </div>
         </aside>
 
@@ -401,25 +203,9 @@ export function DisplayBoard({
               bidPulse ? 'anim-bid-pop' : ''
             }`}
           >
-            {/* Category Browser Banner if browsing category */}
-            {selectedCategory !== 'LIVE' && (
-              <div className="flex items-center justify-between bg-[#2074D5]/20 border border-[#2074D5]/40 px-3 py-1.5 mb-3 text-xs">
-                <span className="font-mono text-[10px] font-black uppercase tracking-wider text-[#2074D5]">
-                  BROWSING {selectedCategory.replace('_', ' ')} CATEGORY
-                </span>
-                <span className="font-mono text-[10px] text-white/60">
-                  {filteredPlayers.findIndex((p) => p.id === selectedPlayer?.id) + 1} of {filteredPlayers.length}
-                </span>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 items-center">
-              {/* Framed Player Portrait with Yellow Corner Accents & Expand Trigger */}
-              <div
-                onClick={() => setExpandedCricketer(activeDisplayPlayer)}
-                className="group relative aspect-[4/5] w-full max-w-[200px] mx-auto md:mx-0 overflow-hidden bg-[#202020] border border-white/15 cursor-pointer shadow-lg"
-                title="Click to expand player stats"
-              >
+              {/* Framed Player Portrait with Yellow Corner Accents */}
+              <div className="relative aspect-[4/5] w-full max-w-[200px] mx-auto md:mx-0 overflow-hidden bg-[#202020] border border-white/15 shadow-lg">
                 {/* Yellow Corner Bracket Accents */}
                 <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-yellow z-10" />
                 <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-yellow z-10" />
@@ -433,7 +219,7 @@ export function DisplayBoard({
                   <img
                     src={displayPhoto}
                     alt={activeDisplayPlayer?.name || 'Player'}
-                    className="h-full w-full object-cover object-top filter contrast-[1.05] transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover object-top filter contrast-[1.05]"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center font-condensed text-5xl font-black text-white/20">
@@ -446,12 +232,6 @@ export function DisplayBoard({
                       : 'IPL'}
                   </div>
                 )}
-
-                {/* Hover overlay hint to expand */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-brand-yellow">
-                  <Maximize2 className="h-4 w-4" />
-                  <span>EXPAND</span>
-                </div>
               </div>
 
               {/* Right: Player Name Banner & Sub-Layout */}
@@ -481,15 +261,7 @@ export function DisplayBoard({
                         </>
                       )}
                     </div>
-                  </div>
-                  <button
-                    onClick={() => setExpandedCricketer(activeDisplayPlayer)}
-                    className="flex items-center gap-1 bg-white/20 hover:bg-white/30 px-2 py-1 text-white font-mono text-[9px] font-black uppercase tracking-wider cursor-pointer"
-                  >
-                    <Maximize2 className="h-3 w-3" />
-                    <span className="hidden sm:inline">FULL STATS</span>
-                  </button>
-                </div>
+                  </div>                </div>
 
                 {/* Sub-Layout: CURRENT BID & 2x2 Grid | PERFORMANCE GRAPH */}
                 <div className="grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-3">
@@ -498,14 +270,10 @@ export function DisplayBoard({
                     {/* CURRENT BID Plate */}
                     <div className="bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
                       <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
-                        {selectedCategory === 'LIVE' ? 'CURRENT BID' : 'VALUATION BASE'}
+                        CURRENT BID
                       </span>
                       <div className="font-condensed text-3xl sm:text-4xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
-                        {selectedCategory === 'LIVE' && lot
-                          ? formatMoney(lot.currentBid)
-                          : activeDisplayPlayer
-                          ? formatMoney(activeDisplayPlayer.basePrice)
-                          : '—'}
+                        {lot ? formatMoney(lot.currentBid) : '—'}
                       </div>
                     </div>
 
@@ -640,192 +408,6 @@ export function DisplayBoard({
 
       {/* SOLD / UNSOLD Stamp Animation */}
       <AnimatePresence>{stamp && <SoldStamp key={stamp} kind={stamp} />}</AnimatePresence>
-
-      {/* Team Seat Picker Modal */}
-      <AnimatePresence>
-        {showTeamPicker && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-xl border border-white/20 bg-[#141417] p-6 shadow-2xl"
-            >
-              <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-4">
-                <div>
-                  <h3 className="font-condensed text-2xl font-black uppercase text-white">
-                    SELECT FRANCHISE SEAT
-                  </h3>
-                  <p className="font-mono text-xs text-white/50">
-                    Enter the war room console to place official bids
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowTeamPicker(false)}
-                  className="p-1 text-white/60 hover:text-white cursor-pointer"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-                {snapshot.teams.map((t) => (
-                  <Link
-                    key={t.id}
-                    href={`/team/${roomId}/${t.id}`}
-                    onClick={() => setShowTeamPicker(false)}
-                    className="flex items-center justify-between border border-white/10 bg-[#1C1C20] p-3 hover:border-white/30 hover:bg-[#24242A] transition-all group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <TeamCrest
-                        shortCode={t.shortCode}
-                        name={t.name}
-                        colorAccent={t.colorAccent}
-                        logoUrl={t.logoUrl}
-                        mark
-                        className="h-6 w-6"
-                      />
-                      <div>
-                        <span className="font-condensed text-base font-bold uppercase text-white block group-hover:text-brand-yellow">
-                          {t.shortCode}
-                        </span>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-white/40 group-hover:text-white transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Expandable Cricketer Full-Screen Modal */}
-      <AnimatePresence>
-        {expandedCricketer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-lg">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-2xl border border-white/20 bg-[#141417] p-6 shadow-2xl text-white"
-            >
-              <button
-                onClick={() => setExpandedCricketer(null)}
-                className="absolute top-4 right-4 p-2 text-white/60 hover:text-white bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-
-              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                <div className="relative aspect-[3/4] w-48 shrink-0 overflow-hidden border-2 border-brand-yellow bg-black shadow-xl">
-                  {expandedCricketer.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={expandedCricketer.photoUrl}
-                      alt={expandedCricketer.name}
-                      className="h-full w-full object-cover object-top"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center font-condensed text-5xl font-black text-white/20">
-                      {expandedCricketer.name.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  {expandedCricketer.isOverseas && (
-                    <div className="absolute top-2 right-2 bg-[#2074D5] text-white font-mono text-[9px] font-black px-2 py-0.5 uppercase">
-                      OVERSEAS
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 flex flex-col gap-4">
-                  <div>
-                    <span className="font-mono text-xs font-bold uppercase tracking-widest text-brand-yellow">
-                      {expandedCricketer.setNumber || 'AUCTION POOL'} • {expandedCricketer.nationality}
-                    </span>
-                    <h2 className="font-condensed text-3xl sm:text-4xl font-black uppercase tracking-tight text-white mt-0.5">
-                      {expandedCricketer.name}
-                    </h2>
-                    <p className="font-mono text-xs font-bold uppercase tracking-wider text-white/60 mt-1">
-                      {expandedCricketer.role.replace('_', ' ')}
-                    </p>
-                  </div>
-
-                  {/* 6 Technical Metric Tiles */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        BASE PRICE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-brand-yellow tabular-nums">
-                        {formatMoney(expandedCricketer.basePrice)}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        MATCHES
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {expandedCricketer.matches ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        RUNS
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {expandedCricketer.runs ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        WICKETS
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {expandedCricketer.wickets ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        AVERAGE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {expandedCricketer.average ? expandedCricketer.average.toFixed(1) : '—'}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        STRIKE RATE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-brand-blue tabular-nums">
-                        {expandedCricketer.strikeRate ? expandedCricketer.strikeRate.toFixed(1) : '—'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Performance Chart Component */}
-                  <div className="h-32 border border-white/10">
-                    <PerformanceGraph
-                      stats={{
-                        matches: expandedCricketer.matches,
-                        runs: expandedCricketer.runs,
-                        wickets: expandedCricketer.wickets,
-                        average: expandedCricketer.average,
-                        strikeRate: expandedCricketer.strikeRate,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Player Sold Celebration Animation Overlay */}
       <SoldCelebration
