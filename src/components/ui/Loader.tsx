@@ -5,7 +5,7 @@ import gsap from 'gsap'
 
 /**
  * Landing loader (~3.6 s, once per session): the batsman plays the same 42-frame swing as
- * SoldCelebration (one even 750 ms sweep, ending on frame 42, which is the IPL logo pose),
+ * SoldCelebration (wind-up eased into contact, follow-through into frame 42, the IPL logo pose),
  * hits the ball for six, the logo glows and "INDIAN PREMIER LEAGUE" slams in beside it; then
  * the screen splits open onto the hero.
  * One GSAP timeline with labels: intro -> ballIn -> hit -> six -> logo -> settle -> exit.
@@ -22,7 +22,8 @@ import gsap from 'gsap'
 export const LOADER_SEEN = 'ipl-loader'
 const SPARKS = 14
 const BLUE = '#1E4FFF'
-const SWING = 0.75 // seconds for all 42 frames, as in SoldCelebration
+const WIND_UP = 0.6 // guard tap, backlift, downswing into contact, across the ball's whole flight
+const FOLLOW = 0.55 // contact -> frame 42 (the logo pose)
 // frame 42's swoosh is drawn wider than the official mark; shift the swing left so it keeps
 // the official gap (1.17 units) before the wordmark instead of touching the "I"
 const SWING_SHIFT = -1.1
@@ -94,7 +95,10 @@ export function Loader({ onDone }: { onDone: () => void }) {
       const count = { v: 0 }
       const frame = { f: 0 }
       const setCount = () => (counter.textContent = `${String(Math.round(count.v)).padStart(3, '0')}%`)
-      const setFrame = () => swing.setAttribute('d', data.frames[Math.round(frame.f)])
+      // frames 19-21 lift the bat back up behind the head after contact (a second backlift that
+      // made the hit land mid-swing); skip them so contact runs straight into the follow-through
+      const seq = data.frames.filter((_, i) => i <= data.contactFrame || i > data.contactFrame + 3)
+      const setFrame = () => swing.setAttribute('d', seq[Math.round(frame.f)])
 
       // the contact point on screen: viewBox units -> px, measured before anything moves
       const r = swingSvg.getBoundingClientRect()
@@ -122,7 +126,7 @@ export function Loader({ onDone }: { onDone: () => void }) {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         const tl = gsap.timeline({ onComplete: finish })
         gsap.set(q('[data-line]'), { yPercent: 0 })
-        frame.f = data.frames.length - 1
+        frame.f = seq.length - 1
         setFrame() // the logo pose
         tl.to([swingSvg, q('[data-word]')[0]], { autoAlpha: 1, duration: 0.4 }).to({}, { duration: 0.4 })
         exit(tl)
@@ -143,17 +147,18 @@ export function Loader({ onDone }: { onDone: () => void }) {
         .to(q('[data-hair]'), { scaleX: 1, duration: 0.6, ease: 'power3.inOut' }, 'intro')
         .from(q('[data-corner]'), { autoAlpha: 0, y: 8, duration: 0.4, stagger: 0.08 }, 'intro+=0.1')
 
-      // the swing: frames 1-42 at one even rate over SWING seconds, timed so the contact frame
-      // (the last with the bat low) lands exactly on 'hit'
-      const last = data.frames.length - 1
-      const swingAt = 1.2 - (data.contactFrame / last) * SWING
+      // the swing: the frames already pace the tap, backlift and downswing, so they play evenly and
+      // the contact frame lands exactly on 'hit'; the follow-through decelerates into the logo pose
+      const last = seq.length - 1
+      const swingAt = 1.2 - WIND_UP
 
       // 2. 0.6-1.2s  ballIn: the batsman fades in at guard and starts the swing; the ball streaks
       //    in from the right and arrives on the contact frame
       tl.addLabel('ballIn', 0.6)
         .to(q('[data-hair]'), { autoAlpha: 0.25, duration: 0.4 }, 'ballIn')
-        .to(swingSvg, { autoAlpha: 1, duration: 0.3 }, 'ballIn')
-        .to(frame, { f: last, duration: SWING, ease: 'none', onUpdate: setFrame }, swingAt)
+        .to(swingSvg, { autoAlpha: 1, duration: 0.2 }, 'ballIn-=0.2') // at guard before the backlift
+        .to(frame, { f: data.contactFrame, duration: WIND_UP, ease: 'none', onUpdate: setFrame }, swingAt)
+        .to(frame, { f: last, duration: FOLLOW, ease: 'power2.out', onUpdate: setFrame }, 1.2)
         .set(ball, { x: start.x, y: start.y, rotation: angle(start, contact), autoAlpha: 1 }, 'ballIn+=0.1')
         .to(ball, { x: contact.x, y: contact.y, duration: 0.5, ease: 'power1.in' }, 'ballIn+=0.1')
 
@@ -185,7 +190,7 @@ export function Loader({ onDone }: { onDone: () => void }) {
         .to(ball, { autoAlpha: 0, duration: 0.25 }, 'six+=0.7')
 
       // 5. ~1.65s  logo: the swing has landed on the logo pose; it glows, the wordmark slams in
-      const logoAt = swingAt + SWING
+      const logoAt = 1.2 + FOLLOW
       tl.addLabel('logo', logoAt)
         .fromTo(q('[data-bloom]'), { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 0.5, scale: 1.1, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out', immediateRender: false }, 'logo')
         .to(q('[data-line]'), { yPercent: 0, duration: 0.7, stagger: 0.1, ease: 'expo.out' }, 'logo')
