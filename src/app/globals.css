@@ -524,8 +524,10 @@
 
 /* Landing scene parts (src/components/ui/landing-scene.tsx); used via motion-safe: only */
 @keyframes scene-banner-sway {
-  0%, 100% { transform: rotate(-0.6deg); }
-  50% { transform: rotate(0.6deg); }
+  0%, 100% { transform: rotate(-1.1deg) skewX(0.5deg); }
+  25% { transform: rotate(0.15deg) skewX(-0.75deg); }
+  50% { transform: rotate(1.1deg) skewX(-0.35deg); }
+  75% { transform: rotate(-0.1deg) skewX(0.75deg); }
 }
 /* slow push-in of the whole scene; scale-up only, so no edge ever shows */
 @keyframes scene-breathe {
