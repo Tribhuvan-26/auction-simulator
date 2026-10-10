@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { spaceGrotesk, inter, oswald, bebasNeue, teko } from '@/lib/fonts'
+import { spaceGrotesk, spaceGroteskExt, inter, interExt, oswald, oswaldExt, bebasNeue, bebasNeueExt, teko, tekoExt } from '@/lib/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${oswald.variable} ${bebasNeue.variable} ${teko.variable} h-full antialiased dark`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${oswald.variable} ${bebasNeue.variable} ${teko.variable} ${spaceGroteskExt.variable} ${interExt.variable} ${oswaldExt.variable} ${bebasNeueExt.variable} ${tekoExt.variable} h-full antialiased dark`}
       suppressHydrationWarning // the loader gate below adds a class before hydration
     >
       <head>
