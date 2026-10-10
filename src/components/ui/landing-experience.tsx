@@ -180,21 +180,11 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                     INDIAN PREMIER LEAGUE
                   </span>
 
-                  {/* Monumental Headline: "IPL" with side tags, followed by "AUCTION" */}
+                  {/* Monumental Headline: "IPL" followed by "AUCTION" */}
                   <div className="flex flex-col select-none">
-                    <div className="flex items-center gap-6 sm:gap-8">
-                      <h1 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[min(10rem,18vh)] lg:text-[min(11.5rem,18vh)] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
-                        IPL
-                      </h1>
-                      {/* Vertical Category Pillar from Reference Image */}
-                      <div className="flex flex-col gap-1.5 font-mono text-[9px] sm:text-[10px] tracking-[0.28em] text-white/50 uppercase border-l border-white/15 pl-4 sm:pl-5 py-1 self-center">
-                        <span>PLAYERS</span>
-                        <span>FRANCHISES</span>
-                        <span>STRATEGY</span>
-                        <span>RIVALRY</span>
-                        <span>LEGACY</span>
-                      </div>
-                    </div>
+                    <h1 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[min(10rem,18vh)] lg:text-[min(11.5rem,18vh)] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                      IPL
+                    </h1>
 
                     <h2 className="font-teko text-[7rem] sm:text-[8.5rem] md:text-[min(10rem,18vh)] lg:text-[min(11.5rem,18vh)] font-bold uppercase tracking-tight text-white leading-[0.76] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
                       AUCTION
@@ -277,12 +267,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                         key={uniqueKey}
                         onMouseEnter={() => setHoveredTeamKey(uniqueKey)}
                         onMouseLeave={() => setHoveredTeamKey(null)}
-                        onClick={() => {
-                          if (rooms[0]) {
-                            window.location.href = `/team/${rooms[0].id}/${team.id}`
-                          }
-                        }}
-                        className="relative cursor-pointer flex-shrink-0 flex items-center justify-center group"
+                        className="relative flex-shrink-0 flex items-center justify-center group"
                         title={team.name}
                       >
                         {/* Floating Team Name Tooltip */}
