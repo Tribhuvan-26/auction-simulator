@@ -5,9 +5,9 @@ import layout from '../../../public/assets/landing/layers/layers.json'
 
 /**
  * Landing backdrop: the Figma courtyard cut into parts by
- * scripts/landing_layers.py (boxes in layers.json, image px of 1536x1024).
- *   banners  sway from their top edge (cut whole, through the glass; case-lines and
- *            wall-front redraw what stands in front of them, so those stay put);
+ * scripts/landing_layers.py (boxes in layers.json, image px of 1672x941).
+ *   banners  sway from their top edge (cut whole, through the glass; case-lines
+ *            redraws the case frame in front of them, so it stays put);
  *            a soft light band rolls down the cloth
  *   sky      clouds drift
  *   trophy   a light glint sweeps across the gold
@@ -18,9 +18,9 @@ import layout from '../../../public/assets/landing/layers/layers.json'
  * desktop) so the IPL logo on the wall stays in view; nothing follows the cursor.
  * Every animation is motion-safe: reduced motion gets the still image.
  */
-const W = 1536
-const H = 1024
-const COVER_W = 'max(100vw, 150vh)' // object-cover for a 3:2 image
+const W = 1672
+const H = 941
+const COVER_W = `max(100vw, ${(100 * W) / H}vh)` // object-cover for the image
 const L = '/assets/landing/layers'
 
 type Box = readonly number[]
@@ -37,29 +37,17 @@ const masked = (file: string): CSSProperties => ({
   WebkitMaskSize: '100% 100%',
 })
 
-// the art's emblems came out doubled or on the wrong cloth, so every cloth but MI's is cut
-// plain and re-dyed, and `print` puts the team's emblem back on (box in % of the banner;
-// dark ink multiplies into the cloth, RCB's is lifted from the original art in its own
-// colour); it sways with the cloth, under the sheen
-const BANNERS = [
-  {
-    name: 'csk',
-    box: layout['banner-csk'],
-    anim: 'motion-safe:animate-[scene-banner-sway_6.1s_ease-in-out_-1.7s_infinite]',
-    print: { left: '8%', top: '33%', width: '84%', className: 'opacity-75 mix-blend-multiply' },
-  },
+// SRH's cloth is cut plain and its detailed eagle printed on (dark ink multiplied into the
+// cloth, box in % of the banner); it sways with the cloth, under the sheen
+const BANNERS: { name: string; box: Box; anim: string; print?: CSSProperties }[] = [
+  { name: 'csk', box: layout['banner-csk'], anim: 'motion-safe:animate-[scene-banner-sway_6.1s_ease-in-out_-1.7s_infinite]' },
   { name: 'mi', box: layout['banner-mi'], anim: 'motion-safe:animate-[scene-banner-sway_5.2s_ease-in-out_infinite]' },
-  {
-    name: 'rcb',
-    box: layout['banner-rcb'],
-    anim: 'motion-safe:animate-[scene-banner-sway_5.7s_ease-in-out_-3.1s_infinite]',
-    print: { left: '23%', top: '27%', width: '54%', className: 'opacity-90' },
-  },
+  { name: 'rcb', box: layout['banner-rcb'], anim: 'motion-safe:animate-[scene-banner-sway_5.7s_ease-in-out_-3.1s_infinite]' },
   {
     name: 'srh',
     box: layout['banner-srh'],
     anim: 'motion-safe:animate-[scene-banner-sway_6.4s_ease-in-out_-0.8s_infinite]',
-    print: { left: '6%', top: '33%', width: '88%', className: 'opacity-75 mix-blend-multiply' },
+    print: { left: '4%', top: '26%', width: '92%' },
   },
 ]
 
@@ -80,11 +68,11 @@ export function LandingScene() {
       </svg>
 
       <div
-        className="absolute aspect-[3/2] origin-[90%_45%] motion-safe:animate-[scene-breathe_28s_ease-in-out_infinite]"
+        className="absolute aspect-[1672/941] origin-[90%_45%] motion-safe:animate-[scene-breathe_28s_ease-in-out_infinite]"
         style={{
           width: COVER_W,
           left: `calc((100vw - ${COVER_W}) * var(--px))`,
-          top: `calc((100vh - ${COVER_W} / 1.5) / 2)`,
+          top: `calc((100vh - ${COVER_W} * ${H / W}) / 2)`,
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -102,12 +90,7 @@ export function LandingScene() {
             <img src={`${L}/banner-${b.name}.webp`} alt="" className="absolute inset-0 h-full w-full" />
             {b.print && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`${L}/print-${b.name}.webp`}
-                alt=""
-                className={`absolute h-auto ${b.print.className}`}
-                style={{ left: b.print.left, top: b.print.top, width: b.print.width }}
-              />
+              <img src={`${L}/print-${b.name}.webp`} alt="" className="absolute h-auto opacity-90 mix-blend-multiply" style={b.print} />
             )}
             {/* light rolling down the folds, clipped to the cloth */}
             <div
@@ -119,8 +102,6 @@ export function LandingScene() {
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`${L}/case-lines.webp`} alt="" className="absolute" style={box(layout['case-lines'])} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${L}/wall-front.webp`} alt="" className="absolute" style={box(layout['wall-front'])} />
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -161,8 +142,8 @@ function Dust() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     let light: Uint8ClampedArray | null = null
-    const MW = 768
-    const MH = 512
+    const MW = 836
+    const MH = 470
     const img = new Image()
     img.src = `${L}/sun-mask.png`
     img.onload = () => {
