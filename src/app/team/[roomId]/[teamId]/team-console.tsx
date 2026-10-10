@@ -287,11 +287,11 @@ export function TeamConsole({
   // Photo resolution with fallback
   const photo = lot?.player.photoUrl || (
     lot?.player.name.toLowerCase().includes('dhoni')
-      ? '/players/csk-mahendra-singh-dhoni.png'
+      ? '/players/csk-mahendra-singh-dhoni.webp'
       : lot?.player.name.toLowerCase().includes('kohli')
-      ? '/players/rcb-virat-kohli.png'
+      ? '/players/rcb-virat-kohli.webp'
       : lot?.player.name.toLowerCase().includes('rohit')
-      ? '/players/mi-rohit-sharma.png'
+      ? '/players/mi-rohit-sharma.webp'
       : null
   )
 
