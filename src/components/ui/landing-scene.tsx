@@ -37,10 +37,30 @@ const masked = (file: string): CSSProperties => ({
   WebkitMaskSize: '100% 100%',
 })
 
+// the art's emblems came out doubled or on the wrong cloth, so every cloth but MI's is cut
+// plain and re-dyed, and `print` puts the team's emblem back on (box in % of the banner;
+// dark ink multiplies into the cloth, RCB's is lifted from the original art in its own
+// colour); it sways with the cloth, under the sheen
 const BANNERS = [
+  {
+    name: 'csk',
+    box: layout['banner-csk'],
+    anim: 'motion-safe:animate-[scene-banner-sway_6.1s_ease-in-out_-1.7s_infinite]',
+    print: { left: '8%', top: '33%', width: '84%', className: 'opacity-75 mix-blend-multiply' },
+  },
   { name: 'mi', box: layout['banner-mi'], anim: 'motion-safe:animate-[scene-banner-sway_5.2s_ease-in-out_infinite]' },
-  { name: 'csk', box: layout['banner-csk'], anim: 'motion-safe:animate-[scene-banner-sway_6.1s_ease-in-out_-1.7s_infinite]' },
-  { name: 'rcb', box: layout['banner-rcb'], anim: 'motion-safe:animate-[scene-banner-sway_5.7s_ease-in-out_-3.1s_infinite]' },
+  {
+    name: 'rcb',
+    box: layout['banner-rcb'],
+    anim: 'motion-safe:animate-[scene-banner-sway_5.7s_ease-in-out_-3.1s_infinite]',
+    print: { left: '23%', top: '27%', width: '54%', className: 'opacity-90' },
+  },
+  {
+    name: 'srh',
+    box: layout['banner-srh'],
+    anim: 'motion-safe:animate-[scene-banner-sway_6.4s_ease-in-out_-0.8s_infinite]',
+    print: { left: '6%', top: '33%', width: '88%', className: 'opacity-75 mix-blend-multiply' },
+  },
 ]
 
 export function LandingScene() {
@@ -80,6 +100,15 @@ export function LandingScene() {
           <div key={b.name} className={`absolute origin-top ${b.anim}`} style={box(b.box)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${L}/banner-${b.name}.webp`} alt="" className="absolute inset-0 h-full w-full" />
+            {b.print && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`${L}/print-${b.name}.webp`}
+                alt=""
+                className={`absolute h-auto ${b.print.className}`}
+                style={{ left: b.print.left, top: b.print.top, width: b.print.width }}
+              />
+            )}
             {/* light rolling down the folds, clipped to the cloth */}
             <div
               className="absolute inset-0 bg-[linear-gradient(180deg,transparent_30%,rgba(255,236,200,0.5)_50%,transparent_70%)] bg-[length:100%_300%] bg-[position:0_100%] opacity-60 mix-blend-soft-light motion-safe:animate-[scene-cloth-sheen_7s_ease-in-out_infinite]"
