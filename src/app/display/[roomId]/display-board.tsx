@@ -364,7 +364,7 @@ export function DisplayBoard({
       {/* Global Architectural Footer */}
       <GlobalFooter
         tagline="MORE THAN A TOURNAMENT. A LEGACY IN MOTION."
-        year="IPL AUCTION 2024"
+        year="IPL AUCTION 2026"
       />
 
       {/* SOLD / UNSOLD Stamp Animation */}

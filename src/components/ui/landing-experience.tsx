@@ -132,7 +132,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                 "MANAGE SQUADS  VIEW AUCTIONS LIVE  TRACK STRATEGY"
               - Subtext: "○—— ALL 10 TEAMS. ONE AUCTION."
               - Bottom bar:
-                Left: "IPL AUCTION 2024"
+                Left: "IPL AUCTION 2026"
                 Center: 10 team crests in exact order (MI, CSK, RCB, KKR, RR, DC, SRH, LSG, PBKS, GT)
                 Right: "CRICKET BUILDS BRIDGES" / "INDIA LIVES CRICKET"
               ============================================================
@@ -255,7 +255,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
               {/* 
                 ============================================================
                 BOTTOM BAR (Exact Match to User Reference Screenshot)
-                - Left: "IPL AUCTION 2024"
+                - Left: "IPL AUCTION 2026"
                 - Center: 10 team crests in exact order (MI, CSK, RCB, KKR, RR, DC, SRH, LSG, PBKS, GT)
                 - Right: "CRICKET BUILDS BRIDGES" / "INDIA LIVES CRICKET"
                 ============================================================
@@ -263,7 +263,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
               <div className="relative z-20 mt-auto pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 select-none">
                 {/* Left: Year & Label */}
                 <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-white/60">
-                  IPL AUCTION 2024
+                  IPL AUCTION 2026
                 </span>
 
                 {/* Center: 10 Team Crests in Exact Order */}
@@ -497,7 +497,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                 {/* Directory Footer */}
                 <GlobalFooter
                   tagline="MORE THAN A TOURNAMENT. A LEGACY IN MOTION."
-                  year="IPL AUCTION 2024"
+                  year="IPL AUCTION 2026"
                 />
               </div>
             </motion.main>

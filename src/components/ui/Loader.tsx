@@ -259,7 +259,7 @@ export function Loader({ onDone }: { onDone: () => void }) {
         </div>
 
         <div data-corner className="absolute bottom-6 left-6 text-[10px] tracking-[0.3em] text-white/60 sm:bottom-8 sm:left-10 sm:text-xs">
-          IPL Auction 2024
+          IPL Auction 2026
         </div>
         <div data-corner data-counter className="absolute bottom-6 right-6 text-[10px] tabular-nums tracking-[0.3em] text-white/60 sm:bottom-8 sm:right-10 sm:text-xs">
           000%
