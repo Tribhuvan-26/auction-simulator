@@ -1,15 +1,20 @@
 """Cuts the Figma courtyard image into animatable landing-page layers.
 
-Run:  python scripts/landing_layers.py blender/assets/figma-scene.png
+Run:  python scripts/landing_layers.py blender/assets/figma-scene-4bay.png
+
+The source is the Figma courtyard with a fourth banner (on the big pillar) added by an AI
+image edit. Its cloths hang in the wrong team order and carry doubled emblems, so each is
+cut, its emblem painted out, and its cloth re-dyed (light and folds kept, hue swapped) to
+the order CSK, MI, RCB, SRH; the page prints the emblems back on.
 
 Writes public/assets/landing/layers/:
   bg.webp                 the scene with the banners painted out (edges only
                           ever show a few px, so OpenCV inpaint is enough)
-  banner-{mi,csk,rcb}.webp  each banner cut out, cropped, with its box in
+  banner-{csk,mi,rcb,srh}.webp  each banner cut out, cropped, with its box in
                           layers.json
   plants.webp             both planters' foliage (sways in place, no cut needed)
   case-lines.webp         the glass case's frame where it crosses the cloth (sits on top)
-  wall-front.webp         the concrete block in front of the RCB banner (sits on top)
+  wall-front.webp         the concrete block in front of the SRH banner (sits on top)
   sky-mask.png            where clouds drift
   trophy-mask.png         gold of the trophy, for the light glint
   sun-mask.png            sunlit areas, for the light breathing + dust
@@ -112,16 +117,46 @@ def main(src):
     os.makedirs(OUT, exist_ok=True)
     layout = {}
 
+    # keyed by the team each cloth becomes; the colour test finds the cloth as generated
     banners = {
+        'csk': banner_mask(as_mask((hue > 4) & (hue < 20) & vivid), (770, 0, 930, 610), extend_to_top=True, behind_case=False),
         'mi': banner_mask(as_mask((hue > 100) & (hue < 130) & vivid), (940, 60, 1080, 500), through_glass_to=520),
-        'csk': banner_mask(as_mask((hue > 12) & (hue < 35) & vivid & (sat > 150)), (1070, 30, 1195, 470), through_glass_to=550),
-        'rcb': banner_mask(as_mask(((hue < 10) | (hue > 160)) & vivid), (1185, 0, 1320, 490), extend_to_top=True, behind_case=False),
+        'rcb': banner_mask(as_mask((hue > 12) & (hue < 35) & vivid & (sat > 150)), (1070, 30, 1195, 470), through_glass_to=550),
+        'srh': banner_mask(as_mask(((hue < 10) | (hue > 160)) & vivid), (1185, 0, 1320, 490), extend_to_top=True, behind_case=False),
     }
+    # each team's dye (median hue, saturation, value) read off the cloth that has it as generated
+    dye = {}
+    for team, src in (('csk', 'rcb'), ('rcb', 'srh'), ('srh', 'csk')):  # yellow, red, orange cloths
+        m = banners[src] > 0
+        dye[team] = [np.median(hsv[..., c][m]) for c in range(3)]
+
+    # paint out the generated emblems (all but MI's), staying clear of the cloth's edges
+    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (17, 17))
+    emblems = {
+        'csk': in_box(cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, k), 790, 200, 910, 350),  # eagle, dark ink
+        'rcb': in_box(cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, k), 1085, 190, 1185, 345),  # lion, dark ink
+        'srh': in_box(cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, k), 1205, 165, 1295, 335),  # crowned lion, pale
+    }
+    cloth = im.copy()
+    for name, ink in emblems.items():
+        inner = cv2.erode(banners[name], np.ones((1, 15), np.uint8))
+        ink = cv2.dilate(np.where(ink > 18, 255, 0).astype(np.uint8), np.ones((5, 5), np.uint8)) & inner
+        cloth = cv2.inpaint(cloth, ink, 9, cv2.INPAINT_TELEA)
+
     for name, m in banners.items():
+        out = cloth
+        if name in dye:  # re-dye: keep the cloth's light and folds (relative S and V), take the new dye
+            h = cv2.cvtColor(cloth, cv2.COLOR_BGR2HSV).astype(float)
+            h[..., 0] = dye[name][0]
+            for c in (1, 2):
+                h[..., c] *= dye[name][c] / max(np.median(h[..., c][m > 0]), 1)
+            out = cv2.cvtColor(np.clip(h, 0, 255).astype(np.uint8), cv2.COLOR_HSV2BGR)
         # pull the sides 2px inside the cloth so the soft edge carries no wall colour when it moves
         m = cv2.erode(m, np.ones((1, 5), np.uint8))
-        # behind the glass the cloth melts away; RCB's bottom is hidden by wall-front instead
-        rgba, box = rgba_crop(im, m if name == 'rcb' else fade_bottom(m, 45))
+        # behind the glass the cloth melts away; the pillar cloth hangs free and SRH's bottom
+        # is hidden by wall-front instead
+        rgba, box = rgba_crop(out, m if name in ('csk', 'srh') else fade_bottom(m, 45))
         cv2.imwrite(os.path.join(OUT, f'banner-{name}.webp'), rgba, [cv2.IMWRITE_WEBP_QUALITY, 90])
         layout[f'banner-{name}'] = box
 
@@ -135,7 +170,7 @@ def main(src):
     k = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
     thin = np.maximum(cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, k), cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, k))
     glass = np.zeros_like(gray)
-    for x in range(glass.shape[1]):
+    for x in range(926, glass.shape[1]):  # the case starts at x=926; the pillar cloth left of it hangs free
         glass[int(case_top(x)) - 6:600, x] = 255
     lines = np.where((thin > 22) & (glass > 0) & (cv2.dilate(behind, np.ones((9, 9), np.uint8)) > 0), 255, 0).astype(np.uint8)
     lines = cv2.morphologyEx(lines, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
@@ -143,9 +178,9 @@ def main(src):
     rgba, layout['case-lines'] = rgba_crop(im, lines, feather=0.8)
     cv2.imwrite(os.path.join(OUT, 'case-lines.webp'), rgba, [cv2.IMWRITE_WEBP_QUALITY, 92])
 
-    # the concrete block (and its lit ledge) in front of the RCB banner's lower half, also on top
-    ledge = lambda x: 423 - 0.29 * (x - 1234) - 4  # noqa: E731  4px above the light strip
-    edge = lambda y: 1235 + (y - 450) * 3 / 70  # noqa: E731  the block's left face
+    # the concrete block (and its lit ledge) in front of the SRH banner's lower half, also on top
+    ledge = lambda x: 423 - 0.29 * (x - 1234) - 1  # noqa: E731  1px above the light strip (higher picks up cloth)
+    edge = lambda y: 1238 + (y - 450) * 3 / 70  # noqa: E731  just inside the block's left face
     block = np.array([[edge(ledge(edge(400))), ledge(edge(400))], [1345, ledge(1345)], [1345, 510], [edge(510), 510]], np.int32)
     front = np.zeros_like(gray)
     cv2.fillPoly(front, [block], 255)
