@@ -1,5 +1,7 @@
 # Auction Live-This project is my child make sure good care is taken of it
 
+![IPL Auction landing page](landing%20page.png)
+
 Foundation for a real-time IPL-style auction platform (Next.js + Prisma + Supabase Realtime).
 
 ## Local dev setup
