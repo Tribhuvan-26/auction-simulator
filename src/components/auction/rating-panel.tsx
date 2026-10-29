@@ -33,3 +33,23 @@ export function RatingPanel({ name, compact = false }: { name: string; compact?:
     </div>
   )
 }
+
+/** Rating as a small tile, to sit beside the current bid. */
+export function RatingTile({ name }: { name: string }) {
+  const rating = ratingFor(name)
+  const tier = rating === null ? null : TIERS.find((t) => rating >= t.min)!
+  return (
+    <div className="flex min-w-[96px] flex-col items-center justify-center border border-white/10 bg-[#161619] px-3 py-2">
+      <span className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-white/50">RATING</span>
+      <span
+        className="font-condensed text-4xl font-black leading-none tabular-nums sm:text-5xl"
+        style={{ color: tier?.color ?? 'rgba(255,255,255,0.25)' }}
+      >
+        {rating ?? '—'}
+      </span>
+      <span className="mt-0.5 font-mono text-[8px] font-black uppercase tracking-widest text-white/70">
+        {tier?.label ?? 'UNRATED'}
+      </span>
+    </div>
+  )
+}

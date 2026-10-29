@@ -15,7 +15,7 @@ import {
   SkipForward,
   Repeat,
 } from 'lucide-react'
-import { RatingPanel } from '@/components/auction/rating-panel'
+import { RatingTile } from '@/components/auction/rating-panel'
 import { LogoutButton } from '@/components/ui/logout-button'
 import { logoutAdmin } from '@/lib/pin-actions'
 import { TeamCrest } from '@/components/ui/team-crest'
@@ -505,7 +505,7 @@ export function AdminConsole({
           {/* ──── Column 2: Active Player Card (Screenshot 1 Centerpiece) ──── */}
           <div className="border border-white/15 bg-[#141418]/90 p-4 shadow-2xl backdrop-blur-md flex flex-col">
             {lot ? (
-              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4 h-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] gap-4 h-full">
                 {/* Framed player photo. Nearly half the card: the row's height comes
                     from the tall left column, so a square this wide fills it
                     instead of leaving a small picture over empty space. */}
@@ -525,8 +525,8 @@ export function AdminConsole({
                   )}
                 </div>
 
-                {/* Right: Player Name Banner & Sub-Layout */}
-                <div className="flex flex-col justify-between gap-3">
+                {/* Right: name, then bid + rating, then the details */}
+                <div className="flex min-w-0 flex-col gap-3">
                   {/* Solid Blue Player Header Banner */}
                   <div className="bg-[#2074D5] px-4 py-2.5 text-white shadow-md">
                     <h2 className="font-condensed text-2xl sm:text-3xl font-black uppercase tracking-tight leading-none truncate">
@@ -537,65 +537,60 @@ export function AdminConsole({
                     </p>
                   </div>
 
-                  {/* Sub-Layout: CURRENT BID & 2x2 Grid | PERFORMANCE GRAPH */}
-                  <div className="grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-3 flex-1">
-                    {/* Left: CURRENT BID Plate & 2x2 Info Grid */}
-                    <div className="flex flex-col justify-between gap-2.5">
-                      {/* CURRENT BID Plate (Vibrant Pink matching Screenshot 1) */}
-                      <div className="bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
-                        <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
-                          CURRENT BID
-                        </span>
-                        <div className="font-condensed text-3xl sm:text-4xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
-                          {formatMoney(lot.currentBid)}
-                        </div>
-                      </div>
-
-                      {/* 2x2 Info Grid: TEAM | ROLE | BASE | PURSE */}
-                      <div className="grid grid-cols-2 gap-px bg-white/15 border border-white/15">
-                        {/* TEAM */}
-                        <div className="bg-[#17171A] p-2">
-                          <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                            TEAM
-                          </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
-                            {leader ? leader.name : 'Waiting for bid'}
-                          </span>
-                        </div>
-
-                        {/* ROLE */}
-                        <div className="bg-[#17171A] p-2">
-                          <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                            ROLE
-                          </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
-                            {roleDisplay}
-                          </span>
-                        </div>
-
-                        {/* BASE */}
-                        <div className="bg-[#17171A] p-2">
-                          <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                            BASE
-                          </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-brand-yellow truncate block mt-0.5 tabular-nums">
-                            {formatMoney(lot.player.basePrice)}
-                          </span>
-                        </div>
-
-                        {/* PURSE */}
-                        <div className="bg-[#17171A] p-2">
-                          <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                            PURSE
-                          </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5 tabular-nums">
-                            {formatMoney(leader?.purseRemaining ?? 0)}
-                          </span>
-                        </div>
+                  {/* CURRENT BID with the rating beside it; takes up the spare height */}
+                  <div className="grid flex-1 grid-cols-[1fr_auto] gap-3">
+                    <div className="flex flex-col justify-center bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
+                      <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
+                        CURRENT BID
+                      </span>
+                      <div className="font-condensed text-4xl sm:text-5xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
+                        {formatMoney(lot.currentBid)}
                       </div>
                     </div>
+                    <RatingTile name={lot.player.name} />
+                  </div>
 
-                    <RatingPanel name={lot.player.name} />
+                  {/* 2x2 Info Grid: TEAM | ROLE | BASE | PURSE */}
+                  <div className="grid grid-cols-2 gap-px bg-white/15 border border-white/15">
+                    {/* TEAM */}
+                    <div className="bg-[#17171A] p-2">
+                      <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
+                        TEAM
+                      </span>
+                      <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5">
+                        {leader ? leader.name : 'Waiting for bid'}
+                      </span>
+                    </div>
+
+                    {/* ROLE */}
+                    <div className="bg-[#17171A] p-2">
+                      <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
+                        ROLE
+                      </span>
+                      <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5">
+                        {roleDisplay}
+                      </span>
+                    </div>
+
+                    {/* BASE */}
+                    <div className="bg-[#17171A] p-2">
+                      <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
+                        BASE
+                      </span>
+                      <span className="font-condensed text-sm sm:text-base font-black uppercase text-brand-yellow truncate block mt-0.5 tabular-nums">
+                        {formatMoney(lot.player.basePrice)}
+                      </span>
+                    </div>
+
+                    {/* PURSE */}
+                    <div className="bg-[#17171A] p-2">
+                      <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
+                        PURSE
+                      </span>
+                      <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5 tabular-nums">
+                        {formatMoney(leader?.purseRemaining ?? 0)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

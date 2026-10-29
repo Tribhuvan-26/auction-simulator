@@ -14,7 +14,7 @@ import {
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
-import { RatingPanel } from '@/components/auction/rating-panel'
+import { RatingPanel, RatingTile } from '@/components/auction/rating-panel'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { SquadNeeds, StandingsTable } from '@/components/auction/squad-rules'
 import { Model3D } from '@/components/ui/model-3d'
@@ -604,14 +604,17 @@ export function TeamConsole({
                   <div className="grid grid-cols-1 gap-3 flex-1">
                     {/* Left: CURRENT BID Plate & 2x2 Info Grid */}
                     <div className="flex flex-col justify-between gap-2.5">
-                      {/* CURRENT BID Plate (Vibrant Pink) */}
-                      <div className="bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
-                        <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
-                          CURRENT BID
-                        </span>
-                        <div className="font-condensed text-3xl sm:text-4xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
-                          {lot ? formatMoney(lot.currentBid) : '—'}
+                      {/* CURRENT BID with the rating beside it */}
+                      <div className="grid grid-cols-[1fr_auto] gap-3">
+                        <div className="flex flex-col justify-center bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
+                          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
+                            CURRENT BID
+                          </span>
+                          <div className="font-condensed text-4xl sm:text-5xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
+                            {lot ? formatMoney(lot.currentBid) : '—'}
+                          </div>
                         </div>
+                        {lot && <RatingTile name={lot.player.name} />}
                       </div>
 
                       {/* 2x2 Info Grid: TEAM | ROLE | BASE | ORIGIN */}
@@ -621,7 +624,7 @@ export function TeamConsole({
                           <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
                             TEAM
                           </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
+                          <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5">
                             {leader ? leader.name : 'Waiting for bid'}
                           </span>
                         </div>
@@ -631,7 +634,7 @@ export function TeamConsole({
                           <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
                             ROLE
                           </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
+                          <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5">
                             {lot ? roleDisplay : '—'}
                           </span>
                         </div>
@@ -641,7 +644,7 @@ export function TeamConsole({
                           <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
                             BASE
                           </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-brand-yellow truncate block mt-0.5 tabular-nums">
+                          <span className="font-condensed text-sm sm:text-base font-black uppercase text-brand-yellow truncate block mt-0.5 tabular-nums">
                             {lot ? formatMoney(lot.player.basePrice) : '—'}
                           </span>
                         </div>
@@ -651,7 +654,7 @@ export function TeamConsole({
                           <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
                             ORIGIN
                           </span>
-                          <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
+                          <span className="font-condensed text-sm sm:text-base font-black uppercase text-white truncate block mt-0.5">
                             {lot ? (lot.player.isOverseas ? 'OVERSEAS' : 'INDIAN') : '—'}
                           </span>
                         </div>
