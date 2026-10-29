@@ -29,7 +29,7 @@ export function SquadNeeds({ squad }: { squad: SquadPlayer[] }) {
       >
         <span className="font-mono text-[8px] font-black uppercase tracking-widest opacity-70">{label}</span>
         <span className="font-condensed text-lg font-black leading-none tabular-nums">
-          {have}/{min === max ? min : `${min}-${max}`}
+          {have}/{min === max ? min : max === Infinity ? `${min}+` : `${min}-${max}`}
         </span>
       </div>
     )

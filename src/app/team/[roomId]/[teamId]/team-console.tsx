@@ -339,7 +339,7 @@ export function TeamConsole({
   const setCategory = lot?.player.setNumber
     ? lot.player.setNumber.toLowerCase().includes('uncapped')
       ? 'UNCAPPED PLAYERS'
-      : `${lot.player.setNumber.toUpperCase()} PLAYERS`
+      : lot.player.setNumber.toUpperCase()
     : 'UNCAPPED PLAYERS'
 
   // Photo resolution with fallback
@@ -537,7 +537,7 @@ export function TeamConsole({
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
             {/* ── Active Player & Bidding Details Card ── */}
             <div className="border border-white/10 bg-[#141417]/85 p-3.5 backdrop-blur-md shadow-2xl">
-              <div className="grid grid-cols-1 md:grid-cols-[190px_1fr] gap-4 h-full">
+              <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] xl:grid-cols-[300px_1fr] gap-4 h-full">
                 {/* Framed Player Photo with Glowing Accent & Click to Expand */}
                 <div
                   className="group relative aspect-square w-full self-start border-2 bg-[#0E0E11] overflow-hidden flex items-center justify-center cursor-pointer"

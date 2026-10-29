@@ -505,8 +505,10 @@ export function AdminConsole({
           {/* ──── Column 2: Active Player Card (Screenshot 1 Centerpiece) ──── */}
           <div className="border border-white/15 bg-[#141418]/90 p-4 shadow-2xl backdrop-blur-md flex flex-col">
             {lot ? (
-              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 h-full">
-                {/* Framed Player Photo with Glowing Blue Accent */}
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4 h-full">
+                {/* Framed player photo. Nearly half the card: the row's height comes
+                    from the tall left column, so a square this wide fills it
+                    instead of leaving a small picture over empty space. */}
                 <div className="relative aspect-square w-full self-start border-2 border-[#2074D5] bg-[#0E0E11] overflow-hidden flex items-center justify-center shadow-[0_0_15px_rgba(32,116,213,0.25)]">
                   {lot.player.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
