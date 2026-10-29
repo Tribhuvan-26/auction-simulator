@@ -540,7 +540,7 @@ export function TeamConsole({
               <div className="grid grid-cols-1 md:grid-cols-[190px_1fr] gap-4 h-full">
                 {/* Framed Player Photo with Glowing Accent & Click to Expand */}
                 <div
-                  className="group relative border-2 bg-[#0E0E11] overflow-hidden flex items-center justify-center min-h-[220px] cursor-pointer"
+                  className="group relative aspect-square w-full self-start border-2 bg-[#0E0E11] overflow-hidden flex items-center justify-center cursor-pointer"
                   style={{
                     borderColor: theme.primary,
                     boxShadow: `0 0 15px ${theme.glow}`,
@@ -549,7 +549,7 @@ export function TeamConsole({
                 >
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <LotPhoto src={photo} alt={lot ? lot.player.name : 'Player'} soldTo={lot?.status === 'SOLD' ? leader ?? null : null} />
+                    <LotPhoto src={photo} alt={lot ? lot.player.name : 'Player'} soldTo={lot?.status === 'SOLD' ? leader ?? null : null} className="absolute inset-0 overflow-hidden" />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-1 text-center p-4">
                       <span className="font-condensed text-5xl font-black text-white/20">
@@ -1000,7 +1000,7 @@ export function TeamConsole({
               </button>
 
               <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                <div className="relative aspect-[3/4] w-48 shrink-0 overflow-hidden border-2 border-brand-yellow bg-black shadow-xl">
+                <div className="relative aspect-square w-48 shrink-0 overflow-hidden border-2 border-brand-yellow bg-black shadow-xl">
                   {previewPlayer.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

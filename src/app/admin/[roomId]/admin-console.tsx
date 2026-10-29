@@ -507,7 +507,7 @@ export function AdminConsole({
             {lot ? (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4 h-full">
                 {/* Framed Player Photo with Glowing Blue Accent */}
-                <div className="relative border-2 border-[#2074D5] bg-[#0E0E11] overflow-hidden flex items-center justify-center min-h-[220px] shadow-[0_0_15px_rgba(32,116,213,0.25)]">
+                <div className="relative aspect-square w-full self-start border-2 border-[#2074D5] bg-[#0E0E11] overflow-hidden flex items-center justify-center shadow-[0_0_15px_rgba(32,116,213,0.25)]">
                   {lot.player.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <LotPhoto src={lot.player.photoUrl} alt={lot.player.name} soldTo={soldColor} className="absolute inset-0 overflow-hidden" />
