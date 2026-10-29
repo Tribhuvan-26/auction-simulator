@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seed, generatePasscodes, DEFAULT_ROOM_NAME } from './seed'
+import { seed, generatePasscodes, basePriceForRating, DEFAULT_ROOM_NAME } from './seed'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -49,7 +49,7 @@ describe('seed', () => {
 
   it('creates every official player', async () => {
     const players = await prisma.player.findMany({ where: { roomId } })
-    expect(players).toHaveLength(254)
+    expect(players).toHaveLength(107)
   })
 
   it('covers all four player roles', async () => {
@@ -110,5 +110,11 @@ describe('seed room naming', () => {
 
   it('falls back to the default name when given blank', async () => {
     expect(DEFAULT_ROOM_NAME).toBe('IPL 2026 Auction')
+  })
+})
+
+describe('basePriceForRating', () => {
+  it('maps rating bands to base prices in lakhs', () => {
+    expect([98, 90, 89, 80, 79, 65].map(basePriceForRating)).toEqual([200, 200, 100, 100, 50, 50])
   })
 })

@@ -45,8 +45,21 @@ type OfficialPlayer = {
   photoUrl: string | null
 }
 
+// Only the batters/keepers on the auction shortlist go into a room — see
+// prisma/data/auction-pool.json.
+const POOL_PATH = join(__dirname, 'data/auction-pool.json')
+
+// Base price comes from the player's rating (src/data/player-ratings.json),
+// in lakhs: 90–100 → ₹2 Cr, 80–89 → ₹1 Cr, below → ₹50 L.
+const RATINGS_PATH = join(__dirname, '../src/data/player-ratings.json')
+
+export function basePriceForRating(rating: number): number {
+  return rating >= 90 ? 200 : rating >= 80 ? 100 : 50
+}
+
 function loadOfficialPlayers(): OfficialPlayer[] {
-  return JSON.parse(readFileSync(DATA_PATH, 'utf-8'))
+  const pool = new Set<string>(JSON.parse(readFileSync(POOL_PATH, 'utf-8')))
+  return JSON.parse(readFileSync(DATA_PATH, 'utf-8')).filter((p: OfficialPlayer) => pool.has(p.name))
 }
 
 function loadRoles(): Record<string, PlayerRole> {
@@ -85,6 +98,9 @@ function generateRoomCode(): string {
 export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscodes?: string[]) {
   const officialPlayers = loadOfficialPlayers()
   const rolesByName = loadRoles()
+  const ratings: Record<string, number> = JSON.parse(readFileSync(RATINGS_PATH, 'utf-8'))
+  const unrated = officialPlayers.filter((p) => ratings[p.name] === undefined).map((p) => p.name)
+  if (unrated.length) throw new Error(`No rating in player-ratings.json for: ${unrated.join(', ')}`)
   const unroled = officialPlayers.filter((p) => !rolesByName[p.name]).map((p) => p.name)
   if (unroled.length) throw new Error(`No role in player-roles.json for: ${unroled.join(', ')}`)
   const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
@@ -117,7 +133,7 @@ export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscod
         roomId,
         name: p.name,
         role: rolesByName[p.name],
-        basePrice: p.basePrice,
+        basePrice: basePriceForRating(ratings[p.name]),
         photoUrl: p.photoUrl,
         nationality: p.nationality,
         isOverseas: p.isOverseas,

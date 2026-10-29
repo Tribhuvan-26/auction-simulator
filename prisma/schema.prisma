@@ -88,6 +88,7 @@ model Player {
   strikeRate  Float?
   economy     Float?
   status      PlayerStatus @default(UPCOMING)
+  queueOrder  Int          @default(0)
   setNumber   String
   soldPrice   Int?
   teamId      String?

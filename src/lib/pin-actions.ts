@@ -65,3 +65,12 @@ export async function unlockAdmin(roomId: string, passcode: string): Promise<str
   })
   return null
 }
+
+/** Drops this browser's seat cookie; the page's PinGate takes over on refresh. */
+export async function logoutTeam(teamId: string): Promise<void> {
+  ;(await cookies()).delete(teamCookieName(teamId))
+}
+
+export async function logoutAdmin(roomId: string): Promise<void> {
+  ;(await cookies()).delete(adminCookieName(roomId))
+}

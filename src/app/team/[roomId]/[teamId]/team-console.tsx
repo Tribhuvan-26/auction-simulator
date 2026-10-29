@@ -17,8 +17,12 @@ import {
 } from 'lucide-react'
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { TeamCrest } from '@/components/ui/team-crest'
+import { LotPhoto } from '@/components/auction/lot-photo'
+import { RatingPanel } from '@/components/auction/rating-panel'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { Model3D } from '@/components/ui/model-3d'
+import { LogoutButton } from '@/components/ui/logout-button'
+import { logoutTeam } from '@/lib/pin-actions'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { formatMoney } from '@/lib/money'
@@ -219,7 +223,8 @@ export function TeamConsole({
     : 'No active lot'
 
 
-  const canBid = !closed && !leading && !passed && !pending && !rejection && !!lot
+  // Teams only open the bidding; after the first bid the auctioneer runs it.
+  const canBid = !closed && lot?.status !== 'BIDDING' && !leading && !passed && !pending && !rejection && !!lot
 
   useEffect(() => {
     leaderRef.current = lot?.currentBiddingTeamId ?? null
@@ -270,6 +275,8 @@ export function TeamConsole({
     ? 'sitting this lot out'
     : !lot || closed
     ? 'waiting for the auctioneer'
+    : lot.status === 'BIDDING'
+    ? 'bidding is live in the room'
     : rejection === 'Purse insufficient'
     ? 'purse insufficient'
     : rejection
@@ -351,6 +358,10 @@ export function TeamConsole({
             >
               SQUAD
             </button>
+            <LogoutButton
+              action={() => logoutTeam(teamId)}
+              className="px-3 py-4 text-white/50 hover:text-white transition-colors cursor-pointer"
+            />
             <button
               onClick={() => {
                 document.getElementById('bidding-panel')?.scrollIntoView({ behavior: 'smooth' })
@@ -479,11 +490,7 @@ export function TeamConsole({
                 >
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={photo}
-                      alt={lot ? lot.player.name : 'Player'}
-                      className="h-full w-full object-cover object-top filter contrast-[1.05] transition-transform duration-500 group-hover:scale-105"
-                    />
+                    <LotPhoto src={photo} alt={lot ? lot.player.name : 'Player'} soldTo={lot?.status === 'SOLD' ? leader ?? null : null} />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-1 text-center p-4">
                       <span className="font-condensed text-5xl font-black text-white/20">
@@ -498,7 +505,7 @@ export function TeamConsole({
                   {/* Hover hint to expand */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-brand-yellow">
                     <Maximize2 className="h-4 w-4" />
-                    <span>EXPAND STATS</span>
+                    <span>EXPAND</span>
                   </div>
                 </div>
 
@@ -644,20 +651,10 @@ export function TeamConsole({
                   <Hand className="h-5 w-5" />
                 </button>
 
-                {/* WITHDRAW Button (Disabled per rules) */}
-                <button
-                  disabled
-                  title="A placed bid cannot be retracted per Official IPL Rulebook Clause 4.2"
-                  className="flex items-center justify-between px-5 py-3.5 bg-[#E8D9B8] text-[#554C38] cursor-not-allowed font-condensed text-2xl font-black uppercase tracking-wider opacity-85"
-                >
-                  <span>WITHDRAW</span>
-                  <X className="h-5 w-5" />
-                </button>
-
                 {/* Press Space to Raise & Live Status Feedback */}
                 <div className="pt-1 flex flex-wrap items-center justify-between gap-1 border-t border-white/10 mt-1">
                   <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/50">
-                    PRESS SPACE TO RAISE
+                    PRESS SPACE TO OPEN BIDDING
                   </span>
                   {statusMessage && (
                     <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-brand-yellow">
@@ -972,61 +969,16 @@ export function TeamConsole({
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        BASE PRICE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-brand-yellow tabular-nums">
-                        {formatMoney(previewPlayer.basePrice)}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        MATCHES
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {previewPlayer.matches ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        RUNS
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {previewPlayer.runs ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        WICKETS
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {previewPlayer.wickets ?? 0}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        AVERAGE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-white tabular-nums">
-                        {previewPlayer.average ? previewPlayer.average.toFixed(1) : '—'}
-                      </span>
-                    </div>
-
-                    <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
-                        STRIKE RATE
-                      </span>
-                      <span className="font-condensed text-lg font-black text-brand-blue tabular-nums">
-                        {previewPlayer.strikeRate ? previewPlayer.strikeRate.toFixed(1) : '—'}
-                      </span>
-                    </div>
+                  <div className="border border-white/10 bg-[#1A1A1E] p-2.5">
+                    <span className="font-mono text-[8px] uppercase tracking-wider text-white/40 block">
+                      BASE PRICE
+                    </span>
+                    <span className="font-condensed text-lg font-black text-brand-yellow tabular-nums">
+                      {formatMoney(previewPlayer.basePrice)}
+                    </span>
                   </div>
+
+                  <RatingPanel name={previewPlayer.name} />
                 </div>
               </div>
             </motion.div>

@@ -14,7 +14,11 @@ import {
   Circle,
   HelpCircle,
 } from 'lucide-react'
+import { RatingPanel } from '@/components/auction/rating-panel'
+import { LogoutButton } from '@/components/ui/logout-button'
+import { logoutAdmin } from '@/lib/pin-actions'
 import { TeamCrest } from '@/components/ui/team-crest'
+import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
@@ -29,6 +33,7 @@ import {
   placeBid,
   forceBid,
   advanceToNextLot,
+  moveInQueue,
   type AdminSnapshot,
 } from './actions'
 
@@ -118,6 +123,16 @@ export function AdminConsole({
     await run(() => placeBid(roomId, team.id, amount))
   }
 
+  const [movePlayerId, setMovePlayerId] = useState('')
+  const [movePos, setMovePos] = useState('')
+
+  async function handleMove(e: React.FormEvent) {
+    e.preventDefault()
+    if (!movePlayerId || !Number(movePos)) return
+    await run(() => moveInQueue(roomId, movePlayerId, Number(movePos)))
+    setMovePos('')
+  }
+
   async function handleJumpBid(e: React.FormEvent) {
     e.preventDefault()
     const amount = Number(jumpBid)
@@ -157,33 +172,14 @@ export function AdminConsole({
     return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB)
   })
 
+  const soldColor =
+    lot?.status === 'SOLD' ? snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId) ?? null : null
   const roleDisplay = (lot?.player.role || 'BATTER').replace('_', ' ').toUpperCase()
   const setCategory = lot?.player.setNumber
     ? lot.player.setNumber.toUpperCase()
     : 'UNCAPPED PLAYERS'
 
   const remainingPlayersCount = snapshot.queue.length || 253
-
-  // Performance graph stats
-  const m = lot?.player.matches ?? 0
-  const r = lot?.player.runs ?? 0
-  const w = lot?.player.wickets ?? 0
-  const avg = lot?.player.average ?? 0
-  const sr = lot?.player.strikeRate ?? 0
-
-  const mHeight = m > 0 ? Math.min(95, Math.max(12, Math.round((m / 250) * 90))) : 8
-  const rHeight = r > 0 ? Math.min(95, Math.max(12, Math.round((r / 5000) * 90))) : 8
-  const wHeight = w > 0 ? Math.min(95, Math.max(12, Math.round((w / 150) * 90))) : 8
-  const avgHeight = avg > 0 ? Math.min(95, Math.max(12, Math.round((avg / 50) * 90))) : 8
-  const srHeight = sr > 0 ? Math.min(95, Math.max(12, Math.round((sr / 180) * 90))) : 8
-
-  const graphItems = [
-    { label: 'M', value: m, height: mHeight, color: 'bg-[#2074D5]' },
-    { label: 'R', value: r, height: rHeight, color: 'bg-[#F9D47B]' },
-    { label: 'W', value: w, height: wHeight, color: 'bg-[#EB547C]' },
-    { label: 'AVG', value: avg, height: avgHeight, color: 'bg-white' },
-    { label: 'SR', value: sr, height: srHeight, color: 'bg-[#2074D5]' },
-  ]
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#0D0D10] text-white select-none overflow-x-hidden font-sans">
@@ -218,6 +214,11 @@ export function AdminConsole({
             >
               ALL ROOMS
             </Link>
+            <span className="text-white/40">•</span>
+            <LogoutButton
+              action={() => logoutAdmin(roomId)}
+              className="text-white/70 hover:text-white transition-colors cursor-pointer"
+            />
           </div>
 
           {/* Phase Indicator */}
@@ -346,12 +347,12 @@ export function AdminConsole({
                       placeholder="e.g. 100"
                       value={jumpBid}
                       onChange={(e) => setJumpBid(e.target.value)}
-                      className="flex-1 border border-white/20 bg-[#1C1C22] px-3 py-2 font-mono text-sm font-bold text-white placeholder-white/30 focus:border-[#2074D5] focus:outline-none tabular-nums"
+                      className="min-w-0 flex-1 border border-white/20 bg-[#1C1C22] px-3 py-2 font-mono text-sm font-bold text-white placeholder-white/30 focus:border-[#2074D5] focus:outline-none tabular-nums"
                     />
                     <button
                       type="submit"
                       disabled={!lot || closed || pending}
-                      className="px-4 py-2 bg-[#60A5FA] hover:bg-blue-400 active:bg-blue-500 disabled:opacity-35 disabled:cursor-not-allowed font-condensed text-base font-black uppercase tracking-wider text-[#0B1528] transition-colors cursor-pointer shadow"
+                      className="shrink-0 px-4 py-2 bg-[#60A5FA] hover:bg-blue-400 active:bg-blue-500 disabled:opacity-35 disabled:cursor-not-allowed font-condensed text-base font-black uppercase tracking-wider text-[#0B1528] transition-colors cursor-pointer shadow"
                     >
                       Bid
                     </button>
@@ -369,11 +370,7 @@ export function AdminConsole({
                 <div className="relative border-2 border-[#2074D5] bg-[#0E0E11] overflow-hidden flex items-center justify-center min-h-[220px] shadow-[0_0_15px_rgba(32,116,213,0.25)]">
                   {lot.player.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={lot.player.photoUrl}
-                      alt={lot.player.name}
-                      className="h-full w-full object-cover object-top filter contrast-[1.05]"
-                    />
+                    <LotPhoto src={lot.player.photoUrl} alt={lot.player.name} soldTo={soldColor} className="absolute inset-0 overflow-hidden" />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-1 text-center p-4">
                       <span className="font-condensed text-5xl font-black text-white/20">
@@ -456,34 +453,7 @@ export function AdminConsole({
                       </div>
                     </div>
 
-                    {/* Right: PERFORMANCE GRAPH with M, R, W, AVG, SR */}
-                    <div className="flex h-full flex-col justify-between border border-white/10 bg-[#161619] p-3">
-                      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 block mb-1">
-                        PERFORMANCE GRAPH
-                      </span>
-
-                      <div className="flex flex-1 items-end justify-between gap-1.5 px-1 pb-1 pt-2">
-                        {graphItems.map((item) => (
-                          <div
-                            key={item.label}
-                            className="flex flex-1 flex-col items-center gap-1.5 h-full justify-end group"
-                          >
-                            <span className="font-mono text-[8px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity tabular-nums">
-                              {item.value}
-                            </span>
-                            <div className="w-full max-w-[22px] bg-white/5 flex items-end h-24 sm:h-28 border-b border-white/15">
-                              <div
-                                className={`w-full ${item.color} transition-all duration-500 rounded-none shadow-[0_0_6px_rgba(255,255,255,0.1)]`}
-                                style={{ height: `${item.height}%` }}
-                              />
-                            </div>
-                            <span className="font-mono text-[9px] font-extrabold uppercase tracking-wider text-white/70">
-                              {item.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <RatingPanel name={lot.player.name} />
                   </div>
                 </div>
               </div>
@@ -605,6 +575,7 @@ export function AdminConsole({
         </div>
 
         {/* ── Bottom Row: TEAM BID TRACKER (Screenshot 1 Full Width 2x5 Grid) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_310px] xl:grid-cols-[1fr_340px] gap-4 items-start">
         <div className="flex flex-col border border-white/15 bg-[#141418]/90 p-3.5 shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
             <span className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
@@ -677,6 +648,67 @@ export function AdminConsole({
               )
             })}
           </div>
+        </div>
+        {/* UP NEXT QUEUE */}
+        <div className="flex flex-col border border-white/15 bg-[#141418]/90 p-3.5 shadow-xl backdrop-blur-md">
+          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/60 mb-2 block">
+            UP NEXT · {snapshot.queue.length} IN QUEUE
+          </span>
+
+          <form onSubmit={handleMove} className="flex gap-1.5 mb-2">
+            <select
+              value={movePlayerId}
+              onChange={(e) => setMovePlayerId(e.target.value)}
+              aria-label="Player to move"
+              className="min-w-0 flex-1 bg-[#1C1C22] border border-white/20 px-2 py-1.5 font-mono text-[11px] text-white"
+            >
+              <option value="">Player…</option>
+              {snapshot.queue.map((p, i) => (
+                <option key={p.id} value={p.id}>{i + 1}. {p.name}</option>
+              ))}
+            </select>
+            <input
+              value={movePos}
+              onChange={(e) => setMovePos(e.target.value.replace(/\D/g, ''))}
+              inputMode="numeric"
+              placeholder="Pos"
+              aria-label="New queue position"
+              className="w-14 bg-[#1C1C22] border border-white/20 px-2 py-1.5 font-mono text-[11px] text-white"
+            />
+            <button
+              type="submit"
+              disabled={pending || !movePlayerId || !movePos}
+              className="px-3 bg-[#FBBF24] text-black font-mono text-[11px] font-bold uppercase disabled:opacity-40 cursor-pointer"
+            >
+              MOVE
+            </button>
+          </form>
+
+          <div className="flex flex-col gap-1 max-h-[220px] overflow-y-auto">
+            {snapshot.queue.map((p, i) => (
+              <div
+                key={p.id}
+                className={`flex items-center gap-2 border px-2 py-1 text-xs ${
+                  i === 0 ? 'border-brand-yellow bg-brand-yellow/10' : 'border-white/10 bg-[#1C1C22]'
+                }`}
+              >
+                <span className="font-mono text-[10px] text-white/40 w-6 tabular-nums">{i + 1}</span>
+                <span className="flex-1 truncate font-condensed font-black uppercase text-white">{p.name}</span>
+                <span className="font-mono text-[9px] text-white/50">{p.role.replace('_', ' ')}</span>
+                <span className="font-mono text-[10px] tabular-nums text-white/70">{formatMoney(p.basePrice)}</span>
+                {i > 0 && (
+                  <button
+                    onClick={() => run(() => moveInQueue(roomId, p.id, 1))}
+                    disabled={pending}
+                    className="px-1.5 py-0.5 border border-white/20 font-mono text-[9px] font-bold uppercase text-brand-yellow hover:bg-white/10 cursor-pointer"
+                  >
+                    NEXT
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
         </div>
       </div>
 

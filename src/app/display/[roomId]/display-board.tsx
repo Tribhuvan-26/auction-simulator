@@ -10,6 +10,7 @@ import { GlobalHeader } from '@/components/ui/global-header'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { BiddingLogTable } from '@/components/auction/bidding-log-table'
 import { TeamCrest } from '@/components/ui/team-crest'
+import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { ResultsTicker } from '@/components/auction/results-ticker'
 import {
@@ -17,66 +18,8 @@ import {
   type PublicSnapshot,
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
+import { RatingPanel } from '@/components/auction/rating-panel'
 import { formatMoney } from '@/lib/money'
-
-interface PerformanceGraphProps {
-  stats: {
-    matches?: number | null
-    runs?: number | null
-    wickets?: number | null
-    average?: number | null
-    strikeRate?: number | null
-  }
-}
-
-function PerformanceGraph({ stats }: PerformanceGraphProps) {
-  const m = stats.matches ?? 0
-  const r = stats.runs ?? 0
-  const w = stats.wickets ?? 0
-  const avg = stats.average ?? 0
-  const sr = stats.strikeRate ?? 0
-
-  const mHeight = m > 0 ? Math.min(95, Math.max(12, Math.round((m / 350) * 90))) : 8
-  const rHeight = r > 0 ? Math.min(95, Math.max(12, Math.round((r / 8000) * 90))) : 8
-  const wHeight = w > 0 ? Math.min(95, Math.max(12, Math.round((w / 180) * 90))) : 8
-  const avgHeight = avg > 0 ? Math.min(95, Math.max(12, Math.round((avg / 55) * 90))) : 8
-  const srHeight = sr > 0 ? Math.min(95, Math.max(12, Math.round((sr / 180) * 90))) : 8
-
-  const items = [
-    { label: 'M', value: m, height: mHeight, color: 'bg-[#2074D5]' },
-    { label: 'R', value: r, height: rHeight, color: 'bg-[#F9D47B]' },
-    { label: 'W', value: w, height: wHeight, color: 'bg-[#EB547C]' },
-    { label: 'AVG', value: avg, height: avgHeight, color: 'bg-white' },
-    { label: 'SR', value: sr, height: srHeight, color: 'bg-[#2074D5]' },
-  ]
-
-  return (
-    <div className="flex h-full flex-col justify-between border border-white/10 bg-[#161619] p-3">
-      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 block mb-1">
-        PERFORMANCE GRAPH
-      </span>
-
-      <div className="flex flex-1 items-end justify-between gap-2 px-1 pb-1 pt-2">
-        {items.map((item) => (
-          <div key={item.label} className="flex flex-1 flex-col items-center gap-1.5 h-full justify-end group">
-            <span className="font-mono text-[8px] text-white/40 opacity-0 group-hover:opacity-100 transition-opacity tabular-nums">
-              {item.value}
-            </span>
-            <div className="w-full max-w-[22px] bg-white/5 flex items-end h-24 border-b border-white/15">
-              <div
-                className={`w-full ${item.color} transition-all duration-500 rounded-none shadow-[0_0_6px_rgba(255,255,255,0.1)]`}
-                style={{ height: `${item.height}%` }}
-              />
-            </div>
-            <span className="font-mono text-[9px] font-extrabold uppercase tracking-wider text-white/70">
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function DisplayBoard({
   roomId,
@@ -135,7 +78,7 @@ export function DisplayBoard({
   const displayPhoto = activeDisplayPlayer?.photoUrl || null
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col pb-16 text-white overflow-x-hidden">
+    <div className="relative flex h-screen w-full flex-col pb-16 text-white overflow-hidden">
       {/* Brutalist Environmental Backdrop matching Reference & Figma Asset */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -166,195 +109,126 @@ export function DisplayBoard({
         </div>
       </div>
 
-      {/* Main Composition: Left Pillar | Center Stage */}
-      <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-4 p-4 lg:px-6 min-h-0">
-        {/* ── Left Pillar: Lot Number ── */}
-        <aside className="flex flex-col justify-between border-r border-white/10 pr-4 py-2">
-          <div className="flex flex-col gap-5">
-            {/* LOT X / 577 */}
-            <div>
-              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-white/40 block">
-                LOT
-              </span>
-              <div className="font-condensed text-3xl font-black text-white tracking-tight mt-0.5">
-                {lot ? lot.lotNumber : '1'}{' '}
-                <span className="text-white/30 text-xl font-normal">/ {roomPlayers.length || 254}</span>
-              </div>
+      {/* Main Composition: left sidebar (details + log) | big photo stage */}
+      <main className="relative z-10 grid flex-1 grid-cols-1 grid-rows-1 lg:grid-cols-[380px_1fr] xl:grid-cols-[520px_1fr] gap-4 p-4 lg:px-6 min-h-0">
+        {/* ── Left Sidebar: lot details + bidding log (sized off the screen height so it never scrolls) ── */}
+        <aside ref={cardRef} className={`flex h-full min-h-0 min-w-0 flex-col gap-[1.2vh] ${bidPulse ? 'anim-bid-pop' : ''}`}>
+          <div className="font-condensed text-[4vh] leading-none font-black text-white tracking-tight">
+            LOT {lot ? lot.lotNumber : '1'}{' '}
+            <span className="text-white/30 text-[2.6vh] font-normal">/ {roomPlayers.length || 254}</span>
+          </div>
+
+          <div className="bg-[#2074D5] px-5 py-[1.2vh] shadow-md">
+            <h1 className="font-condensed text-[5.4vh] font-black uppercase tracking-tight text-white leading-none truncate">
+              {activeDisplayPlayer?.name || 'AWAITING NEXT LOT'}
+            </h1>
+            <div className="mt-[0.8vh] flex flex-wrap items-center gap-3 font-mono text-[1.7vh] font-bold uppercase tracking-wider text-white/85">
+            <span>
+              {activeDisplayPlayer?.setNumber || 'SET 1'} • {displayRole}
+            </span>
+            {activeDisplayPlayer && (
+              <>
+                <span
+                  className={`border-2 border-brand-charcoal px-2 py-0.5 font-condensed text-xl font-black tracking-widest text-brand-charcoal shadow-[2px_2px_0_#282828] ${
+                    activeDisplayPlayer.isOverseas ? 'bg-brand-yellow' : 'bg-brand-white'
+                  }`}
+                >
+                  {activeDisplayPlayer.isOverseas ? 'OVERSEAS' : 'INDIAN'}
+                </span>
+                <span className="text-sm font-medium normal-case text-white/70">
+                  {activeDisplayPlayer.nationality}
+                </span>
+              </>
+            )}
             </div>
           </div>
+
+          <div className="grid grid-cols-[1fr_17vh] gap-[1.2vh]">
+            <div className="bg-[#EB547C] px-5 py-[1.2vh] text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
+              <span className="font-mono text-[1.7vh] font-black uppercase tracking-[0.2em] text-white/90 block">
+                CURRENT BID
+              </span>
+              <div className="font-condensed text-[8vh] font-black leading-none tracking-tight text-white tabular-nums">
+                {lot ? formatMoney(lot.currentBid) : '—'}
+              </div>
+            </div>
+            <RatingPanel name={activeDisplayPlayer?.name ?? ''} compact />
+          </div>
+
+          <div className="grid grid-cols-3 gap-px bg-white/15 border border-white/15">
+            <div className="col-span-3 bg-[#17171A] px-4 py-[1vh]">
+              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">HIGHEST BIDDER</span>
+              <span className="font-condensed text-[3.4vh] leading-tight font-black uppercase text-white whitespace-nowrap flex items-center gap-2">
+                {leader && (
+                  <TeamCrest
+                    shortCode={leader.shortCode}
+                    name={leader.name}
+                    colorAccent={leader.colorAccent}
+                    logoUrl={leader.logoUrl}
+                    mark
+                    className="h-[3.6vh] w-[3.6vh] shrink-0"
+                  />
+                )}
+                {leader ? leader.name : 'Waiting for bid'}
+              </span>
+            </div>
+            <div className="bg-[#17171A] px-4 py-[1vh]">
+              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">ROLE</span>
+              <span className="font-condensed text-[3.2vh] leading-tight font-black uppercase text-white block truncate">{displayRole}</span>
+            </div>
+            <div className="bg-[#17171A] px-4 py-[1vh]">
+              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">BASE PRICE</span>
+              <span className="font-condensed text-[3.2vh] leading-tight font-black uppercase text-brand-yellow block tabular-nums">
+                {activeDisplayPlayer ? formatMoney(activeDisplayPlayer.basePrice) : '—'}
+              </span>
+            </div>
+            <div className="bg-[#17171A] px-4 py-[1vh]">
+              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">MATCHES</span>
+              <span className="font-condensed text-[3.2vh] leading-tight font-black uppercase text-white block tabular-nums">
+                {activeDisplayPlayer?.matches ?? 0}
+              </span>
+            </div>
+          </div>
+
+          <BiddingLogTable
+            className="min-h-0 flex-1 overflow-hidden"
+            title="BIDDING LOG"
+            maxRows={5}
+            rows={[...(lot?.bidHistory ?? [])].reverse().map((bid) => {
+              const team = snapshot.teams.find((t) => t.id === bid.teamId)
+              return {
+                key: `${bid.teamId}-${bid.timestamp}`,
+                teamCode: team?.shortCode ?? bid.teamName,
+                teamName: bid.teamName,
+                amount: bid.amount,
+                timestamp: bid.timestamp,
+                accentColor: team?.colorAccent,
+              }
+            })}
+          />
         </aside>
 
-        {/* ── Center Stage: Player Hero + Action Controls + Bottom Panels (Screenshot 2) ── */}
-        <section className="flex flex-col gap-3 min-w-0">
-          {/* Active / Selected Player Card matching Screenshot 2 */}
-          <div
-            ref={cardRef}
-            className={`flex flex-col border border-white/10 bg-[#161619]/90 p-4 text-white shadow-2xl backdrop-blur-md ${
-              bidPulse ? 'anim-bid-pop' : ''
-            }`}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 items-center">
-              {/* Framed Player Portrait with Yellow Corner Accents */}
-              <div className="relative aspect-[4/5] w-full max-w-[200px] mx-auto md:mx-0 overflow-hidden bg-[#202020] border border-white/15 shadow-lg">
-                {/* Yellow Corner Bracket Accents */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-yellow z-10" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-yellow z-10" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-yellow z-10" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-yellow z-10" />
+        {/* ── Photo Stage ── */}
+        <section className="relative flex h-full min-h-0 items-center justify-center border border-white/10 bg-[#161619]/80 shadow-2xl backdrop-blur-md min-w-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-brand-yellow z-10" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-brand-yellow z-10" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-brand-yellow z-10" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-brand-yellow z-10" />
 
-                {!activeDisplayPlayer ? (
-                  <Model3D src="/models/trophy.glb" loop className="h-full w-full" />
-                ) : displayPhoto ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={displayPhoto}
-                    alt={activeDisplayPlayer?.name || 'Player'}
-                    className="h-full w-full object-cover object-top filter contrast-[1.05]"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center font-condensed text-5xl font-black text-white/20">
-                    {activeDisplayPlayer?.name
-                      ? activeDisplayPlayer.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join('')
-                      : 'IPL'}
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Player Name Banner & Sub-Layout */}
-              <div className="flex flex-col justify-between h-full gap-3">
-                {/* Header Blue Banner matching Screenshot 2 */}
-                <div className="bg-[#2074D5] px-4 py-2.5 shadow-md flex items-center justify-between">
-                  <div>
-                    <h1 className="font-condensed text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-none">
-                      {activeDisplayPlayer?.name || 'AWAITING NEXT LOT'}
-                    </h1>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-white/85">
-                      <span>
-                        {activeDisplayPlayer?.setNumber || 'SET 1'} • {displayRole}
-                      </span>
-                      {activeDisplayPlayer && (
-                        <>
-                          <span
-                            className={`border-2 border-brand-charcoal px-2 py-0.5 font-condensed text-sm font-black tracking-widest text-brand-charcoal shadow-[2px_2px_0_#282828] ${
-                              activeDisplayPlayer.isOverseas ? 'bg-brand-yellow' : 'bg-brand-white'
-                            }`}
-                          >
-                            {activeDisplayPlayer.isOverseas ? 'OVERSEAS' : 'INDIAN'}
-                          </span>
-                          <span className="text-[9px] font-medium normal-case text-white/60">
-                            {activeDisplayPlayer.nationality}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>                </div>
-
-                {/* Sub-Layout: CURRENT BID & 2x2 Grid | PERFORMANCE GRAPH */}
-                <div className="grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-3">
-                  {/* Left: CURRENT BID Plate (Pink) & 2x2 Info Grid */}
-                  <div className="flex flex-col justify-between gap-2.5">
-                    {/* CURRENT BID Plate */}
-                    <div className="bg-[#EB547C] p-3 text-white shadow-[0_0_20px_rgba(235,84,124,0.3)]">
-                      <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/85 block">
-                        CURRENT BID
-                      </span>
-                      <div className="font-condensed text-3xl sm:text-4xl font-black leading-none tracking-tight text-white mt-1 tabular-nums">
-                        {lot ? formatMoney(lot.currentBid) : '—'}
-                      </div>
-                    </div>
-
-                    {/* 2x2 Info Grid: TEAM | ROLE | BASE | STATUS */}
-                    <div className="grid grid-cols-2 gap-px bg-white/15 border border-white/15">
-                      {/* TEAM */}
-                      <div className="bg-[#17171A] p-2">
-                        <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                          HIGHEST BIDDER
-                        </span>
-                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate mt-0.5 flex items-center gap-1.5">
-                          {leader && (
-                            <TeamCrest
-                              shortCode={leader.shortCode}
-                              name={leader.name}
-                              colorAccent={leader.colorAccent}
-                              logoUrl={leader.logoUrl}
-                              mark
-                              className="h-4 w-4 shrink-0"
-                            />
-                          )}
-                          <span className="truncate">{leader ? leader.name : 'Waiting for bid'}</span>
-                        </span>
-                      </div>
-
-                      {/* ROLE */}
-                      <div className="bg-[#17171A] p-2">
-                        <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                          ROLE
-                        </span>
-                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5">
-                          {displayRole}
-                        </span>
-                      </div>
-
-                      {/* BASE */}
-                      <div className="bg-[#17171A] p-2">
-                        <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                          BASE PRICE
-                        </span>
-                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-brand-yellow truncate block mt-0.5 tabular-nums">
-                          {activeDisplayPlayer ? formatMoney(activeDisplayPlayer.basePrice) : '—'}
-                        </span>
-                      </div>
-
-                      {/* MATCHES */}
-                      <div className="bg-[#17171A] p-2">
-                        <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-white/50 block">
-                          MATCHES
-                        </span>
-                        <span className="font-condensed text-xs sm:text-sm font-black uppercase text-white truncate block mt-0.5 tabular-nums">
-                          {activeDisplayPlayer?.matches ?? 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: PERFORMANCE GRAPH with M, R, W, AVG, SR */}
-                  <div className="h-full min-h-[140px]">
-                    <PerformanceGraph
-                      stats={{
-                        matches: activeDisplayPlayer?.matches,
-                        runs: activeDisplayPlayer?.runs,
-                        wickets: activeDisplayPlayer?.wickets,
-                        average: activeDisplayPlayer?.average,
-                        strikeRate: activeDisplayPlayer?.strikeRate,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Row: Bidding Log */}
-          <div className="grid grid-cols-1 gap-4">
-            <BiddingLogTable
-              title="BIDDING LOG"
-              rows={[...(lot?.bidHistory ?? [])].reverse().map((bid) => {
-                const team = snapshot.teams.find((t) => t.id === bid.teamId)
-                return {
-                  key: `${bid.teamId}-${bid.timestamp}`,
-                  teamCode: team?.shortCode ?? bid.teamName,
-                  teamName: bid.teamName,
-                  amount: bid.amount,
-                  timestamp: bid.timestamp,
-                  accentColor: team?.colorAccent,
-                }
-              })}
+          {!activeDisplayPlayer ? (
+            <Model3D src="/models/trophy.glb" loop className="h-full w-full" />
+          ) : displayPhoto ? (
+            <LotPhoto
+              src={displayPhoto}
+              alt={activeDisplayPlayer.name}
+              soldTo={lot?.status === 'SOLD' ? leader ?? null : null}
+              className="relative h-full aspect-square max-w-full"
             />
-          </div>
+          ) : (
+            <div className="font-condensed text-9xl font-black text-white/20">
+              {activeDisplayPlayer.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+            </div>
+          )}
         </section>
       </main>
 
@@ -365,6 +239,7 @@ export function DisplayBoard({
       <GlobalFooter
         tagline="MORE THAN A TOURNAMENT. A LEGACY IN MOTION."
         year="IPL AUCTION 2026"
+        showPalette={false}
       />
 
       {/* SOLD / UNSOLD Stamp Animation */}

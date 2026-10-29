@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { AdminConsole } from './admin-console'
 import type { AdminSnapshot } from './actions'
 
+vi.mock('@/lib/pin-actions', () => ({ logoutAdmin: vi.fn(), logoutTeam: vi.fn() }))
 vi.mock('@/hooks/use-live-snapshot', () => ({
   useLiveSnapshot: (_roomId: string, initial: AdminSnapshot) => ({
     snapshot: initial,

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { TeamConsole } from './team-console'
 import type { PublicSnapshot } from '@/app/admin/[roomId]/actions'
 
+vi.mock('@/lib/pin-actions', () => ({ logoutAdmin: vi.fn(), logoutTeam: vi.fn() }))
 vi.mock('@/hooks/use-live-snapshot', () => ({
   useLiveSnapshot: (_roomId: string, initial: PublicSnapshot) => ({
     snapshot: initial,
@@ -36,7 +37,7 @@ function snapshot(over: Partial<PublicSnapshot> = {}, teamOver = {}): PublicSnap
     currentLot: {
       id: 'lot-1',
       lotNumber: 4,
-      status: 'BIDDING',
+      status: 'QUEUED',
       currentBid: 20,
       currentBiddingTeamId: null,
       timerSeconds: 30,
@@ -61,14 +62,14 @@ function renderConsole(s: PublicSnapshot) {
 describe('TeamConsole bidding control panel', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('bids the ladder amount when another team can be beaten', async () => {
+  it('opens the bidding at the base price', async () => {
     const { placeBid } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
     const bid = screen.getByRole('button', { name: /^bid$/i })
     expect(bid).not.toBeDisabled()
     fireEvent.click(bid)
-    // Lot is BIDDING at 20 L, so the ladder's next rung is 25 L.
-    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 25))
+    // Lot hasn't opened, so the opening bid is the base price.
+    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 20))
   })
 
   it('locks out while this team already holds the lot', () => {
@@ -102,7 +103,7 @@ describe('TeamConsole bidding control panel', () => {
     const { placeBid } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
     fireEvent.keyDown(window, { key: ' ' })
-    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 25))
+    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 20))
   })
 
   it('ignores the spacebar while a modal is open or the key is held down', async () => {
@@ -122,9 +123,18 @@ describe('TeamConsole bidding control panel', () => {
     expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
   })
 
-  it('cannot withdraw a placed bid', () => {
+  it('locks out once bidding is live — the auctioneer runs it from there', () => {
+    const s = snapshot()
+    s.currentLot!.status = 'BIDDING'
+    s.currentLot!.currentBiddingTeamId = 'team-2'
+    renderConsole(s)
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
+    expect(screen.getByText(/bidding is live in the room/i)).toBeInTheDocument()
+  })
+
+  it('has no withdraw button', () => {
     renderConsole(snapshot())
-    expect(screen.getByRole('button', { name: /^withdraw$/i })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /^withdraw$/i })).toBeNull()
   })
 })
 

@@ -10,11 +10,13 @@ export function GlobalFooter({
   tagline = 'MORE THAN A TOURNAMENT. A LEGACY IN MOTION.',
   year,
   className,
+  showPalette = true,
 }: {
   telemetryText?: string
   tagline?: string
   year?: string
   className?: string
+  showPalette?: boolean
 }) {
   const palette = [
     { hex: '#2074D5', name: 'BLUE', bg: 'bg-[#2074D5]' },
@@ -43,7 +45,7 @@ export function GlobalFooter({
       </div>
 
       {/* Right: Technical Palette Swatch Strip */}
-      <div className="flex items-center gap-1.5 select-none" title="Architectural System Palette">
+      {showPalette && <div className="flex items-center gap-1.5 select-none" title="Architectural System Palette">
         <span className="text-[8px] text-white/30 mr-1 hidden sm:inline">PALETTE</span>
         {palette.map((c) => (
           <div
@@ -52,7 +54,7 @@ export function GlobalFooter({
             title={`${c.name}: ${c.hex}`}
           />
         ))}
-      </div>
+      </div>}
     </footer>
   )
 }
