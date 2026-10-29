@@ -71,7 +71,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
   // These reads are independent of each other, so they run in parallel (as far
   // as the pool allows). Each action builds this once and broadcasts it, so
   // the other screens don't each rebuild it.
-  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw] = await Promise.all([
+  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw, dropped] = await Promise.all([
     prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
     // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
     // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
@@ -106,6 +106,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
         player: { select: { id: true, name: true, soldPrice: true, team: { select: { shortCode: true, colorAccent: true } } } },
       },
     }),
+    droppedTeams(roomId),
   ])
 
   return {
@@ -119,8 +120,8 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
           currentBid: lot.currentBid,
           currentBiddingTeamId: lot.currentBiddingTeamId,
           timerSeconds: lot.timerSeconds,
-          activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds ?? []),
-          droppedTeamIds: lot.droppedTeamIds ?? [],
+          activeBidders: activeBidders(lot.bids.map((b) => b.teamId), dropped),
+          droppedTeamIds: dropped,
           bidHistory: lot.bids.map((b) => ({
             teamId: b.teamId,
             teamName: b.team.name,
@@ -260,7 +261,22 @@ async function openLotOrThrow(roomId: string) {
     orderBy: { id: 'desc' },
   })
   if (!lot) throw new Error('No lot on the block — load the next player first')
-  return lot
+  return { ...lot, droppedTeamIds: await droppedTeams(roomId) }
+}
+
+/**
+ * Teams that dropped out of the room's newest lot (the one on screen). Raw SQL
+ * because the column may not exist yet on an older database — then nobody has
+ * dropped, and the two-team lock still works, just without DROP.
+ */
+async function droppedTeams(roomId: string): Promise<string[]> {
+  try {
+    const rows = await prisma.$queryRaw<{ d: string[] }[]>`
+      SELECT "droppedTeamIds" AS d FROM "AuctionLot" WHERE "roomId" = ${roomId} ORDER BY id DESC LIMIT 1`
+    return rows[0]?.d ?? []
+  } catch {
+    return []
+  }
 }
 
 type OpenLot = Awaited<ReturnType<typeof openLotOrThrow>>
@@ -271,8 +287,8 @@ function bidLot(lot: OpenLot) {
     currentBid: lot.currentBid,
     status: lot.status,
     player: lot.player,
-    activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds ?? []),
-    droppedTeamIds: lot.droppedTeamIds ?? [],
+    activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds),
+    droppedTeamIds: lot.droppedTeamIds,
   }
 }
 
@@ -477,13 +493,19 @@ export async function dropFromLot(roomId: string, teamId: string): Promise<Publi
   await assertCanBidAs(roomId, teamId)
   const lot = await openLotOrThrow(roomId)
   if (lot.currentBiddingTeamId === teamId) throw new Error('You hold the highest bid — you can only drop once outbid')
-  if ((lot.droppedTeamIds ?? []).includes(teamId)) return toPublic(await buildSnapshot(roomId, false))
+  if (lot.droppedTeamIds.includes(teamId)) return toPublic(await buildSnapshot(roomId, false))
   await prisma.team.findFirstOrThrow({ where: { id: teamId, roomId }, select: { id: true } })
 
-  const { count } = await prisma.auctionLot.updateMany({
-    where: lotUnchanged(lot),
-    data: { droppedTeamIds: { push: teamId } },
-  })
+  // Same guard as lotUnchanged: only if nothing moved since it was read.
+  let count: number
+  try {
+    count = await prisma.$executeRaw`
+      UPDATE "AuctionLot" SET "droppedTeamIds" = array_append("droppedTeamIds", ${teamId})
+      WHERE id = ${lot.id} AND status::text = ${lot.status} AND "currentBid" = ${lot.currentBid}
+        AND "currentBiddingTeamId" IS NOT DISTINCT FROM ${lot.currentBiddingTeamId}`
+  } catch {
+    throw new Error('DROP needs a database update — run migration 20261030090000_lot_dropped_teams')
+  }
   if (count === 0) throw new Error(LOT_CHANGED)
   return toPublic(await publishSnapshot(roomId, 'DROP'))
 }

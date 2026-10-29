@@ -110,8 +110,9 @@ model AuctionLot {
   currentBiddingTeamId  String?
   status                LotStatus   @default(QUEUED)
   timerSeconds          Int         @default(30)
-  /// Teams that dropped out of this lot; they can't bid on it again.
-  droppedTeamIds        String[]    @default([])
+  // "droppedTeamIds" TEXT[] (migration 20261030090000) is read and written with
+  // raw SQL in actions.ts, not mapped here, so the app keeps running on a
+  // database that hasn't had that migration yet.
   bids                  Bid[]
 
   @@index([roomId])
