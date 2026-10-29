@@ -39,6 +39,7 @@ import {
   moveInQueue,
   replaySold,
   dropFromLot,
+  restartRoom,
   type AdminSnapshot,
   type PublicSnapshot,
   type BidResult,
@@ -94,6 +95,7 @@ export function AdminConsole({
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
   const [showStandings, setShowStandings] = useState(false)
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false)
   const [disputeMessage, setDisputeMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [jumpBid, setJumpBid] = useState('')
@@ -226,7 +228,7 @@ export function AdminConsole({
       // A held key repeats, and Cmd+S / Ctrl+Z are the browser's — neither may
       // sell or undo a lot.
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
-      if (showEndConfirm || showSetupModal || showStandings) return
+      if (showEndConfirm || showSetupModal || showStandings || showRestartConfirm) return
       const lot = snapshot.currentLot
       if (!lot) return
       const target = e.target as HTMLElement | null
@@ -254,7 +256,7 @@ export function AdminConsole({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, snapshot, showEndConfirm, showSetupModal, showStandings])
+  }, [roomId, snapshot, showEndConfirm, showSetupModal, showStandings, showRestartConfirm])
 
   // Sort teams in standard order matching Reference 1
   const sortedTeams = [...snapshot.teams].sort((a, b) => {
@@ -349,6 +351,14 @@ export function AdminConsole({
             >
               <Play className="h-4 w-4" />
               REOPEN AUCTION
+            </button>
+            <button
+              onClick={() => setShowRestartConfirm(true)}
+              disabled={pending}
+              className="flex items-center gap-2 border-2 border-[#F9CD05] px-4 py-2 font-condensed text-lg font-black uppercase tracking-wider text-[#F9CD05] hover:bg-[#F9CD05]/15 disabled:opacity-35 cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4" />
+              START NEW AUCTION
             </button>
           </div>
         )}
@@ -946,6 +956,44 @@ export function AdminConsole({
                   className="px-5 py-2 bg-brand-pink text-white hover:bg-pink-600 transition-colors cursor-pointer"
                 >
                   End Auction
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Start New Auction Confirmation ── */}
+      <AnimatePresence>
+        {showRestartConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="border-2 border-[#F9CD05] bg-[#18181B] p-6 max-w-md w-full shadow-2xl"
+            >
+              <h2 className="font-condensed text-2xl font-black uppercase text-white mb-2">Start a new auction?</h2>
+              <p className="font-mono text-xs text-white/70 mb-2">
+                Every purse goes back to 100 Cr, every squad is emptied, and all players go back in the queue.
+                Teams and PINs stay the same.
+              </p>
+              <p className="font-mono text-xs font-bold text-[#F9CD05] mb-5">
+                This clears every sale in this room and can&apos;t be undone. Check STANDINGS first if you need the results.
+              </p>
+              <div className="flex items-center justify-end gap-3 font-condensed text-base font-black uppercase">
+                <button
+                  onClick={() => setShowRestartConfirm(false)}
+                  className="px-4 py-2 border border-white/20 hover:bg-white/10 text-white transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => run(() => restartRoom(roomId), () => setShowRestartConfirm(false))}
+                  disabled={pending}
+                  className="px-5 py-2 bg-[#F9CD05] text-black hover:bg-yellow-300 transition-colors cursor-pointer"
+                >
+                  Start New Auction
                 </button>
               </div>
             </motion.div>

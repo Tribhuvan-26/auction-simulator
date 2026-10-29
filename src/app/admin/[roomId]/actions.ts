@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
 import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidTeam } from '@/lib/bid-rules'
-import { isUncapped, ROLE_ORDER, squadProblems, squadRejectionReason } from '@/lib/team-rules'
+import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadProblems, squadRejectionReason } from '@/lib/team-rules'
 import { assertCanBidAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
@@ -646,6 +646,48 @@ export async function setPhase(
   await assertIsAuctioneer(roomId)
 
   await prisma.auctionRoom.update({ where: { id: roomId }, data: { phase } })
+  return publishSnapshot(roomId, 'PHASE')
+}
+
+/**
+ * Starts the room over once its auction has ended: every purse back to 100 Cr,
+ * every squad empty, every player back in the queue in role order. The room
+ * code, teams and PINs stay. Only from an ended room, so a stray click can't
+ * wipe an auction that's running.
+ */
+export async function restartRoom(roomId: string): Promise<AdminSnapshot> {
+  await assertIsAuctioneer(roomId)
+  await prisma.$transaction(async (tx) => {
+    const [room] = await tx.$queryRaw<{ phase: string }[]>`
+      SELECT phase::text FROM "AuctionRoom" WHERE id = ${roomId} FOR UPDATE`
+    if (room?.phase !== 'COMPLETED') throw new Error('End the auction before starting a new one')
+    await tx.bid.deleteMany({ where: { lot: { roomId } } })
+    await tx.auctionLot.deleteMany({ where: { roomId } })
+    await tx.player.updateMany({ where: { roomId }, data: { status: 'UPCOMING', teamId: null, soldPrice: null } })
+    // Role order (batters, bowlers, all-rounders, keepers), keeping the
+    // existing order within each role.
+    await tx.$executeRaw`
+      UPDATE "Player" p SET "queueOrder" = o.rn
+      FROM (
+        SELECT id, (row_number() OVER (ORDER BY
+          CASE role WHEN 'BATTER' THEN 0 WHEN 'BOWLER' THEN 1 WHEN 'ALL_ROUNDER' THEN 2 ELSE 3 END,
+          "queueOrder", id) - 1)::int AS rn
+        FROM "Player" WHERE "roomId" = ${roomId}
+      ) o
+      WHERE p.id = o.id`
+    await tx.team.updateMany({
+      where: { roomId },
+      data: {
+        purseTotal: PURSE_TOTAL,
+        purseRemaining: PURSE_TOTAL,
+        squadMax: SQUAD_SIZE,
+        squadMin: SQUAD_SIZE - 1,
+        overseasSlotsMax: OVERSEAS_MAX,
+        overseasSlotsUsed: 0,
+      },
+    })
+    await tx.auctionRoom.update({ where: { id: roomId }, data: { phase: 'SETUP', round: 1 } })
+  }, TX)
   return publishSnapshot(roomId, 'PHASE')
 }
 

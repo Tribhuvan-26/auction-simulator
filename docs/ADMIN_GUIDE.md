@@ -67,7 +67,10 @@ After SOLD or UNSOLD, a big green **NEXT PLAYER [N]** bar appears under the card
 | **[DISPUTE]** | Removes the last bid and shows a "dispute flagged" note. Use it when a bid was wrong. |
 | **END AUCTION** | Ends the auction after you confirm. All bidding stops and the big screen shows the final standings. To carry on later, press **REOPEN AUCTION** or **NEXT PLAYER**. |
 
-When the auction is ended, a yellow **AUCTION ENDED** banner appears at the top with a **REOPEN AUCTION** button.
+When the auction is ended, a yellow **AUCTION ENDED** banner appears at the top with two buttons:
+
+- **REOPEN AUCTION**: carry on where you stopped.
+- **START NEW AUCTION**: start the room over. Every purse goes back to 100 Cr, every squad is emptied, and all players go back in the queue (batters, bowlers, all-rounders, keepers). Teams and PINs stay the same. You confirm first. It clears every sale and can't be undone, so check **STANDINGS** before you press it.
 
 ### BIDDING LOG (right column)
 
@@ -153,4 +156,4 @@ Shortcuts don't work while you're typing in a box or while a pop-up is open.
 | A team says BID is greyed out | Their screen shows why: two teams already bidding, role full, overseas full, or not enough purse. |
 | "Price moved — press BID again" | Another team bid first. The screen has updated; press BID again. |
 | Screens a few seconds behind | Live updates aren't connected (check the Supabase key). Screens still update every 3 s. |
-| Need to start a room over | `npx tsx --env-file=.env prisma/reset-room.ts ROOM1`. This **deletes all sales** in that room. |
+| Need to start a room over | Press **END AUCTION**, then **START NEW AUCTION** in the yellow banner. This **clears all sales** in that room. |

@@ -22,6 +22,7 @@ vi.mock('./actions', () => ({
   forceBid: vi.fn(async () => baseSnapshot),
   advanceToNextLot: vi.fn(async () => baseSnapshot),
   replaySold: vi.fn(async () => {}),
+  restartRoom: vi.fn(async () => baseSnapshot),
 }))
 
 const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
@@ -209,6 +210,16 @@ describe('AdminConsole bidding grid', () => {
     render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
     fireEvent.click(screen.getByRole('button', { name: /reopen auction/i }))
     await vi.waitFor(() => expect(setPhase).toHaveBeenCalledWith('room-1', 'LIVE'))
+  })
+
+  it('an ended auction can be started over, after confirming', async () => {
+    const { restartRoom } = await import('./actions')
+    const ended = { ...baseSnapshot, room: { ...baseSnapshot.room, phase: 'COMPLETED' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
+    fireEvent.click(screen.getByRole('button', { name: /^start new auction$/i }))
+    expect(restartRoom).not.toHaveBeenCalled()
+    fireEvent.click(screen.getAllByRole('button', { name: /^start new auction$/i }).at(-1)!)
+    await vi.waitFor(() => expect(restartRoom).toHaveBeenCalledWith('room-1'))
   })
 
   it('renders a purse row per team', () => {
