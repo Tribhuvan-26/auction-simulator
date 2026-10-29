@@ -92,9 +92,12 @@ export function useLiveSnapshot<T>(
       poll = undefined
     }
 
+    // Warnings, not errors: the screen keeps working by polling, and Next's dev
+    // overlay turns console.error into a red error box.
+    let disposed = false
     const realtime = supabase()
     if (!realtime) {
-      console.error('[live] Supabase env not set — polling every 3s instead of live updates')
+      console.warn('[live] Supabase env not set — polling every 3s instead of live updates')
       startPolling()
     }
     const channel = realtime
@@ -111,8 +114,9 @@ export function useLiveSnapshot<T>(
         if (status === 'SUBSCRIBED') {
           stopPolling()
           refresh()
-        } else {
-          console.error(`[live] realtime channel ${status} — polling every 3s until it reconnects`)
+        } else if (!disposed) {
+          // CLOSED also fires when this effect tears the channel down itself.
+          console.warn(`[live] realtime channel ${status} — polling every 3s until it reconnects`)
           startPolling()
         }
       })
@@ -124,6 +128,7 @@ export function useLiveSnapshot<T>(
     window.addEventListener('online', refresh)
 
     return () => {
+      disposed = true
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('online', refresh)
       stopPolling()

@@ -79,7 +79,7 @@ it("a snapshot the caller sets wins over a refetch that started before it", asyn
 it('polls instead of crashing when the Supabase env is missing', async () => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '')
   vi.useFakeTimers()
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
   const fetchSnapshot = vi.fn(async () => 'polled')
   const { result } = renderHook(() => useLiveSnapshot('room-1', 'initial', fetchSnapshot))
 
@@ -103,7 +103,7 @@ it('applies the state carried by a broadcast without refetching', async () => {
 
 it('polls while the realtime channel is failing, and stops once it joins', async () => {
   vi.useFakeTimers()
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
   const fetchSnapshot = vi.fn(async () => 'polled')
   renderHook(() => useLiveSnapshot('room-1', 'initial', fetchSnapshot))
 
