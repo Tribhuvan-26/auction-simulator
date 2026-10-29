@@ -5,9 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { donorUrl, swapKit, teamOfPhoto } from '@/lib/kit-swap'
 
-// Contain, not cover: the photos are square and the frames aren't, and cover
-// cropped heads and shoulders off. The whole picture always shows.
-const IMG_CLASS = 'h-full w-full object-contain object-center filter contrast-[1.05]'
+const IMG_CLASS = 'h-full w-full object-cover object-top filter contrast-[1.05]'
 const SWAP_DELAY = 1700 // after the bat-swing celebration
 const SWAP_MS = 1400
 const EASE = 'cubic-bezier(.65,0,.35,1)'
