@@ -131,7 +131,11 @@ describe('placeBid', () => {
     expect(snapshot.currentLot?.currentBid).toBe(25)
     expect(snapshot.currentLot?.currentBiddingTeamId).toBe(teamId)
     expect(snapshot.currentLot?.bidHistory).toHaveLength(1)
-    expect(emitAuctionEvent).toHaveBeenCalledWith(roomId, { type: 'BID', teamId, amount: 25 })
+    // The broadcast carries the new lot, so screens don't have to refetch it.
+    expect(emitAuctionEvent).toHaveBeenCalledWith(
+      roomId,
+      expect.objectContaining({ type: 'BID', teamId, amount: 25, at: snapshot.at, lot: snapshot.currentLot })
+    )
   })
 
   it('rejects the slower of two bids computed against the same price', async () => {
@@ -191,7 +195,7 @@ describe('markSold', () => {
   it('adds the sale to the result log with the winning team', async () => {
     const { resultLog } = await getPublicSnapshot(roomId)
     expect(resultLog).toEqual([
-      { id: lotId, playerName: 'Sold Player', status: 'SOLD', price: 80, teamShortCode: 'SLD', colorAccent: '#2074D5' },
+      { id: lotId, playerId, playerName: 'Sold Player', status: 'SOLD', price: 80, teamShortCode: 'SLD', colorAccent: '#2074D5' },
     ])
   })
 
@@ -349,6 +353,16 @@ describe('controlTimer', () => {
 })
 
 describe('setPhase', () => {
+  it('refuses bids while the room is paused', async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Paused Room', phase: 'PAUSED' } })
+    const team = await prisma.team.create({
+      data: { roomId: room.id, name: 'P Team', shortCode: 'PTM', purseTotal: 10000, purseRemaining: 10000, squadMax: 25, squadMin: 18, passcode: '9101', overseasSlotsMax: 8 },
+    })
+    await expect(placeBid(room.id, team.id, 20)).rejects.toThrow(/paused/i)
+    await prisma.team.delete({ where: { id: team.id } })
+    await prisma.auctionRoom.delete({ where: { id: room.id } })
+  })
+
   it('updates room phase', async () => {
     const room = await prisma.auctionRoom.create({ data: { name: 'Phase Room', phase: 'LIVE' } })
     const snapshot = await setPhase(room.id, 'PAUSED')
@@ -388,6 +402,23 @@ describe('advanceToNextLot', () => {
     const snapshot = await advanceToNextLot(roomId)
     expect(snapshot.currentLot?.player.name).toBe('Next Player')
     expect(await prisma.auctionLot.count({ where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } } })).toBe(1)
+  })
+
+  it('two clicks at once still open only one lot', async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Race Room', phase: 'SETUP' } })
+    for (const name of ['Race A', 'Race B']) {
+      await prisma.player.create({
+        data: { roomId: room.id, name, role: 'BATTER', basePrice: 20, nationality: 'India', matches: 1, setNumber: 'Set 1', status: 'UPCOMING' },
+      })
+    }
+    await Promise.all([advanceToNextLot(room.id), advanceToNextLot(room.id)])
+    expect(await prisma.auctionLot.count({ where: { roomId: room.id } })).toBe(1)
+    // Calling the first lot starts a room that was still in SETUP.
+    expect((await prisma.auctionRoom.findUniqueOrThrow({ where: { id: room.id } })).phase).toBe('LIVE')
+
+    await prisma.auctionLot.deleteMany({ where: { roomId: room.id } })
+    await prisma.player.deleteMany({ where: { roomId: room.id } })
+    await prisma.auctionRoom.delete({ where: { id: room.id } })
   })
 })
 

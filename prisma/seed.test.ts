@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seed, generatePasscodes, basePriceForRating, DEFAULT_ROOM_NAME } from './seed'
+import { seed, generatePasscodes, basePriceForRating, loadPool, DEFAULT_ROOM_NAME } from './seed'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -47,9 +47,20 @@ describe('seed', () => {
     expect(teams).toHaveLength(10)
   })
 
-  it('creates every official player', async () => {
+  it('creates every player in the auction pool', async () => {
     const players = await prisma.player.findMany({ where: { roomId } })
-    expect(players).toHaveLength(107)
+    expect(players).toHaveLength(loadPool().length)
+  })
+
+  it('takes overseas status and base price from the sheet, not the squad list placeholders', async () => {
+    const players = await prisma.player.findMany({
+      where: { roomId, name: { in: ['Travis Head', 'Virat Kohli', 'Suresh Raina'] } },
+    })
+    const byName = Object.fromEntries(players.map((p) => [p.name, p]))
+    expect(byName['Travis Head']).toMatchObject({ isOverseas: true, setNumber: 'Capped Players' })
+    expect(byName['Virat Kohli']).toMatchObject({ isOverseas: false, setNumber: 'Capped Players', basePrice: 200 })
+    // Not in any official squad: still auctioned, just without a photo.
+    expect(byName['Suresh Raina']).toMatchObject({ photoUrl: null })
   })
 
   it('covers all four player roles', async () => {

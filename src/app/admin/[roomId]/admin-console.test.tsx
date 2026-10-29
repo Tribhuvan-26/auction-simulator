@@ -39,6 +39,7 @@ const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => 
 })
 
 const baseSnapshot: AdminSnapshot = {
+  at: 0,
   room: { id: 'room-1', name: 'Room One', phase: 'LIVE', round: 1 },
   currentLot: null,
   teams: [team('team-1', 'DC'), team('team-2', 'CSK')],
@@ -86,6 +87,31 @@ describe('AdminConsole keyboard shortcuts', () => {
     await vi.waitFor(() => expect(undoLastBid).toHaveBeenCalledWith('room-1'))
   })
 
+  it('Cmd+S and a held-down key do not sell the lot', async () => {
+    const { markSold } = await import('./actions')
+    vi.mocked(markSold).mockClear()
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    fireEvent.keyDown(window, { key: 's', metaKey: true })
+    fireEvent.keyDown(window, { key: 's', repeat: true })
+    expect(markSold).not.toHaveBeenCalled()
+  })
+
+  it('does not sell a lot that is already closed', async () => {
+    const { markSold } = await import('./actions')
+    vi.mocked(markSold).mockClear()
+    const sold = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, status: 'SOLD' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={sold} />)
+    fireEvent.keyDown(window, { key: 's' })
+    expect(markSold).not.toHaveBeenCalled()
+  })
+
+  it('space pauses the room through setPhase', async () => {
+    const { setPhase } = await import('./actions')
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    fireEvent.keyDown(window, { key: ' ' })
+    await vi.waitFor(() => expect(setPhase).toHaveBeenCalledWith('room-1', 'PAUSED'))
+  })
+
   it('ignores shortcuts when no lot is active', async () => {
     const { markUnsold } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
@@ -126,6 +152,26 @@ describe('AdminConsole bidding grid', () => {
     jump.focus()
     fireEvent.keyDown(jump, { key: 's' })
     expect(markSold).not.toHaveBeenCalled()
+  })
+
+  it('greys out the team bid buttons while the room is paused', () => {
+    const paused = { ...liveSnapshot, room: { ...liveSnapshot.room, phase: 'PAUSED' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={paused} />)
+    expect(screen.getByTestId('bid-CSK')).toBeDisabled()
+  })
+
+  it('UNDO stays available on an UNSOLD lot, which has no bids to undo', () => {
+    const unsold = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, status: 'UNSOLD', currentBiddingTeamId: null } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={unsold} />)
+    expect(screen.getByRole('button', { name: /undo bid/i })).toBeEnabled()
+  })
+
+  it('an ended auction can be reopened', async () => {
+    const { setPhase } = await import('./actions')
+    const ended = { ...baseSnapshot, room: { ...baseSnapshot.room, phase: 'COMPLETED' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
+    fireEvent.click(screen.getByRole('button', { name: /reopen/i }))
+    await vi.waitFor(() => expect(setPhase).toHaveBeenCalledWith('room-1', 'LIVE'))
   })
 
   it('renders a purse row per team', () => {

@@ -1,154 +1,1010 @@
 [
- "Abhishek Sharma",
- "Ajinkya Rahane",
- "Devdutt Padikkal",
- "Karun Nair",
- "Manish Pandey",
- "Prithvi Shaw",
- "Ruturaj Gaikwad",
- "Sai Sudharsan",
- "Sarfaraz Khan",
- "Shreyas Iyer",
- "Shubman Gill",
- "Suryakumar Yadav",
- "Tilak Varma",
- "Urvil Patel",
- "Virat Kohli",
- "Yashasvi Jaiswal",
- "Vaibhav Sooryavanshi",
- "Rohit Sharma",
- "Rajat Patidar",
- "Ravichandran Smaran",
- "Aniket Verma",
- "Priyansh Arya",
- "Ashutosh Sharma",
- "Akshat Raghuwanshi",
- "Aiden Markram",
- "David Miller",
- "Dewald Brevis",
- "Finn Allen",
- "Jacob Bethell",
- "Matthew Breetzke",
- "Sherfane Rutherford",
- "Tim David",
- "Shimron Hetmyer",
- "Travis Head",
- "Abishek Porel",
- "Mahendra Singh Dhoni",
- "Anuj Rawat",
- "Dhruv Jurel",
- "Ishan Kishan",
- "Jitesh Sharma",
- "KL Rahul",
- "Rishabh Pant",
- "Sanju Samson",
- "Prabhsimran Singh",
- "Kumar Kushagra",
- "Luvnith Sisodia",
- "Salil Arora",
- "Mukul Choudhary",
- "Heinrich Klaasen",
- "Jos Buttler",
- "Quinton de Kock",
- "Ryan Rickelton",
- "Nicholas Pooran",
- "Phil Salt",
- "Arshad Khan",
- "Arshdeep Singh",
- "Avesh Khan",
- "Bhuvneshwar Kumar",
- "Deepak Chahar",
- "Harshit Rana",
- "Ishant Sharma",
- "Jasprit Bumrah",
- "Jaydev Unadkat",
- "Kuldeep Yadav",
- "Mohammed Shami",
- "Mohammed Siraj",
- "Yuzvendra Chahal",
- "Mukesh Kumar",
- "Prasidh Krishna",
- "Rahul Chahar",
- "Shreyas Gopal",
- "Thangarasu Natarajan",
- "Umran Malik",
- "Yash Dayal",
- "Shivam Mavi",
- "Ravi Bishnoi",
- "Zeeshan Ansari",
- "Suyash Sharma",
- "Sakib Hussain",
- "Tushar Deshpande",
- "Rasikh Dar",
- "Vijaykumar Vyshak",
- "Navdeep Saini",
- "Kartik Tyagi",
- "Khaleel Ahmed",
- "Kuldeep Sen",
- "Mangesh Yadav",
- "Praful Hinge",
- "Mayank Markande",
- "Mayank Yadav",
- "Sandeep Sharma",
- "Mohsin Khan",
- "Trent Boult",
- "Matheesha Pathirana",
- "Anrich Nortje",
- "Lungi Ngidi",
- "Noor Ahmad",
- "Lockie Ferguson",
- "Pat Cummins",
- "Rashid Khan",
- "Eshan Malinga",
- "Mitchell Starc",
- "Kyle Jamieson",
- "Jofra Archer",
- "Josh Hazlewood",
- "Kagiso Rabada",
- "Mustafizur Rahman",
- "Axar Patel",
- "Hardik Pandya",
- "Nitish Rana",
- "Harshal Patel",
- "Jayant Yadav",
- "Krunal Pandya",
- "Nitish Kumar Reddy",
- "Rahul Tewatia",
- "Ravindra Jadeja",
- "Riyan Parag",
- "Shahbaz Ahmed",
- "Shardul Thakur",
- "Shivam Dube",
- "Venkatesh Iyer",
- "Washington Sundar",
- "Abdul Samad",
- "Arjun Tendulkar",
- "Naman Dhir",
- "Ayush Badoni",
- "Shashank Singh",
- "Harsh Dubey",
- "Kanishk Chouhan",
- "Will Jacks",
- "Glenn Phillips",
- "Jason Holder",
- "Wanindu Hasaranga",
- "Liam Livingstone",
- "Marco Jansen",
- "Marcus Stoinis",
- "Sam Curran",
- "Mitch Marsh",
- "Mitch Santner",
- "Rachin Ravindra",
- "Sunil Narine",
- "Romario Shepherd",
- "Pathum Nissanka",
- "Sameer Rizvi",
- "Angkrish Raghuvanshi",
- "Nehal Wadhera",
- "Shahrukh Khan",
- "Ayush Mhatre",
- "Shubham Dubey",
- "Harnoor Singh",
- "Himmat Singh",
- "Kartik Sharma"
+ {
+  "name": "Virat Kohli",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 98
+ },
+ {
+  "name": "Vaibhav Sooryavanshi",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 97
+ },
+ {
+  "name": "Abhishek Sharma",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 96
+ },
+ {
+  "name": "Sai Sudharsan",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 95
+ },
+ {
+  "name": "Shubman Gill",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 94
+ },
+ {
+  "name": "Tilak Varma",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 94
+ },
+ {
+  "name": "Rohit Sharma",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 93
+ },
+ {
+  "name": "Shreyas Iyer",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 93
+ },
+ {
+  "name": "Suryakumar Yadav",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 92
+ },
+ {
+  "name": "Yashasvi Jaiswal",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 92
+ },
+ {
+  "name": "Rajat Patidar",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 90
+ },
+ {
+  "name": "Ruturaj Gaikwad",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 89
+ },
+ {
+  "name": "Devdutt Padikkal",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 82
+ },
+ {
+  "name": "Ajinkya Rahane",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 79
+ },
+ {
+  "name": "Rahul Tripathi",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 78
+ },
+ {
+  "name": "Urvil Patel",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 78
+ },
+ {
+  "name": "Sarfaraz Khan",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 76
+ },
+ {
+  "name": "Karun Nair",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 74
+ },
+ {
+  "name": "Manish Pandey",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 73
+ },
+ {
+  "name": "Prithvi Shaw",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 72
+ },
+ {
+  "name": "Robin Uthappa",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 70
+ },
+ {
+  "name": "Travis Head",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 96
+ },
+ {
+  "name": "Tim David",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 86
+ },
+ {
+  "name": "David Miller",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 85
+ },
+ {
+  "name": "Shimron Hetmyer",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 85
+ },
+ {
+  "name": "Aiden Markram",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 84
+ },
+ {
+  "name": "David Warner",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 84
+ },
+ {
+  "name": "Finn Allen",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 84
+ },
+ {
+  "name": "Faf du Plessis",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 83
+ },
+ {
+  "name": "Dewald Brevis",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 82
+ },
+ {
+  "name": "Sherfane Rutherford",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 82
+ },
+ {
+  "name": "Jacob Bethell",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 80
+ },
+ {
+  "name": "Kane Williamson",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 78
+ },
+ {
+  "name": "Matthew Breetzke",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 76
+ },
+ {
+  "name": "Priyansh Arya",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 86
+ },
+ {
+  "name": "Abishek Porel",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 82
+ },
+ {
+  "name": "Ashutosh Sharma",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 82
+ },
+ {
+  "name": "Nehal Wadhera",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 81
+ },
+ {
+  "name": "Sameer Rizvi",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 79
+ },
+ {
+  "name": "Shahrukh Khan",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 77
+ },
+ {
+  "name": "Aniket Verma",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 76
+ },
+ {
+  "name": "Shubham Dubey",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 74
+ },
+ {
+  "name": "Anmolpreet Singh",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 73
+ },
+ {
+  "name": "Ravichandran Smaran",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 72
+ },
+ {
+  "name": "Akshat Raghuwanshi",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 70
+ },
+ {
+  "name": "Ambati Rayudu",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 83
+ },
+ {
+  "name": "Suresh Raina",
+  "role": "BATTER",
+  "category": "Capped",
+  "rating": 92
+ },
+ {
+  "name": "AB de Villiers",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 93
+ },
+ {
+  "name": "Jonny Bairstow",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 89
+ },
+ {
+  "name": "Devon Conway",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 85
+ },
+ {
+  "name": "Andre Russell",
+  "role": "BATTER",
+  "category": "Overseas",
+  "rating": 90
+ },
+ {
+  "name": "Mahendra Singh Dhoni",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 93
+ },
+ {
+  "name": "Sanju Samson",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 92
+ },
+ {
+  "name": "Ishan Kishan",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 91
+ },
+ {
+  "name": "KL Rahul",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 91
+ },
+ {
+  "name": "Rishabh Pant",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 90
+ },
+ {
+  "name": "Dhruv Jurel",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 86
+ },
+ {
+  "name": "Jitesh Sharma",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 84
+ },
+ {
+  "name": "Anuj Rawat",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 73
+ },
+ {
+  "name": "Heinrich Klaasen",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 97
+ },
+ {
+  "name": "Nicholas Pooran",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 89
+ },
+ {
+  "name": "Quinton de Kock",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 88
+ },
+ {
+  "name": "Jos Buttler",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 87
+ },
+ {
+  "name": "Phil Salt",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 86
+ },
+ {
+  "name": "Ryan Rickelton",
+  "role": "WICKET_KEEPER",
+  "category": "Overseas",
+  "rating": 83
+ },
+ {
+  "name": "Prabhsimran Singh",
+  "role": "WICKET_KEEPER",
+  "category": "Uncapped",
+  "rating": 85
+ },
+ {
+  "name": "Mukul Choudhary",
+  "role": "WICKET_KEEPER",
+  "category": "Uncapped",
+  "rating": 74
+ },
+ {
+  "name": "Salil Arora",
+  "role": "WICKET_KEEPER",
+  "category": "Uncapped",
+  "rating": 72
+ },
+ {
+  "name": "Kumar Kushagra",
+  "role": "WICKET_KEEPER",
+  "category": "Uncapped",
+  "rating": 70
+ },
+ {
+  "name": "Luvnith Sisodia",
+  "role": "WICKET_KEEPER",
+  "category": "Uncapped",
+  "rating": 67
+ },
+ {
+  "name": "Dinesh Karthik",
+  "role": "WICKET_KEEPER",
+  "category": "Capped",
+  "rating": 86
+ },
+ {
+  "name": "Ravindra Jadeja",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 94
+ },
+ {
+  "name": "Hardik Pandya",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 91
+ },
+ {
+  "name": "Riyan Parag",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 90
+ },
+ {
+  "name": "Shivam Dube",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 89
+ },
+ {
+  "name": "Axar Patel",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 87
+ },
+ {
+  "name": "Nitish Kumar Reddy",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 87
+ },
+ {
+  "name": "Krunal Pandya",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 85
+ },
+ {
+  "name": "Venkatesh Iyer",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 84
+ },
+ {
+  "name": "Rahul Tewatia",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 83
+ },
+ {
+  "name": "Harshal Patel",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 82
+ },
+ {
+  "name": "Washington Sundar",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 82
+ },
+ {
+  "name": "Nitish Rana",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 80
+ },
+ {
+  "name": "Shardul Thakur",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 79
+ },
+ {
+  "name": "Shahbaz Ahmed",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 77
+ },
+ {
+  "name": "Jayant Yadav",
+  "role": "ALL_ROUNDER",
+  "category": "Capped",
+  "rating": 68
+ },
+ {
+  "name": "Mitch Marsh",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 89
+ },
+ {
+  "name": "Sunil Narine",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 88
+ },
+ {
+  "name": "Marcus Stoinis",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 87
+ },
+ {
+  "name": "Liam Livingstone",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 86
+ },
+ {
+  "name": "Will Jacks",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 86
+ },
+ {
+  "name": "Marco Jansen",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 85
+ },
+ {
+  "name": "Wanindu Hasaranga",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 85
+ },
+ {
+  "name": "Glenn Phillips",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 84
+ },
+ {
+  "name": "Rachin Ravindra",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 84
+ },
+ {
+  "name": "Romario Shepherd",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 82
+ },
+ {
+  "name": "Mitch Santner",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 81
+ },
+ {
+  "name": "Jason Holder",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 80
+ },
+ {
+  "name": "Sam Curran",
+  "role": "ALL_ROUNDER",
+  "category": "Overseas",
+  "rating": 80
+ },
+ {
+  "name": "Shashank Singh",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 85
+ },
+ {
+  "name": "Naman Dhir",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 81
+ },
+ {
+  "name": "Ayush Badoni",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 80
+ },
+ {
+  "name": "Abdul Samad",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 75
+ },
+ {
+  "name": "Harsh Dubey",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 72
+ },
+ {
+  "name": "Kanishk Chouhan",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 68
+ },
+ {
+  "name": "Arjun Tendulkar",
+  "role": "ALL_ROUNDER",
+  "category": "Uncapped",
+  "rating": 65
+ },
+ {
+  "name": "Jasprit Bumrah",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 97
+ },
+ {
+  "name": "Bhuvneshwar Kumar",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 93
+ },
+ {
+  "name": "Arshdeep Singh",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 89
+ },
+ {
+  "name": "Mohammed Shami",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 89
+ },
+ {
+  "name": "Mohammed Siraj",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 89
+ },
+ {
+  "name": "Ravi Bishnoi",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 86
+ },
+ {
+  "name": "Thangarasu Natarajan",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 86
+ },
+ {
+  "name": "Kuldeep Yadav",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 85
+ },
+ {
+  "name": "Prasidh Krishna",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 85
+ },
+ {
+  "name": "Harshit Rana",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 84
+ },
+ {
+  "name": "Yash Dayal",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 84
+ },
+ {
+  "name": "Yuzvendra Chahal",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 84
+ },
+ {
+  "name": "Avesh Khan",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 83
+ },
+ {
+  "name": "Deepak Chahar",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 82
+ },
+ {
+  "name": "Mukesh Kumar",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 78
+ },
+ {
+  "name": "Rahul Chahar",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 78
+ },
+ {
+  "name": "Jaydev Unadkat",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 74
+ },
+ {
+  "name": "Umran Malik",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 74
+ },
+ {
+  "name": "Arshad Khan",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 70
+ },
+ {
+  "name": "Ishant Sharma",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 70
+ },
+ {
+  "name": "Shivam Mavi",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 70
+ },
+ {
+  "name": "Shreyas Gopal",
+  "role": "BOWLER",
+  "category": "Capped",
+  "rating": 70
+ },
+ {
+  "name": "Mitchell Starc",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 95
+ },
+ {
+  "name": "Josh Hazlewood",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 91
+ },
+ {
+  "name": "Pat Cummins",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 91
+ },
+ {
+  "name": "Trent Boult",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 91
+ },
+ {
+  "name": "Rashid Khan",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 90
+ },
+ {
+  "name": "Jofra Archer",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 89
+ },
+ {
+  "name": "Noor Ahmad",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 89
+ },
+ {
+  "name": "Kagiso Rabada",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 87
+ },
+ {
+  "name": "Matheesha Pathirana",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 83
+ },
+ {
+  "name": "Lockie Ferguson",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 81
+ },
+ {
+  "name": "Mustafizur Rahman",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 81
+ },
+ {
+  "name": "Lungi Ngidi",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 80
+ },
+ {
+  "name": "Anrich Nortje",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 79
+ },
+ {
+  "name": "Xavier Bartlett",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 79
+ },
+ {
+  "name": "Eshan Malinga",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 78
+ },
+ {
+  "name": "Keshav Maharaj",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 76
+ },
+ {
+  "name": "Kyle Jamieson",
+  "role": "BOWLER",
+  "category": "Overseas",
+  "rating": 76
+ },
+ {
+  "name": "Praful Hinge",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 86
+ },
+ {
+  "name": "Mayank Yadav",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 82
+ },
+ {
+  "name": "Rasikh Dar",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 82
+ },
+ {
+  "name": "Sandeep Sharma",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 82
+ },
+ {
+  "name": "Khaleel Ahmed",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 81
+ },
+ {
+  "name": "Mohsin Khan",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 80
+ },
+ {
+  "name": "Tushar Deshpande",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 80
+ },
+ {
+  "name": "Auqib Nabi",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 76
+ },
+ {
+  "name": "Mayank Markande",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 76
+ },
+ {
+  "name": "Suyash Sharma",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 76
+ },
+ {
+  "name": "Vijaykumar Vyshak",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 76
+ },
+ {
+  "name": "Kuldeep Sen",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 74
+ },
+ {
+  "name": "Kartik Tyagi",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 73
+ },
+ {
+  "name": "Navdeep Saini",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 72
+ },
+ {
+  "name": "Zeeshan Ansari",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 70
+ },
+ {
+  "name": "Mangesh Yadav",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 68
+ },
+ {
+  "name": "Sakib Hussain",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 68
+ },
+ {
+  "name": "Naman Tiwari",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 67
+ },
+ {
+  "name": "Yash Punja",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 66
+ },
+ {
+  "name": "Kartik Sharma",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 72
+ },
+ {
+  "name": "Krains Fuletra",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 65
+ },
+ {
+  "name": "Pyla Avinash",
+  "role": "BATTER",
+  "category": "Uncapped",
+  "rating": 65
+ },
+ {
+  "name": "Sai Kishore",
+  "role": "BOWLER",
+  "category": "Uncapped",
+  "rating": 79
+ }
 ]

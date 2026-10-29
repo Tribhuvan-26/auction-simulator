@@ -9,11 +9,7 @@ import {
   X,
   TriangleAlert,
   Maximize2,
-  Users,
-  PieChart,
-  Layers,
   Search,
-  CheckCircle2,
 } from 'lucide-react'
 import { IplLogo } from '@/components/ui/ipl-logo'
 import { TeamCrest } from '@/components/ui/team-crest'
@@ -25,6 +21,7 @@ import { LogoutButton } from '@/components/ui/logout-button'
 import { logoutTeam } from '@/lib/pin-actions'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
+import { applyLiveEvent, newer } from '@/lib/live-events'
 import { formatMoney } from '@/lib/money'
 import {
   getPublicSnapshot,
@@ -160,7 +157,20 @@ export function TeamConsole({
   const [outbid, setOutbid] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [passedLotId, setPassedLotId] = useState<string | null>(null)
+  // Kept in sessionStorage so a reload mid-lot doesn't quietly put the team back in.
+  const passKey = `pass:${teamId}`
+  const [passedLotId, setPassedLotIdState] = useState<string | null>(null)
+  useEffect(() => {
+    try {
+      setPassedLotIdState(sessionStorage.getItem(passKey)) // eslint-disable-line react-hooks/set-state-in-effect
+    } catch {}
+  }, [passKey])
+  function setPassedLotId(id: string) {
+    setPassedLotIdState(id)
+    try {
+      sessionStorage.setItem(passKey, id)
+    } catch {}
+  }
   const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
   const outbidTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -181,7 +191,7 @@ export function TeamConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
     if (event.type !== 'BID') return
     const weWereLeading = leaderRef.current === teamId
     const weLead = event.teamId === teamId
@@ -194,7 +204,7 @@ export function TeamConsole({
     navigator.vibrate?.([100, 50, 100])
     clearTimeout(outbidTimer.current)
     outbidTimer.current = setTimeout(() => setOutbid(false), 6000)
-  })
+  }, applyLiveEvent)
 
   // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {
@@ -211,6 +221,8 @@ export function TeamConsole({
   const leading = lot?.currentBiddingTeamId === teamId
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
   const passed = !!lot && passedLotId === lot.id
+  const paused = snapshot.room.phase === 'PAUSED'
+  const ended = snapshot.room.phase === 'COMPLETED'
 
   const nextBid = lot
     ? lot.status === 'BIDDING'
@@ -224,7 +236,8 @@ export function TeamConsole({
 
 
   // Teams only open the bidding; after the first bid the auctioneer runs it.
-  const canBid = !closed && lot?.status !== 'BIDDING' && !leading && !passed && !pending && !rejection && !!lot
+  const canBid =
+    !closed && !paused && !ended && lot?.status !== 'BIDDING' && !leading && !passed && !pending && !rejection && !!lot
 
   useEffect(() => {
     leaderRef.current = lot?.currentBiddingTeamId ?? null
@@ -237,7 +250,9 @@ export function TeamConsole({
     setPending(true)
     setError(null)
     try {
-      await placeBid(roomId, teamId, nextBid)
+      // Show our own bid now rather than waiting for the broadcast round trip.
+      const next = await placeBid(roomId, teamId, nextBid)
+      if (next) setSnapshot((prev) => newer(prev, next))
       setOutbid(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bid rejected')
@@ -269,7 +284,11 @@ export function TeamConsole({
   })
 
   // Bidding status message for keyboard / status feedback
-  const statusMessage = leading
+  const statusMessage = ended
+    ? 'auction has ended'
+    : paused
+    ? 'auction paused'
+    : leading
     ? 'you hold the highest bid'
     : passed
     ? 'sitting this lot out'
@@ -295,9 +314,9 @@ export function TeamConsole({
   const photo = lot?.player.photoUrl || (
     lot?.player.name.toLowerCase().includes('dhoni')
       ? '/players/csk-mahendra-singh-dhoni.webp'
-      : lot?.player.name.toLowerCase().includes('kohli')
+      : lot?.player.name.toLowerCase().includes('virat kohli')
       ? '/players/rcb-virat-kohli.webp'
-      : lot?.player.name.toLowerCase().includes('rohit')
+      : lot?.player.name.toLowerCase().includes('rohit sharma')
       ? '/players/mi-rohit-sharma.webp'
       : null
   )
@@ -305,6 +324,11 @@ export function TeamConsole({
   const teamCode = team.shortCode.toUpperCase()
   const theme = TEAM_THEMES[teamCode] || DEFAULT_THEME
   const teamBgSvg = `/assets/teams/${teamCode.toLowerCase()}-team-bg.webp`
+
+  // roomPlayers is the page-load copy; overlay the live status from the snapshot
+  // so the PLAYERS modal doesn't show a sold player as still UPCOMING.
+  const liveStatus = new Map<string, string>(snapshot.resultLog.map((r) => [r.playerId, r.status]))
+  if (lot && !closed) liveStatus.set(lot.player.id, 'LIVE')
 
   // Filter room players for the PLAYERS modal
   const filteredRoomPlayers = roomPlayers.filter((p) => {
@@ -852,7 +876,7 @@ export function TeamConsole({
                           {p.name}
                         </span>
                         <span className="font-mono text-[8px] text-white/40 block">
-                          {p.role.replace('_', ' ')} • {p.status}
+                          {p.role.replace('_', ' ')} • {liveStatus.get(p.id) ?? p.status}
                         </span>
                       </div>
                     </div>
