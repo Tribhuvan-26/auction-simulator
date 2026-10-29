@@ -24,6 +24,7 @@ import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { formatMoney } from '@/lib/money'
+import { categoryLabel } from '@/lib/team-rules'
 import {
   getPublicSnapshot,
   placeBid,
@@ -167,10 +168,11 @@ export function TeamConsole({
       setPassedLotIdState(sessionStorage.getItem(passKey)) // eslint-disable-line react-hooks/set-state-in-effect
     } catch {}
   }, [passKey])
-  function setPassedLotId(id: string) {
+  function setPassedLotId(id: string | null) {
     setPassedLotIdState(id)
     try {
-      sessionStorage.setItem(passKey, id)
+      if (id) sessionStorage.setItem(passKey, id)
+      else sessionStorage.removeItem(passKey)
     } catch {}
   }
   const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
@@ -278,7 +280,9 @@ export function TeamConsole({
   }
 
   async function passOrDrop() {
-    if (!lot || closed || leading || passed) return
+    if (!lot || closed || leading || dropped) return
+    // A PASS outside the contest is only on this screen, so it can be taken back.
+    if (passed) return setPassedLotId(null)
     if (!inContest) return setPassedLotId(lot.id)
     setPending(true)
     setError(null)
@@ -336,11 +340,7 @@ export function TeamConsole({
 
   // Role and set category formatting
   const roleDisplay = (lot?.player.role || 'BATTER').replace('_', ' ').toUpperCase()
-  const setCategory = lot?.player.setNumber
-    ? lot.player.setNumber.toLowerCase().includes('uncapped')
-      ? 'UNCAPPED PLAYERS'
-      : lot.player.setNumber.toUpperCase()
-    : 'UNCAPPED PLAYERS'
+  const setCategory = lot ? categoryLabel(lot.player) : ''
 
   // Photo resolution with fallback
   const photo = lot?.player.photoUrl || (
@@ -706,10 +706,10 @@ export function TeamConsole({
                 {/* PASS / DROP: a team in the two-team contest drops out, which lets a third team in. */}
                 <button
                   onClick={passOrDrop}
-                  disabled={!lot || closed || leading || passed || pending}
+                  disabled={!lot || closed || leading || dropped || pending}
                   className="flex items-center justify-between px-5 py-3.5 bg-[#EB547C] hover:bg-pink-600 active:bg-pink-700 disabled:opacity-35 disabled:cursor-not-allowed transition-all text-white font-condensed text-2xl font-black uppercase tracking-wider shadow-[0_0_20px_rgba(235,84,124,0.35)] cursor-pointer"
                 >
-                  <span>{inContest ? 'DROP' : 'PASS'}</span>
+                  <span>{dropped ? 'DROPPED' : passed ? 'UNDO PASS' : inContest ? 'DROP' : 'PASS'}</span>
                   <Hand className="h-5 w-5" />
                 </button>
 

@@ -397,7 +397,7 @@ export function LandingExperience({ rooms, initialEntered = false }: LandingExpe
                           </span>
                         </div>
                         <div className="font-mono text-xs text-white/50">
-                          {room._count.players} players remaining
+                          {room._count.players} players in pool
                         </div>
                       </div>
 

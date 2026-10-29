@@ -13,7 +13,7 @@ How to run an auction from the admin screen: `/admin/ROOM1` (use your room's cod
    - Nobody bid → press **UNSOLD** (or **U**).
 4. **Go to the next player.** Press the green **NEXT PLAYER** button (or **N**).
 
-Repeat until the queue is empty. When the queue runs out and any team still can't make a legal XI, **NEXT PLAYER** brings the unsold players back for another round.
+Repeat until the queue is empty. When the queue runs out and any team still has an empty slot, **NEXT PLAYER** brings the unsold players back for another round.
 
 ---
 
@@ -138,7 +138,7 @@ Shortcuts don't work while you're typing in a box or while a pop-up is open.
 
 **Order**
 - Batters → bowlers → all-rounders → wicket keepers.
-- Unsold players come back at the end while any team still needs players.
+- Unsold players come back at the end while any team still has an empty slot.
 
 **Winner**
 - Score = 80% average rating of players bought + 20% purse left (as % of 100 Cr).

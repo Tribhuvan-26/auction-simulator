@@ -63,7 +63,10 @@ function renderConsole(s: PublicSnapshot) {
 }
 
 describe('TeamConsole bidding control panel', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    sessionStorage.clear()
+  })
 
   it('opens the bidding at the base price', async () => {
     const { placeBid } = await import('@/app/admin/[roomId]/actions')
@@ -126,13 +129,19 @@ describe('TeamConsole bidding control panel', () => {
     expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
   })
 
+  it('a pass can be taken back', () => {
+    renderConsole(snapshot())
+    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /undo pass/i }))
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeEnabled()
+  })
+
   it('a pass survives a reload of the page', () => {
     const first = renderConsole(snapshot())
     fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
     first.unmount()
     renderConsole(snapshot())
     expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
-    sessionStorage.clear()
   })
 
   it('keeps bidding open after the first bid — teams raise from their own seats', () => {

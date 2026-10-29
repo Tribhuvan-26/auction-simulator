@@ -26,6 +26,7 @@ import { useLiveSnapshot, type AuctionEvent } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
+import { categoryLabel } from '@/lib/team-rules'
 import {
   getAdminSnapshot,
   setPhase,
@@ -268,9 +269,7 @@ export function AdminConsole({
   const soldColor =
     lot?.status === 'SOLD' ? snapshot.teams.find((t) => t.id === lot.currentBiddingTeamId) ?? null : null
   const roleDisplay = (lot?.player.role || 'BATTER').replace('_', ' ').toUpperCase()
-  const setCategory = lot?.player.setNumber
-    ? lot.player.setNumber.toUpperCase()
-    : 'UNCAPPED PLAYERS'
+  const setCategory = lot ? categoryLabel(lot.player) : ''
 
   const remainingPlayersCount = snapshot.queue.length
   // An empty queue brings the unsold back for another round (the server

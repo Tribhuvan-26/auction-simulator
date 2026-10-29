@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
 import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidTeam } from '@/lib/bid-rules'
-import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadProblems, squadRejectionReason } from '@/lib/team-rules'
+import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadRejectionReason } from '@/lib/team-rules'
 import { assertCanBidAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
@@ -61,7 +61,7 @@ export type AdminSnapshot = {
  */
 export type PublicSnapshot = Omit<AdminSnapshot, 'queue'>
 
-const LOT_INCLUDE = { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } } as const
+const LOT_INCLUDE = { player: true, bids: { include: { team: true }, orderBy: { amount: 'asc' } } } as const
 type LotRow = Prisma.AuctionLotGetPayload<{ include: typeof LOT_INCLUDE }>
 
 function toLotView(lot: LotRow, lotCount: number, dropped: string[]): NonNullable<AdminSnapshot['currentLot']> {
@@ -281,7 +281,7 @@ async function openLotOrThrow(roomId: string) {
       include: {
         player: true,
         room: { select: { phase: true } },
-        bids: { select: { teamId: true }, orderBy: { timestamp: 'asc' } },
+        bids: { select: { teamId: true }, orderBy: { amount: 'asc' } },
       },
       orderBy: { id: 'desc' },
     }),
@@ -600,12 +600,12 @@ export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
     return publishSnapshot(roomId, 'UNDO')
   }
 
-  const lastBid = await prisma.bid.findFirst({ where: { lotId: lot.id }, orderBy: { timestamp: 'desc' } })
+  const lastBid = await prisma.bid.findFirst({ where: { lotId: lot.id }, orderBy: { amount: 'desc' } })
   if (!lastBid) return buildSnapshot(roomId, true)
 
   const remaining = await prisma.bid.findMany({
     where: { lotId: lot.id, id: { not: lastBid.id } },
-    orderBy: { timestamp: 'desc' },
+    orderBy: { amount: 'desc' },
   })
   const newHead = remaining[0]
 
@@ -693,20 +693,12 @@ export async function restartRoom(roomId: string): Promise<AdminSnapshot> {
 
 /**
  * Once the queue runs dry, the unsold players come back for another round —
- * while some team still can't field a legal XI and has room to buy. In the
- * auction's role order: batters, bowlers, all-rounders, then keepers.
- * Returns whether anyone came back.
+ * while some team still has slots to fill. In the auction's role order:
+ * batters, bowlers, all-rounders, then keepers. Returns whether anyone came back.
  */
 async function requeueUnsold(tx: Prisma.TransactionClient, roomId: string): Promise<boolean> {
-  const teams = await tx.team.findMany({
-    where: { roomId },
-    select: { squadMax: true, players: { select: { name: true, role: true, isOverseas: true, setNumber: true } } },
-  })
-  const someoneShort = teams.some(
-    (t) =>
-      t.players.length < t.squadMax &&
-      squadProblems(t.players.map((p) => ({ ...p, uncapped: isUncapped(p.setNumber) }))).length > 0
-  )
+  const teams = await tx.team.findMany({ where: { roomId }, select: { squadMax: true, _count: { select: { players: true } } } })
+  const someoneShort = teams.some((t) => t._count.players < t.squadMax)
   if (!someoneShort) return false
 
   const unsold = await tx.player.findMany({ where: { roomId, status: 'UNSOLD' }, orderBy: QUEUE_ORDER })

@@ -27,6 +27,9 @@ export const ROLE_ORDER: Role[] = ['BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KE
 
 export const UNCAPPED_SET = 'Uncapped Players'
 export const isUncapped = (setNumber: string) => setNumber === UNCAPPED_SET
+/** The player's auction category, as the auctioneer calls it. Overseas players are seeded as capped. */
+export const categoryLabel = (p: { setNumber: string; isOverseas: boolean }) =>
+  isUncapped(p.setNumber) ? 'UNCAPPED' : p.isOverseas ? 'OVERSEAS' : 'CAPPED'
 
 export type SquadPlayer = { name: string; role: string; isOverseas: boolean; uncapped: boolean }
 
