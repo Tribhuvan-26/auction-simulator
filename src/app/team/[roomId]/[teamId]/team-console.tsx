@@ -268,6 +268,10 @@ export function TeamConsole({
       setOutbid(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bid rejected')
+      // A refused bid usually means this screen was behind (another team got
+      // in first). Catch up now rather than at the next poll or broadcast, so
+      // the next press is at the right price.
+      getPublicSnapshot(roomId).then((fresh) => setSnapshot((prev) => newer(prev, fresh)), () => {})
     } finally {
       setPending(false)
     }

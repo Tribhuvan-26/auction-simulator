@@ -455,9 +455,9 @@ describe('placeBid validation', () => {
 
   // Lot sits at 50 L, so the ladder allows exactly 55 L and nothing else.
   it('rejects anything but the next amount on the ladder', async () => {
-    await expect(placeBid(roomId, teamId, 50)).rejects.toThrow(/off-tier/i)
-    await expect(placeBid(roomId, teamId, 60)).rejects.toThrow(/off-tier/i)
-    await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/off-tier/i)
+    await expect(placeBid(roomId, teamId, 50)).rejects.toThrow(/price moved/i)
+    await expect(placeBid(roomId, teamId, 60)).rejects.toThrow(/price moved/i)
+    await expect(placeBid(roomId, teamId, 500)).rejects.toThrow(/price moved/i)
   })
 
   it('rejects a team from another room', async () => {

@@ -397,7 +397,8 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   const expected =
     lot.status === 'BIDDING' ? getNextBidAmount(lot.currentBid, lot.player.basePrice) : lot.currentBid
   if (amount !== expected) {
-    throw new Error(`Off-tier bid: the next bid is ${formatMoney(expected)}, not ${formatMoney(amount)}`)
+    // Almost always a screen a moment behind: someone else bid first.
+    throw new Error(`Price moved — the next bid is ${formatMoney(expected)}, press BID again`)
   }
 
   // Trust boundary: team consoles are untrusted clients, so re-check here even
