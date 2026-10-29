@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js'
 import { roomChannel } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
 
@@ -20,6 +20,60 @@ const supabase = () => {
 const POLL_MS = 3000
 
 export type AuctionEvent = LiveEvent
+
+type Listener = { onEvent: (event: AuctionEvent) => void; onStatus: (status: string) => void }
+type Room = { channel: RealtimeChannel; listeners: Set<Listener>; status: string | null; close?: ReturnType<typeof setTimeout> }
+
+/** How long a room's channel outlives its last screen, so a remount reuses it. */
+const LINGER_MS = 1000
+
+const rooms = new Map<string, Room>()
+
+/**
+ * One channel per room, shared by every screen on the page. realtime-js hands
+ * back an existing channel for the same topic even while it's still closing
+ * (removeChannel is async), so tearing down and re-creating on every effect
+ * run — React dev mounts twice — leaves the new screen on a dead channel.
+ * Instead the channel stays up while anyone listens and closes a moment after
+ * the last one leaves.
+ */
+function joinRoom(realtime: SupabaseClient, roomId: string, listener: Listener): () => void {
+  let room = rooms.get(roomId)
+  if (!room) {
+    const listeners = new Set<Listener>()
+    const entry: Room = {
+      listeners,
+      status: null,
+      channel: realtime
+        .channel(roomChannel(roomId))
+        .on('broadcast', { event: 'auction:event' }, ({ payload }) => {
+          for (const l of listeners) l.onEvent(payload as AuctionEvent)
+        })
+        .subscribe((status) => {
+          // Status arrives asynchronously, after `entry` exists.
+          entry.status = status
+          for (const l of listeners) l.onStatus(status)
+        }),
+    }
+    rooms.set(roomId, entry)
+    room = entry
+  }
+  clearTimeout(room.close)
+  room.listeners.add(listener)
+  // A screen joining an already-open channel still needs to know where it stands.
+  if (room.status) listener.onStatus(room.status)
+
+  const joined = room
+  return () => {
+    joined.listeners.delete(listener)
+    if (joined.listeners.size > 0) return
+    joined.close = setTimeout(() => {
+      if (joined.listeners.size > 0 || rooms.get(roomId) !== joined) return
+      rooms.delete(roomId)
+      void realtime.removeChannel(joined.channel)
+    }, LINGER_MS)
+  }
+}
 
 /**
  * Keeps a server snapshot live. Each broadcast carries the new state, and
@@ -70,12 +124,18 @@ export function useLiveSnapshot<T>(
   )
 
   useEffect(() => {
+    // Every callback below can outlive this effect (a late refetch, a status
+    // from the shared channel), so each one checks this first: once the room
+    // changes or the screen unmounts, this run touches nothing.
+    let disposed = false
+
     // A failed refetch keeps the last good snapshot.
     const refresh = () => {
+      if (disposed) return
       const request = ++latest.current
       fetchSnapshot(roomId)
         .then((next) => {
-          if (request === latest.current) commit(next)
+          if (!disposed && request === latest.current) commit(next)
         })
         .catch(() => {})
     }
@@ -83,43 +143,42 @@ export function useLiveSnapshot<T>(
     // Polling is the fallback whenever live updates aren't flowing — env
     // missing, a wrong project URL/key, a blocked socket — so a screen never
     // freezes on an old lot. It stops again as soon as the channel joins.
+    // Warnings, not errors: the screen keeps working, and Next's dev overlay
+    // turns console.error into a red error box. Logged once per switch, not on
+    // every reconnect attempt.
     let poll: ReturnType<typeof setInterval> | undefined
-    const startPolling = () => {
-      poll ??= setInterval(refresh, POLL_MS)
+    const startPolling = (why: string) => {
+      if (poll) return
+      console.warn(`[live] ${why} — polling every 3s until live updates work`)
+      poll = setInterval(refresh, POLL_MS)
     }
     const stopPolling = () => {
       clearInterval(poll)
       poll = undefined
     }
 
-    // Warnings, not errors: the screen keeps working by polling, and Next's dev
-    // overlay turns console.error into a red error box.
-    let disposed = false
     const realtime = supabase()
-    if (!realtime) {
-      console.warn('[live] Supabase env not set — polling every 3s instead of live updates')
-      startPolling()
-    }
-    const channel = realtime
-      ?.channel(roomChannel(roomId))
-      .on('broadcast', { event: 'auction:event' }, ({ payload }) => {
-        const event = payload as AuctionEvent
-        handler.current?.(event)
-        const next = apply.current?.(current.current, event)
-        if (!next) return refresh()
-        latest.current++
-        if (next !== current.current) commit(next)
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          stopPolling()
-          refresh()
-        } else if (!disposed) {
-          // CLOSED also fires when this effect tears the channel down itself.
-          console.warn(`[live] realtime channel ${status} — polling every 3s until it reconnects`)
-          startPolling()
-        }
-      })
+    const leave = realtime
+      ? joinRoom(realtime, roomId, {
+          onEvent: (event) => {
+            if (disposed) return
+            handler.current?.(event)
+            const next = apply.current?.(current.current, event)
+            if (!next) return refresh()
+            latest.current++
+            if (next !== current.current) commit(next)
+          },
+          onStatus: (status) => {
+            if (disposed) return
+            if (status === 'SUBSCRIBED') {
+              stopPolling()
+              refresh()
+            } else {
+              startPolling(`realtime channel ${status}`)
+            }
+          },
+        })
+      : (startPolling('Supabase env not set'), undefined)
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') refresh()
@@ -132,7 +191,7 @@ export function useLiveSnapshot<T>(
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('online', refresh)
       stopPolling()
-      if (channel) realtime?.removeChannel(channel)
+      leave?.()
     }
   }, [roomId, fetchSnapshot, commit])
 
