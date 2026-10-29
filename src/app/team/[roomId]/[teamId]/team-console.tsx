@@ -545,7 +545,7 @@ export function TeamConsole({
                 >
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <LotPhoto src={photo} alt={lot ? lot.player.name : 'Player'} soldTo={lot?.status === 'SOLD' ? leader ?? null : null} />
+                    <LotPhoto src={photo} alt={lot ? lot.player.name : 'Player'} soldTo={lot?.status === 'SOLD' ? leader ?? null : null} className="absolute inset-0 overflow-hidden" />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-1 text-center p-4">
                       <span className="font-condensed text-5xl font-black text-white/20">
@@ -1002,7 +1002,7 @@ export function TeamConsole({
                     <img
                       src={previewPlayer.photoUrl}
                       alt={previewPlayer.name}
-                      className="h-full w-full object-cover object-top"
+                      className="h-full w-full object-contain object-center"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center font-condensed text-5xl font-black text-white/20">
