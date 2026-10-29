@@ -12,7 +12,6 @@ import {
   RotateCcw,
   AlertTriangle,
   Circle,
-  HelpCircle,
 } from 'lucide-react'
 import { RatingPanel } from '@/components/auction/rating-panel'
 import { LogoutButton } from '@/components/ui/logout-button'
@@ -20,7 +19,8 @@ import { logoutAdmin } from '@/lib/pin-actions'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
-import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
+import { useLiveSnapshot, type AuctionEvent } from '@/hooks/use-live-snapshot'
+import { applyLiveEvent, newer } from '@/lib/live-events'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { formatMoney } from '@/lib/money'
 import {
@@ -35,9 +35,17 @@ import {
   advanceToNextLot,
   moveInQueue,
   type AdminSnapshot,
+  type PublicSnapshot,
 } from './actions'
 
 type Team = AdminSnapshot['teams'][number]
+
+// A new lot takes a player off the queue, which the broadcast doesn't carry —
+// refetch for that one (unless it's the echo of this console's own click).
+function applyAdminEvent(prev: AdminSnapshot, event: AuctionEvent) {
+  if (event.type === 'LOT_CHANGE' && prev.at < event.at) return null
+  return applyLiveEvent(prev, event)
+}
 
 // Standard order of teams matching Screenshot 1:
 // Row 1: PBKS, MI, LSG, KKR, DC
@@ -70,7 +78,7 @@ export function AdminConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot)
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, undefined, applyAdminEvent)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
   const [disputeMessage, setDisputeMessage] = useState<string | null>(null)
@@ -94,6 +102,9 @@ export function AdminConsole({
   const leader = snapshot.teams.find((t) => t.id === leaderId)
   const closed = lot?.status === 'SOLD' || lot?.status === 'UNSOLD'
   const paused = snapshot.room.phase === 'PAUSED'
+  const ended = snapshot.room.phase === 'COMPLETED'
+  // The server refuses bids while paused or ended; grey the buttons to match.
+  const biddingOpen = !!lot && !closed && !paused && !ended
 
   const nextBid = lot
     ? lot.status === 'BIDDING'
@@ -101,26 +112,61 @@ export function AdminConsole({
       : lot.currentBid
     : 0
 
-  async function run(action: () => Promise<AdminSnapshot>) {
+  // A ref as well as state: the keyboard handler closes over an old render, so
+  // it reads this to know an action is already in flight.
+  const pendingRef = useRef(false)
+
+  async function run(action: () => Promise<AdminSnapshot | PublicSnapshot>, onDone?: () => void) {
+    if (pendingRef.current) return
+    pendingRef.current = true
     setError(null)
     setPending(true)
     try {
-      setSnapshot(await action())
+      const next = await action()
+      // placeBid answers with the public snapshot (team seats call it too);
+      // a bid never touches the queue, so keep the one already on screen.
+      setSnapshot((prev) => newer(prev, next))
+      onDone?.()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Rejected')
     } finally {
+      pendingRef.current = false
       setPending(false)
     }
   }
 
   async function bidFor(team: Team, amount = nextBid) {
-    if (!lot || closed || pending) return
+    if (!lot || !biddingOpen || pending) return
     const reason = bidRejectionReason(team, lot, amount)
     if (reason) {
       setError(`${team.shortCode}: ${reason}`)
       return
     }
-    await run(() => placeBid(roomId, team.id, amount))
+    if (pendingRef.current) return
+    // Show the bid the moment it's clicked; the server's answer replaces it,
+    // and a rejected bid is undone by re-reading the room.
+    const optimistic = lot
+    setSnapshot((prev) => ({
+      ...prev,
+      currentLot: {
+        ...optimistic,
+        status: 'BIDDING',
+        currentBid: amount,
+        currentBiddingTeamId: team.id,
+        bidHistory: [
+          ...optimistic.bidHistory,
+          { teamId: team.id, teamName: team.name, amount, timestamp: new Date().toISOString() },
+        ],
+      },
+    }))
+    await run(async () => {
+      try {
+        return await placeBid(roomId, team.id, amount)
+      } catch (e) {
+        getAdminSnapshot(roomId).then(setSnapshot, () => {})
+        throw e
+      }
+    })
   }
 
   const [movePlayerId, setMovePlayerId] = useState('')
@@ -129,8 +175,7 @@ export function AdminConsole({
   async function handleMove(e: React.FormEvent) {
     e.preventDefault()
     if (!movePlayerId || !Number(movePos)) return
-    await run(() => moveInQueue(roomId, movePlayerId, Number(movePos)))
-    setMovePos('')
+    await run(() => moveInQueue(roomId, movePlayerId, Number(movePos)), () => setMovePos(''))
   }
 
   async function handleJumpBid(e: React.FormEvent) {
@@ -140,30 +185,42 @@ export function AdminConsole({
       setError('Please enter a valid bid amount')
       return
     }
-    await run(() => forceBid(roomId, effectiveJumpTeamId, amount))
-    setJumpBid('')
+    await run(() => forceBid(roomId, effectiveJumpTeamId, amount), () => setJumpBid(''))
+  }
+
+  // An ended auction can be reopened — END is a click away from the others,
+  // and a room stuck in COMPLETED refuses every bid.
+  function togglePause() {
+    run(() => setPhase(roomId, paused || ended ? 'LIVE' : 'PAUSED'))
   }
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!snapshot.currentLot) return
+      // A held key repeats, and Cmd+S / Ctrl+Z are the browser's — neither may
+      // sell or undo a lot.
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+      if (showEndConfirm || showSetupModal) return
+      const lot = snapshot.currentLot
+      if (!lot) return
       const target = e.target as HTMLElement | null
-      if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
+      if (target && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)) return
+      const open = lot.status === 'QUEUED' || lot.status === 'BIDDING'
+      const key = e.key.toLowerCase()
       if (e.key === ' ') {
         e.preventDefault()
-        run(() => controlTimer(roomId, snapshot.room.phase === 'PAUSED' ? 'start' : 'pause'))
-      } else if (e.key.toLowerCase() === 's') {
+        if (snapshot.room.phase !== 'COMPLETED') togglePause()
+      } else if (key === 's' && open) {
         run(() => markSold(roomId))
-      } else if (e.key.toLowerCase() === 'u') {
+      } else if (key === 'u' && open) {
         run(() => markUnsold(roomId))
-      } else if (e.key.toLowerCase() === 'z') {
+      } else if (key === 'z') {
         run(() => undoLastBid(roomId))
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, snapshot])
+  }, [roomId, snapshot, showEndConfirm, showSetupModal])
 
   // Sort teams in standard order matching Reference 1
   const sortedTeams = [...snapshot.teams].sort((a, b) => {
@@ -179,7 +236,7 @@ export function AdminConsole({
     ? lot.player.setNumber.toUpperCase()
     : 'UNCAPPED PLAYERS'
 
-  const remainingPlayersCount = snapshot.queue.length || 253
+  const remainingPlayersCount = snapshot.queue.length
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#0D0D10] text-white select-none overflow-x-hidden font-sans">
@@ -291,7 +348,8 @@ export function AdminConsole({
                 {/* UNDO BID Button */}
                 <button
                   onClick={() => run(() => undoLastBid(roomId))}
-                  disabled={!lot || pending || lot.bidHistory.length === 0}
+                  // Undo also walks back a SOLD/UNSOLD call, which an UNSOLD lot has no bids for.
+                  disabled={!lot || pending || (!closed && lot.bidHistory.length === 0)}
                   className="flex items-center justify-between px-4 py-3 bg-[#FBBF24] hover:bg-amber-400 active:bg-amber-500 disabled:opacity-35 disabled:cursor-not-allowed text-[#1E1705] font-condensed text-xl font-black uppercase tracking-wider transition-all shadow-md cursor-pointer"
                 >
                   <span>UNDO BID</span>
@@ -351,7 +409,7 @@ export function AdminConsole({
                     />
                     <button
                       type="submit"
-                      disabled={!lot || closed || pending}
+                      disabled={!biddingOpen || pending}
                       className="shrink-0 px-4 py-2 bg-[#60A5FA] hover:bg-blue-400 active:bg-blue-500 disabled:opacity-35 disabled:cursor-not-allowed font-condensed text-base font-black uppercase tracking-wider text-[#0B1528] transition-colors cursor-pointer shadow"
                     >
                       Bid
@@ -497,12 +555,12 @@ export function AdminConsole({
 
                 {/* [PAUSE] / [RESUME] */}
                 <button
-                  onClick={() => run(() => controlTimer(roomId, paused ? 'start' : 'pause'))}
-                  disabled={!lot || closed || pending}
+                  onClick={togglePause}
+                  disabled={pending}
                   className="px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                 >
-                  {paused ? <Play className="h-3.5 w-3.5 text-brand-yellow" /> : <Pause className="h-3.5 w-3.5 text-white" />}
-                  <span>{paused ? '[RESUME]' : '[PAUSE]'}</span>
+                  {paused || ended ? <Play className="h-3.5 w-3.5 text-brand-yellow" /> : <Pause className="h-3.5 w-3.5 text-white" />}
+                  <span>{ended ? '[REOPEN]' : paused ? '[RESUME]' : '[PAUSE]'}</span>
                 </button>
 
                 {/* [RESET TIMER] */}
@@ -518,10 +576,13 @@ export function AdminConsole({
                 {/* [DISPUTE] */}
                 <button
                   onClick={() => {
-                    setDisputeMessage(`Dispute flagged for Lot ${lot?.id ?? 'current'}. Reverting to previous bid ladder.`)
-                    run(() => undoLastBid(roomId))
+                    if (!lot) return
+                    const lotNumber = lot.lotNumber
+                    run(() => undoLastBid(roomId), () =>
+                      setDisputeMessage(`Dispute flagged for Lot ${lotNumber}. Last bid reverted.`)
+                    )
                   }}
-                  disabled={!lot || pending}
+                  disabled={!lot || closed || pending || lot.bidHistory.length === 0}
                   className="px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
                 >
                   [DISPUTE]
@@ -563,7 +624,7 @@ export function AdminConsole({
                           {formatMoney(bid.amount)}
                         </span>
                         <span className="font-mono text-[9px] text-white/40">
-                          {bid.timestamp}
+                          {new Date(bid.timestamp).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false })}
                         </span>
                       </div>
                     ))}
@@ -600,7 +661,7 @@ export function AdminConsole({
                   key={team.id}
                   data-testid={`bid-${team.shortCode}`}
                   onClick={() => bidFor(team)}
-                  disabled={!lot || closed || pending}
+                  disabled={!biddingOpen || pending}
                   className={`group flex flex-col border transition-all text-left overflow-hidden disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer ${
                     isLeading
                       ? 'border-brand-yellow ring-2 ring-brand-yellow shadow-[0_0_15px_rgba(249,205,5,0.4)]'
@@ -736,10 +797,8 @@ export function AdminConsole({
                   Cancel
                 </button>
                 <button
-                  onClick={async () => {
-                    await run(() => setPhase(roomId, 'COMPLETED'))
-                    setShowEndConfirm(false)
-                  }}
+                  onClick={() => run(() => setPhase(roomId, 'COMPLETED'), () => setShowEndConfirm(false))}
+                  disabled={pending}
                   className="px-5 py-2 bg-brand-pink text-white hover:bg-pink-600 transition-colors cursor-pointer"
                 >
                   End Auction
@@ -781,6 +840,10 @@ export function AdminConsole({
                 <div className="flex items-center justify-between bg-white/5 p-2">
                   <span className="font-bold text-brand-yellow">[Z] KEY</span>
                   <span>Undo Last Placed Bid</span>
+                </div>
+                <div className="flex items-center justify-between bg-white/5 p-2">
+                  <span className="font-bold text-brand-yellow">[SPACE]</span>
+                  <span>Pause / Resume Bidding</span>
                 </div>
               </div>
 

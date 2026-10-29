@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
+import { applyLiveEvent } from '@/lib/live-events'
 import { useLotEntrance } from '@/hooks/use-lot-entrance'
 import { SoldStamp } from '@/components/ui/sold-stamp'
 import { Model3D } from '@/components/ui/model-3d'
@@ -49,7 +50,7 @@ export function DisplayBoard({
     setStamp(event.type)
     clearTimeout(stampTimer.current)
     stampTimer.current = setTimeout(() => setStamp(null), 4000)
-  })
+  }, applyLiveEvent)
 
   // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {
@@ -104,7 +105,8 @@ export function DisplayBoard({
             {snapshot.room.phase || 'LIVE'}
           </span>
           <span className="font-mono text-[10px] text-white/50 tracking-wider">
-            {roomPlayers.length > 0 ? roomPlayers.filter((p) => p.status === 'UPCOMING').length : 253} PLAYERS LEFT
+            {/* Every called lot takes one player off the list; roomPlayers is only the page-load copy. */}
+            {Math.max(0, roomPlayers.length - (lot?.lotNumber ?? 0))} PLAYERS LEFT
           </span>
         </div>
       </div>
@@ -114,8 +116,8 @@ export function DisplayBoard({
         {/* ── Left Sidebar: lot details + bidding log (sized off the screen height so it never scrolls) ── */}
         <aside ref={cardRef} className={`flex h-full min-h-0 min-w-0 flex-col gap-[1.2vh] ${bidPulse ? 'anim-bid-pop' : ''}`}>
           <div className="font-condensed text-[4vh] leading-none font-black text-white tracking-tight">
-            LOT {lot ? lot.lotNumber : '1'}{' '}
-            <span className="text-white/30 text-[2.6vh] font-normal">/ {roomPlayers.length || 254}</span>
+            LOT {lot ? lot.lotNumber : '—'}{' '}
+            <span className="text-white/30 text-[2.6vh] font-normal">/ {roomPlayers.length}</span>
           </div>
 
           <div className="bg-[#2074D5] px-5 py-[1.2vh] shadow-md">

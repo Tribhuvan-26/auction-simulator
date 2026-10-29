@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { spaceGrotesk, spaceGroteskExt, inter, interExt, oswald, oswaldExt, bebasNeue, bebasNeueExt, teko, tekoExt } from '@/lib/fonts'
+import { InlineScript } from '@/components/ui/inline-script'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {/* landing loader (src/components/ui/Loader.tsx) plays once per session: skip it before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: LOADER_GATE }} />
+        <InlineScript html={LOADER_GATE} />
       </head>
 
       <body className="font-body bg-[#121212] text-brand-white min-h-full flex flex-col selection:bg-brand-blue selection:text-white">

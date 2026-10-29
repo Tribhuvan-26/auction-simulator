@@ -13,11 +13,6 @@ import { PrismaPg } from '@prisma/adapter-pg'
 // price/nationality — see prisma/data/build note in the extraction script.
 const DATA_PATH = join(__dirname, 'data/ipl-2026-official-players.json')
 
-// Neither the CSV nor the squad pages carry a role column (the iplt20.com
-// squad cards render name + photo only), so roles are curated by hand in
-// prisma/data/player-roles.json — keyed by the exact name in the dataset.
-const ROLES_PATH = join(__dirname, 'data/player-roles.json')
-
 const TEAM_META: Record<string, { code: string; color: string }> = {
   'Chennai Super Kings': { code: 'CSK', color: '#F9CD05' },
   'Delhi Capitals': { code: 'DC', color: '#17479E' },
@@ -45,25 +40,54 @@ type OfficialPlayer = {
   photoUrl: string | null
 }
 
-// Only the batters/keepers on the auction shortlist go into a room — see
-// prisma/data/auction-pool.json.
+// Who goes into a room, with role, category and rating — generated from the
+// auction sheet by scripts/import_player_sheet.py. The sheet is the source of
+// truth for these; the official squad list above only supplies photos (and
+// nationality), and its capped/overseas flags are placeholders for most rows.
 const POOL_PATH = join(__dirname, 'data/auction-pool.json')
 
-// Base price comes from the player's rating (src/data/player-ratings.json),
-// in lakhs: 90–100 → ₹2 Cr, 80–89 → ₹1 Cr, below → ₹50 L.
-const RATINGS_PATH = join(__dirname, '../src/data/player-ratings.json')
+type PoolEntry = { name: string; role: PlayerRole; category: 'Capped' | 'Uncapped' | 'Overseas'; rating: number }
 
+// Base price comes from the player's rating, in lakhs:
+// 90–100 → ₹2 Cr, 80–89 → ₹1 Cr, below → ₹50 L.
 export function basePriceForRating(rating: number): number {
   return rating >= 90 ? 200 : rating >= 80 ? 100 : 50
 }
 
-function loadOfficialPlayers(): OfficialPlayer[] {
-  const pool = new Set<string>(JSON.parse(readFileSync(POOL_PATH, 'utf-8')))
-  return JSON.parse(readFileSync(DATA_PATH, 'utf-8')).filter((p: OfficialPlayer) => pool.has(p.name))
+export function loadPool(): PoolEntry[] {
+  return JSON.parse(readFileSync(POOL_PATH, 'utf-8'))
 }
 
-function loadRoles(): Record<string, PlayerRole> {
-  return JSON.parse(readFileSync(ROLES_PATH, 'utf-8'))
+function loadOfficialPlayers(): Map<string, OfficialPlayer> {
+  const players: OfficialPlayer[] = JSON.parse(readFileSync(DATA_PATH, 'utf-8'))
+  return new Map(players.map((p) => [p.name, p]))
+}
+
+/**
+ * The pool as Player rows for one room — shared by a fresh seed and by
+ * prisma/reset-room.ts, which reloads an existing room's players.
+ */
+export function poolPlayerRows(roomId: string) {
+  const official = loadOfficialPlayers()
+  return loadPool().map((p, i) => {
+    const known = official.get(p.name)
+    const overseas = p.category === 'Overseas'
+    return {
+      roomId,
+      name: p.name,
+      role: p.role,
+      basePrice: basePriceForRating(p.rating),
+      // Legends outside the official squads have no photo; the UI shows initials.
+      photoUrl: known?.photoUrl ?? null,
+      nationality: overseas ? (known && known.nationality !== 'India' ? known.nationality : 'Overseas') : 'India',
+      isOverseas: overseas,
+      matches: 0,
+      setNumber: p.category === 'Uncapped' ? 'Uncapped Players' : 'Capped Players',
+      status: 'UPCOMING' as const,
+      // Sheet order is the auction order, whatever order the ids come out in.
+      queueOrder: i,
+    }
+  })
 }
 
 /**
@@ -96,14 +120,8 @@ function generateRoomCode(): string {
  * wiped but whose room row (and passcode) survived.
  */
 export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscodes?: string[]) {
-  const officialPlayers = loadOfficialPlayers()
-  const rolesByName = loadRoles()
-  const ratings: Record<string, number> = JSON.parse(readFileSync(RATINGS_PATH, 'utf-8'))
-  const unrated = officialPlayers.filter((p) => ratings[p.name] === undefined).map((p) => p.name)
-  if (unrated.length) throw new Error(`No rating in player-ratings.json for: ${unrated.join(', ')}`)
-  const unroled = officialPlayers.filter((p) => !rolesByName[p.name]).map((p) => p.name)
-  if (unroled.length) throw new Error(`No role in player-roles.json for: ${unroled.join(', ')}`)
-  const teamNames = [...new Set(officialPlayers.map((p) => p.team))]
+  // All ten franchises, whoever is in the pool — teams bid, they don't own pool players.
+  const teamNames = Object.keys(TEAM_META)
   const passcodes = teamPasscodes ?? generatePasscodes(teamNames.length)
 
   const teamIdByName = new Map<string, string>()
@@ -127,22 +145,8 @@ export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscod
     teamIdByName.set(teamName, team.id)
   }
 
-  for (const p of officialPlayers) {
-    await prisma.player.create({
-      data: {
-        roomId,
-        name: p.name,
-        role: rolesByName[p.name],
-        basePrice: basePriceForRating(ratings[p.name]),
-        photoUrl: p.photoUrl,
-        nationality: p.nationality,
-        isOverseas: p.isOverseas,
-        matches: 0,
-        setNumber: p.capped === 'Capped' ? 'Capped Players' : 'Uncapped Players',
-        status: 'UPCOMING',
-      },
-    })
-  }
+  // One insert, not one round trip per player — the pool is ~170 rows.
+  await prisma.player.createMany({ data: poolPlayerRows(roomId) })
 
   return { teamNames, passcodes }
 }

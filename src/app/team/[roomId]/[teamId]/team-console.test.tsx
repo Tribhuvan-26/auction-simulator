@@ -33,6 +33,7 @@ const team = (over: Partial<PublicSnapshot['teams'][number]> = {}): PublicSnapsh
 
 function snapshot(over: Partial<PublicSnapshot> = {}, teamOver = {}): PublicSnapshot {
   return {
+    at: 0,
     room: { id: 'room-1', name: 'Room One', phase: 'LIVE', round: 1 },
     currentLot: {
       id: 'lot-1',
@@ -121,6 +122,15 @@ describe('TeamConsole bidding control panel', () => {
     fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
     expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
     expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
+  })
+
+  it('a pass survives a reload of the page', () => {
+    const first = renderConsole(snapshot())
+    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
+    first.unmount()
+    renderConsole(snapshot())
+    expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
+    sessionStorage.clear()
   })
 
   it('locks out once bidding is live — the auctioneer runs it from there', () => {

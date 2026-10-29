@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { ResultsTicker } from './results-ticker'
 
-const sold = { id: 'l2', playerName: 'Virat Kohli', status: 'SOLD' as const, price: 2100, teamShortCode: 'RCB', colorAccent: '#EC1C24' }
-const unsold = { id: 'l1', playerName: 'Player X', status: 'UNSOLD' as const, price: null, teamShortCode: null, colorAccent: null }
+const sold = { id: 'l2', playerId: 'p2', playerName: 'Virat Kohli', status: 'SOLD' as const, price: 2100, teamShortCode: 'RCB', colorAccent: '#EC1C24' }
+const unsold = { id: 'l1', playerId: 'p1', playerName: 'Player X', status: 'UNSOLD' as const, price: null, teamShortCode: null, colorAccent: null }
 
 describe('ResultsTicker', () => {
   it('shows a placeholder when nothing has closed yet', () => {

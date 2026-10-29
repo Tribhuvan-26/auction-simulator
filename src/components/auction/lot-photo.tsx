@@ -12,6 +12,9 @@ const EASE = 'cubic-bezier(.65,0,.35,1)'
 
 export type SoldTo = { shortCode: string; name: string; colorAccent: string; logoUrl: string | null }
 
+type Anim = { key: string; swapped: HTMLCanvasElement | null; revealed: boolean; done: boolean }
+const fresh = (key: string): Anim => ({ key, swapped: null, revealed: false, done: false })
+
 /**
  * The lot's portrait. Once the lot is SOLD, a team-coloured scan line sweeps
  * across it left to right, leaving the player in the buying franchise's real
@@ -21,35 +24,37 @@ export function LotPhoto({
   src, alt, soldTo, className = 'relative h-full w-full',
 }: { src: string; alt: string; soldTo: SoldTo | null; className?: string }) {
   const imgRef = useRef<HTMLImageElement>(null)
-  const [swapped, setSwapped] = useState<HTMLCanvasElement | null>(null)
-  const [revealed, setRevealed] = useState(false)
-  const [done, setDone] = useState(false)
   const code = soldTo?.shortCode
+  // The animation belongs to one photo + buyer. Keying it means a new lot (or
+  // an undone sale) starts clean in the same render, instead of showing the
+  // last lot's kit canvas or a hidden <img> until an effect resets it.
+  const key = `${src}|${code ?? ''}`
+  const [anim, setAnim] = useState<Anim>(() => fresh(key))
+  const { swapped, revealed, done } = anim.key === key ? anim : fresh(key)
 
   useEffect(() => {
-    setSwapped(null)
-    setRevealed(false)
-    setDone(false)
     const donor = code ? donorUrl(code) : null
     if (!donor || teamOfPhoto(src) === code?.toLowerCase() || !imgRef.current) return
     const img = imgRef.current
     let cancelled = false
     const timers: ReturnType<typeof setTimeout>[] = []
+    const update = (patch: Partial<Anim>) =>
+      setAnim((a) => ({ ...(a.key === key ? a : fresh(key)), ...patch }))
     timers.push(setTimeout(() => {
       const donorImg = new Image()
       donorImg.onload = () => {
         if (cancelled || !img.complete) return
-        setSwapped(swapKit(img, donorImg))
+        update({ swapped: swapKit(img, donorImg) })
         requestAnimationFrame(() => requestAnimationFrame(() => {
           if (cancelled) return
-          setRevealed(true)
-          timers.push(setTimeout(() => !cancelled && setDone(true), SWAP_MS))
+          update({ revealed: true })
+          timers.push(setTimeout(() => !cancelled && update({ done: true }), SWAP_MS))
         }))
       }
       donorImg.src = donor
     }, SWAP_DELAY))
     return () => { cancelled = true; timers.forEach(clearTimeout) }
-  }, [src, code])
+  }, [src, code, key])
 
   const color = soldTo?.colorAccent ?? '#fff'
 

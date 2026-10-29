@@ -96,6 +96,7 @@ model Player {
   lot         AuctionLot?
 
   @@index([roomId])
+  @@index([roomId, status])
   @@index([teamId])
 }
 
@@ -112,6 +113,7 @@ model AuctionLot {
   bids                  Bid[]
 
   @@index([roomId])
+  @@index([roomId, status])
 }
 
 model Bid {
