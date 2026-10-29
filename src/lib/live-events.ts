@@ -29,7 +29,10 @@ export function applyLiveEvent<T extends PublicSnapshot>(prev: T, event: LiveEve
   return event.snapshot ? { ...prev, ...event.snapshot } : null
 }
 
-/** An action's result, unless a newer broadcast already landed while it was in flight. */
-export function newer<T extends PublicSnapshot>(prev: T, next: PublicSnapshot): T {
+/**
+ * An action's result, unless a newer broadcast already landed while it was in
+ * flight. A bid answers with just the lot; everything else with the whole room.
+ */
+export function newer<T extends PublicSnapshot>(prev: T, next: Pick<PublicSnapshot, 'at'> & Partial<PublicSnapshot>): T {
   return next.at >= prev.at ? { ...prev, ...next } : prev
 }

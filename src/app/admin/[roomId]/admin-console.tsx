@@ -41,6 +41,7 @@ import {
   dropFromLot,
   type AdminSnapshot,
   type PublicSnapshot,
+  type BidResult,
 } from './actions'
 
 type Team = AdminSnapshot['teams'][number]
@@ -128,15 +129,15 @@ export function AdminConsole({
   // it reads this to know an action is already in flight.
   const pendingRef = useRef(false)
 
-  async function run(action: () => Promise<AdminSnapshot | PublicSnapshot>, onDone?: () => void) {
+  async function run(action: () => Promise<AdminSnapshot | PublicSnapshot | BidResult>, onDone?: () => void) {
     if (pendingRef.current) return
     pendingRef.current = true
     setError(null)
     setPending(true)
     try {
       const next = await action()
-      // placeBid answers with the public snapshot (team seats call it too);
-      // a bid never touches the queue, so keep the one already on screen.
+      // A bid answers with just the lot, and placeBid's public snapshot has no
+      // queue — either way, keep what's on screen for the rest.
       setSnapshot((prev) => newer(prev, next))
       onDone?.()
     } catch (e) {
@@ -175,6 +176,9 @@ export function AdminConsole({
         status: 'BIDDING',
         currentBid: amount,
         currentBiddingTeamId: team.id,
+        activeBidders: optimistic.activeBidders.includes(team.id)
+          ? optimistic.activeBidders
+          : [...optimistic.activeBidders, team.id],
         bidHistory: [
           ...optimistic.bidHistory,
           { teamId: team.id, teamName: team.name, amount, timestamp: new Date().toISOString() },

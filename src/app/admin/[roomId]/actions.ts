@@ -61,13 +61,74 @@ export type AdminSnapshot = {
  */
 export type PublicSnapshot = Omit<AdminSnapshot, 'queue'>
 
+const LOT_INCLUDE = { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } } as const
+type LotRow = Prisma.AuctionLotGetPayload<{ include: typeof LOT_INCLUDE }>
+
+function toLotView(lot: LotRow, lotCount: number, dropped: string[]): NonNullable<AdminSnapshot['currentLot']> {
+  return {
+  id: lot.id,
+  lotNumber: lotCount,
+  status: lot.status,
+  currentBid: lot.currentBid,
+  currentBiddingTeamId: lot.currentBiddingTeamId,
+  timerSeconds: lot.timerSeconds,
+  activeBidders: activeBidders(lot.bids.map((b) => b.teamId), dropped),
+  droppedTeamIds: dropped,
+  bidHistory: lot.bids.map((b) => ({
+    teamId: b.teamId,
+    teamName: b.team.name,
+    amount: b.amount,
+    timestamp: b.timestamp.toISOString(),
+  })),
+  player: {
+    id: lot.player.id,
+    name: lot.player.name,
+    role: lot.player.role,
+    basePrice: lot.player.basePrice,
+    photoUrl: lot.player.photoUrl,
+    nationality: lot.player.nationality,
+    matches: lot.player.matches,
+    runs: lot.player.runs,
+    wickets: lot.player.wickets,
+    average: lot.player.average,
+    strikeRate: lot.player.strikeRate,
+    economy: lot.player.economy,
+    isOverseas: lot.player.isOverseas,
+    setNumber: lot.player.setNumber,
+  },
+}
+}
+
+/** The DB's clock — see buildSnapshot for why it's stamped first. */
+async function dbNow(): Promise<number> {
+  const [{ at }] = await prisma.$queryRaw<{ at: number }[]>`
+    SELECT (extract(epoch from clock_timestamp()) * 1000)::float8 AS at`
+  return at
+}
+
+/** What a bid changes: the lot on screen, nothing else. */
+export type BidResult = { at: number; currentLot: PublicSnapshot['currentLot'] }
+
+/**
+ * A bid only moves the lot, so it reads just the lot — 4 small queries
+ * instead of the whole room's teams, squads and history.
+ */
+async function buildLot(roomId: string): Promise<BidResult> {
+  const at = await dbNow()
+  const [lot, lotCount, dropped] = await Promise.all([
+    prisma.auctionLot.findFirst({ where: { roomId }, include: LOT_INCLUDE, orderBy: { id: 'desc' } }),
+    prisma.auctionLot.count({ where: { roomId } }),
+    droppedTeams(roomId),
+  ])
+  return { at, currentLot: lot ? toLotView(lot, lotCount, dropped) : null }
+}
+
 async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<AdminSnapshot> {
   // Stamped before the reads start, so a snapshot stamped later sees at least
   // as much. The DB's clock, not this server's: actions run on different
   // instances, and a few ms of skew between them could make screens drop a
   // newer update as stale.
-  const [{ at }] = await prisma.$queryRaw<{ at: number }[]>`
-    SELECT (extract(epoch from clock_timestamp()) * 1000)::float8 AS at`
+  const at = await dbNow()
   // These reads are independent of each other, so they run in parallel (as far
   // as the pool allows). Each action builds this once and broadcasts it, so
   // the other screens don't each rebuild it.
@@ -75,11 +136,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
     prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
     // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
     // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
-    prisma.auctionLot.findFirst({
-      where: { roomId },
-      include: { player: true, bids: { include: { team: true }, orderBy: { timestamp: 'asc' } } },
-      orderBy: { id: 'desc' },
-    }),
+    prisma.auctionLot.findFirst({ where: { roomId }, include: LOT_INCLUDE, orderBy: { id: 'desc' } }),
     // Lot number is "how many lots this room has called", which is what the
     // status module shows — not the player's set name.
     prisma.auctionLot.count({ where: { roomId } }),
@@ -112,40 +169,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
   return {
     at,
     room: { id: room.id, name: room.name, phase: room.phase, round: room.round },
-    currentLot: lot
-      ? {
-          id: lot.id,
-          lotNumber: lotCount,
-          status: lot.status,
-          currentBid: lot.currentBid,
-          currentBiddingTeamId: lot.currentBiddingTeamId,
-          timerSeconds: lot.timerSeconds,
-          activeBidders: activeBidders(lot.bids.map((b) => b.teamId), dropped),
-          droppedTeamIds: dropped,
-          bidHistory: lot.bids.map((b) => ({
-            teamId: b.teamId,
-            teamName: b.team.name,
-            amount: b.amount,
-            timestamp: b.timestamp.toISOString(),
-          })),
-          player: {
-            id: lot.player.id,
-            name: lot.player.name,
-            role: lot.player.role,
-            basePrice: lot.player.basePrice,
-            photoUrl: lot.player.photoUrl,
-            nationality: lot.player.nationality,
-            matches: lot.player.matches,
-            runs: lot.player.runs,
-            wickets: lot.player.wickets,
-            average: lot.player.average,
-            strikeRate: lot.player.strikeRate,
-            economy: lot.player.economy,
-            isOverseas: lot.player.isOverseas,
-            setNumber: lot.player.setNumber,
-          },
-        }
-      : null,
+    currentLot: lot ? toLotView(lot, lotCount, dropped) : null,
     teams: teamsRaw.map((t) => ({
       id: t.id,
       name: t.name,
@@ -239,10 +263,10 @@ function assertRoomOpen(phase: string) {
 }
 
 /** Broadcast a bid (only the lot moved) and return the state it produced. */
-async function publishBid(roomId: string, teamId: string, amount: number, includeQueue: boolean) {
-  const snapshot = await buildSnapshot(roomId, includeQueue)
-  publish(roomId, { type: 'BID', teamId, amount, at: snapshot.at, lot: snapshot.currentLot })
-  return snapshot
+async function publishBid(roomId: string, teamId: string, amount: number): Promise<BidResult> {
+  const result = await buildLot(roomId)
+  publish(roomId, { type: 'BID', teamId, amount, at: result.at, lot: result.currentLot })
+  return result
 }
 
 /**
@@ -251,17 +275,20 @@ async function publishBid(roomId: string, teamId: string, amount: number, includ
  * "no record was found" surface in the console.
  */
 async function openLotOrThrow(roomId: string) {
-  const lot = await prisma.auctionLot.findFirst({
-    where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    include: {
-      player: true,
-      room: { select: { phase: true } },
-      bids: { select: { teamId: true }, orderBy: { timestamp: 'asc' } },
-    },
-    orderBy: { id: 'desc' },
-  })
+  const [lot, dropped] = await Promise.all([
+    prisma.auctionLot.findFirst({
+      where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
+      include: {
+        player: true,
+        room: { select: { phase: true } },
+        bids: { select: { teamId: true }, orderBy: { timestamp: 'asc' } },
+      },
+      orderBy: { id: 'desc' },
+    }),
+    droppedTeams(roomId),
+  ])
   if (!lot) throw new Error('No lot on the block — load the next player first')
-  return { ...lot, droppedTeamIds: await droppedTeams(roomId) }
+  return { ...lot, droppedTeamIds: dropped }
 }
 
 /**
@@ -352,15 +379,16 @@ const LOT_CHANGED = 'The lot changed while you were acting on it — check the l
  * and the queue isn't theirs to see. A bid never changes the queue, so the
  * admin console keeps the one it already has.
  */
-export async function placeBid(roomId: string, teamId: string, amount: number): Promise<PublicSnapshot> {
+export async function placeBid(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   // Server Actions are POST endpoints — the PIN gate on the page stops nobody
   // who crafts the request by hand. Authorise before touching the database.
   await assertCanBidAs(roomId, teamId)
 
-  const lot = await openLotOrThrow(roomId)
+  // Independent reads, so together: every round trip here is time a bid
+  // spends waiting while the other team can still get in first.
+  const [lot, team] = await Promise.all([openLotOrThrow(roomId), bidTeam(roomId, teamId)])
   assertRoomOpen(lot.room.phase)
   if (lot.currentBiddingTeamId === teamId) throw new Error('You already hold the highest bid')
-  const team = await bidTeam(roomId, teamId)
 
   // The ladder allows exactly one next amount, so don't take the client's word
   // for it — recompute and reject anything that doesn't match. A lot that
@@ -391,7 +419,7 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
     await createBid(tx, { lotId: lot.id, teamId, amount })
   }, TX)
 
-  return toPublic(await publishBid(roomId, teamId, amount, false))
+  return publishBid(roomId, teamId, amount)
 }
 
 /**
@@ -399,14 +427,14 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
  * bid must still land on a valid increment, and the team must be allowed to
  * buy the player — same rules as a team's own bid, two-team lock included.
  */
-export async function forceBid(roomId: string, teamId: string, amount: number): Promise<AdminSnapshot> {
+export async function forceBid(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   await assertIsAuctioneer(roomId)
   if (!Number.isInteger(amount) || amount <= 0) throw new Error('Bid must be a whole number of lakhs above zero')
 
-  const lot = await openLotOrThrow(roomId)
+  const [lot, team] = await Promise.all([openLotOrThrow(roomId), bidTeam(roomId, teamId)])
   assertRoomOpen(lot.room.phase)
-  // Off the ladder is fine; below the price is a typo that would hand a
-  // player over cheaper than the room already bid.
+  // Below the price is a typo that would hand a player over cheaper than the
+  // room already bid.
   if (lot.status === 'BIDDING' ? amount <= lot.currentBid : amount < lot.currentBid) {
     throw new Error(`Jump bid must be above the current ${formatMoney(lot.currentBid)}`)
   }
@@ -414,7 +442,6 @@ export async function forceBid(roomId: string, teamId: string, amount: number): 
     throw new Error(`${formatMoney(amount)} isn't a valid increment — bids go up in ladder steps`)
   }
   if (lot.currentBiddingTeamId === teamId) throw new Error('That team already holds the highest bid')
-  const team = await bidTeam(roomId, teamId)
   const rejection = bidRejectionReason(team, bidLot(lot), amount)
   if (rejection) throw new Error(`${team.shortCode}: ${rejection}`)
 
@@ -427,7 +454,7 @@ export async function forceBid(roomId: string, teamId: string, amount: number): 
     await createBid(tx, { lotId: lot.id, teamId: team.id, amount })
   }, TX)
 
-  return publishBid(roomId, team.id, amount, true)
+  return publishBid(roomId, team.id, amount)
 }
 
 export async function markSold(roomId: string): Promise<AdminSnapshot> {
