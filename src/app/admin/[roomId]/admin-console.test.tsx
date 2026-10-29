@@ -166,6 +166,22 @@ describe('AdminConsole bidding grid', () => {
     expect(screen.getByRole('button', { name: /undo bid/i })).toBeEnabled()
   })
 
+  it('S still sells right after a team tile was clicked (the button keeps focus)', async () => {
+    const { markSold } = await import('./actions')
+    vi.mocked(markSold).mockClear()
+    render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
+    const tile = screen.getByTestId('bid-CSK')
+    tile.focus()
+    fireEvent.keyDown(tile, { key: 's' })
+    await vi.waitFor(() => expect(markSold).toHaveBeenCalledWith('room-1'))
+  })
+
+  it('PAUSE is off before the first lot, so a room cannot start paused', () => {
+    const setup = { ...baseSnapshot, room: { ...baseSnapshot.room, phase: 'SETUP' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={setup} />)
+    expect(screen.getByRole('button', { name: /pause/i })).toBeDisabled()
+  })
+
   it('an ended auction can be reopened', async () => {
     const { setPhase } = await import('./actions')
     const ended = { ...baseSnapshot, room: { ...baseSnapshot.room, phase: 'COMPLETED' } }

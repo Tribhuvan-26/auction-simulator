@@ -35,6 +35,18 @@ CATEGORIES = {'Capped', 'Uncapped', 'Overseas'}
 BAND_PRICE = {200: '₹2 crore', 100: '₹1 crore', 50: '₹50 lakh'}
 
 
+def sheet_price_lakhs(cell):
+    """The sheet's Base Price as lakhs, whether typed as text ('₹2 crore') or a number (200)."""
+    if cell is None or cell == '':
+        return None
+    if isinstance(cell, (int, float)):
+        return int(cell)
+    for lakhs, text in BAND_PRICE.items():
+        if str(cell).strip() == text:
+            return lakhs
+    return str(cell).strip()
+
+
 def band(rating: int) -> int:
     # Same rule as basePriceForRating in prisma/seed.ts.
     return 200 if rating >= 90 else 100 if rating >= 80 else 50
@@ -61,10 +73,12 @@ def main(path: str) -> None:
             return
         if category not in CATEGORIES:
             raise SystemExit(f'{name} ({where}): unknown category {category!r}')
-        if not isinstance(rating, (int, float)) or not 0 <= rating <= 100:
-            raise SystemExit(f'{name} ({where}): bad rating {rating!r}')
+        # Whole numbers only: int() would quietly turn 89.6 into 89 and drop a band.
+        if not isinstance(rating, (int, float)) or rating != int(rating) or not 0 <= rating <= 100:
+            raise SystemExit(f'{name} ({where}): rating must be a whole number 0–100, got {rating!r}')
         rating = int(rating)
-        if sheet_price and sheet_price != BAND_PRICE[band(rating)]:
+        given = sheet_price_lakhs(sheet_price)
+        if given is not None and given != band(rating):
             warnings.append(
                 f'{name}: sheet says {sheet_price} but rating {rating} is {BAND_PRICE[band(rating)]} — using the band'
             )

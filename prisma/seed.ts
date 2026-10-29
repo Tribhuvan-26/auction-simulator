@@ -124,10 +124,9 @@ export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscod
   const teamNames = Object.keys(TEAM_META)
   const passcodes = teamPasscodes ?? generatePasscodes(teamNames.length)
 
-  const teamIdByName = new Map<string, string>()
   for (const [i, teamName] of teamNames.entries()) {
     const meta = TEAM_META[teamName]
-    const team = await prisma.team.create({
+    await prisma.team.create({
       data: {
         roomId,
         name: teamName,
@@ -142,7 +141,6 @@ export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscod
         passcode: passcodes[i],
       },
     })
-    teamIdByName.set(teamName, team.id)
   }
 
   // One insert, not one round trip per player — the pool is ~170 rows.

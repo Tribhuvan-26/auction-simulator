@@ -21,6 +21,9 @@ function createPrismaClient() {
 }
 
 const cached = globalForPrisma.prismaUrl === process.env.DATABASE_URL ? globalForPrisma.prisma : undefined
+// The client being replaced still holds pooled connections against the
+// pooler's client cap; close them rather than leaving them to idle out.
+if (!cached) void globalForPrisma.prisma?.$disconnect()
 export const prisma = cached ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {

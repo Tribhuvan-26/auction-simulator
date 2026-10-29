@@ -30,6 +30,11 @@ export function LotPhoto({
   // last lot's kit canvas or a hidden <img> until an effect resets it.
   const key = `${src}|${code ?? ''}`
   const [anim, setAnim] = useState<Anim>(() => fresh(key))
+  // Reset on every change of photo or buyer, during render (React's pattern
+  // for state that follows a prop). Only resetting inside the effect missed
+  // an undone sale: the effect bails out early, so re-selling to the same
+  // team found the old finished state and skipped the sweep.
+  if (anim.key !== key) setAnim(fresh(key))
   const { swapped, revealed, done } = anim.key === key ? anim : fresh(key)
 
   useEffect(() => {

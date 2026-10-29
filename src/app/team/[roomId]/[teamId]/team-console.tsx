@@ -191,20 +191,24 @@ export function TeamConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
-    if (event.type !== 'BID') return
-    const weWereLeading = leaderRef.current === teamId
-    const weLead = event.teamId === teamId
-    if (weLead) {
-      setOutbid(false)
-      return
-    }
-    if (!weWereLeading) return
-    setOutbid(true)
-    navigator.vibrate?.([100, 50, 100])
-    clearTimeout(outbidTimer.current)
-    outbidTimer.current = setTimeout(() => setOutbid(false), 6000)
-  }, applyLiveEvent)
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, {
+    applyEvent: applyLiveEvent,
+    versionOf: (s) => s.at,
+    onEvent: (event) => {
+      if (event.type !== 'BID') return
+      const weWereLeading = leaderRef.current === teamId
+      const weLead = event.teamId === teamId
+      if (weLead) {
+        setOutbid(false)
+        return
+      }
+      if (!weWereLeading) return
+      setOutbid(true)
+      navigator.vibrate?.([100, 50, 100])
+      clearTimeout(outbidTimer.current)
+      outbidTimer.current = setTimeout(() => setOutbid(false), 6000)
+    },
+  })
 
   // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {

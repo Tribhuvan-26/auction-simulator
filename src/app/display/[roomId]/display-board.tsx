@@ -39,18 +39,22 @@ export function DisplayBoard({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, (event) => {
-    if (event.type === 'BID') {
-      setBidPulse(true)
-      clearTimeout(pulseTimer.current)
-      pulseTimer.current = setTimeout(() => setBidPulse(false), 1400)
-      return
-    }
-    if (event.type !== 'SOLD' && event.type !== 'UNSOLD') return
-    setStamp(event.type)
-    clearTimeout(stampTimer.current)
-    stampTimer.current = setTimeout(() => setStamp(null), 4000)
-  }, applyLiveEvent)
+  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, {
+    applyEvent: applyLiveEvent,
+    versionOf: (s) => s.at,
+    onEvent: (event) => {
+      if (event.type === 'BID') {
+        setBidPulse(true)
+        clearTimeout(pulseTimer.current)
+        pulseTimer.current = setTimeout(() => setBidPulse(false), 1400)
+        return
+      }
+      if (event.type !== 'SOLD' && event.type !== 'UNSOLD') return
+      setStamp(event.type)
+      clearTimeout(stampTimer.current)
+      stampTimer.current = setTimeout(() => setStamp(null), 4000)
+    },
+  })
 
   // The one place the celebration fires: the lot turning SOLD in the snapshot
   useEffect(() => {

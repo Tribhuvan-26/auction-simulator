@@ -1,38 +1,57 @@
 import { vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 
-let onBroadcast: (msg: { payload: unknown }) => void = () => {}
-let onStatus: (status: string) => void = () => {}
-const created = vi.fn()
-const removed = vi.fn()
-vi.mock('@supabase/supabase-js', () => {
-  const channel = {
-    on: (_type: string, _filter: unknown, cb: typeof onBroadcast) => {
-      onBroadcast = cb
-      return channel
+type FakeChannel = {
+  topic: string
+  broadcast: (msg: { payload: unknown }) => void
+  status: (status: string) => void
+}
+
+// A fake realtime client that behaves like realtime-js where it matters: each
+// channel() is a new channel unless one for that topic is still in the list,
+// and a removed channel only leaves the list once its unsubscribe settles.
+const rt = vi.hoisted(() => ({
+  channels: [] as FakeChannel[],
+  created: [] as FakeChannel[],
+  removed: [] as FakeChannel[],
+  removal: null as Promise<void> | null,
+}))
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: () => ({
+    channel: (topic: string) => {
+      const existing = rt.channels.find((c) => c.topic === `realtime:${topic}`)
+      if (existing) return existing
+      const ch = { topic: `realtime:${topic}` } as FakeChannel & Record<string, unknown>
+      ch.on = (_t: string, _f: unknown, cb: FakeChannel['broadcast']) => ((ch.broadcast = cb), ch)
+      ch.subscribe = (cb: FakeChannel['status']) => ((ch.status = cb), ch)
+      rt.channels.push(ch)
+      rt.created.push(ch)
+      return ch
     },
-    subscribe: (cb: typeof onStatus) => {
-      onStatus = cb
-      return channel
+    getChannels: () => rt.channels,
+    removeChannel: async (ch: FakeChannel) => {
+      rt.removed.push(ch)
+      await rt.removal
+      rt.channels = rt.channels.filter((c) => c !== ch)
+      return 'ok'
     },
-  }
-  return {
-    createClient: () => ({
-      channel: (topic: string) => (created(topic), channel),
-      removeChannel: (c: unknown) => removed(c),
-    }),
-  }
-})
+  }),
+}))
 
 import { useLiveSnapshot } from './use-live-snapshot'
+
+const last = () => rt.created[rt.created.length - 1]
+const onBroadcast = (msg: { payload: unknown }) => last().broadcast(msg)
+const onStatus = (status: string) => last().status(status)
 
 // Channels are shared per room for the whole module, so each test gets its own.
 let room = ''
 let roomCount = 0
 beforeEach(() => {
   room = `room-${++roomCount}`
-  created.mockClear()
-  removed.mockClear()
+  rt.created = []
+  rt.removed = []
+  rt.removal = null
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-key')
 })
@@ -78,7 +97,7 @@ it('refetches when the tab comes back into view', async () => {
   expect(result.current.snapshot).toBe('fresh')
 })
 
-it("a snapshot the caller sets wins over a refetch that started before it", async () => {
+it('a snapshot the caller sets wins over a refetch that started before it', async () => {
   let resolve: (v: string) => void = () => {}
   const fetchSnapshot = () => new Promise<string>((r) => (resolve = r))
   const { result } = renderHook(() => useLiveSnapshot(room, 'initial', fetchSnapshot))
@@ -106,7 +125,7 @@ it('polls instead of crashing when the Supabase env is missing', async () => {
 it('applies the state carried by a broadcast without refetching', async () => {
   const fetchSnapshot = vi.fn(async () => 'refetched')
   const { result } = renderHook(() =>
-    useLiveSnapshot(room, 'initial', fetchSnapshot, undefined, (_prev, e) => (e as unknown as { data: string }).data)
+    useLiveSnapshot(room, 'initial', fetchSnapshot, { applyEvent: (_prev, e) => (e as unknown as { data: string }).data })
   )
 
   act(() => onBroadcast({ payload: { type: 'BID', data: 'from-message' } }))
@@ -153,8 +172,8 @@ it('a quick remount (React dev double-mount) reuses the live channel and still h
   await act(async () => onStatus('SUBSCRIBED'))
   await act(async () => vi.advanceTimersByTime(5000))
 
-  expect(created).toHaveBeenCalledTimes(1)
-  expect(removed).not.toHaveBeenCalled()
+  expect(rt.created).toHaveLength(1)
+  expect(rt.removed).toHaveLength(0)
   expect(result.current.snapshot).toBe('joined')
 })
 
@@ -162,27 +181,77 @@ it('closes the channel a moment after the last screen leaves', async () => {
   vi.useFakeTimers()
   renderHook(() => useLiveSnapshot(room, 'initial', async () => 'x')).unmount()
   await act(async () => vi.advanceTimersByTime(1000))
-  expect(removed).toHaveBeenCalledTimes(1)
+  expect(rt.removed).toHaveLength(1)
+})
+
+it('coming back while the old channel is still closing waits for it, then opens a fresh one', async () => {
+  vi.useFakeTimers()
+  let finishRemoval: () => void = () => {}
+  rt.removal = new Promise<void>((r) => (finishRemoval = r))
+  renderHook(() => useLiveSnapshot(room, 'initial', async () => 'x')).unmount()
+  await act(async () => vi.advanceTimersByTime(1000)) // linger over: removal starts, still in flight
+
+  const fetchSnapshot = vi.fn(async () => 'live')
+  const { result } = renderHook(() => useLiveSnapshot(room, 'initial', fetchSnapshot))
+  expect(rt.created).toHaveLength(1) // not handed the closing channel
+
+  await act(async () => finishRemoval())
+  expect(rt.created).toHaveLength(2)
+  await act(async () => onStatus('SUBSCRIBED'))
+  expect(result.current.snapshot).toBe('live')
+})
+
+it('a server-side CLOSED makes screens poll, then rejoins on a new channel', async () => {
+  vi.useFakeTimers()
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const fetchSnapshot = vi.fn(async () => 'x')
+  renderHook(() => useLiveSnapshot(room, 'initial', fetchSnapshot))
+  const first = last()
+
+  act(() => first.status('CLOSED'))
+  await act(async () => vi.advanceTimersByTime(3000))
+  expect(fetchSnapshot).toHaveBeenCalledTimes(1) // polling
+
+  await act(async () => vi.advanceTimersByTime(10_000))
+  expect(last()).not.toBe(first)
+  await act(async () => onStatus('SUBSCRIBED'))
+  const calls = fetchSnapshot.mock.calls.length
+  await act(async () => vi.advanceTimersByTime(9000))
+  expect(fetchSnapshot).toHaveBeenCalledTimes(calls) // polling stopped
+})
+
+it("one screen's failing handler doesn't stop the others in the room hearing a broadcast", () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  renderHook(() =>
+    useLiveSnapshot(room, 'a', async () => 'a', {
+      onEvent: () => {
+        throw new Error('boom')
+      },
+    })
+  )
+  const { result } = renderHook(() => useLiveSnapshot(room, 'b', async () => 'b', { applyEvent: () => 'heard' }))
+
+  act(() => onBroadcast({ payload: { type: 'BID' } }))
+
+  expect(result.current.snapshot).toBe('heard')
 })
 
 it('a refetch that lands after the room changed is dropped', async () => {
   let resolve: (v: string) => void = () => {}
   const fetchSnapshot = () => new Promise<string>((r) => (resolve = r))
-  const other = `${room}-b`
   const { result, rerender } = renderHook(({ id }) => useLiveSnapshot(id, 'initial', fetchSnapshot), {
     initialProps: { id: room },
   })
 
   act(() => onBroadcast({ payload: { type: 'BID' } })) // refetch for the first room starts
   const stale = resolve
-  rerender({ id: other })
+  rerender({ id: `${room}-b` })
   await act(async () => stale('first-room'))
 
   expect(result.current.snapshot).toBe('initial')
 })
 
-it('warns once when switching to polling, not on every reconnect attempt', async () => {
-  vi.useFakeTimers()
+it('warns once when switching to polling, not on every reconnect attempt', () => {
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
   renderHook(() => useLiveSnapshot(room, 'initial', async () => 'x'))
 
@@ -193,4 +262,42 @@ it('warns once when switching to polling, not on every reconnect attempt', async
   })
 
   expect(warn).toHaveBeenCalledTimes(1)
+})
+
+describe('with versioned snapshots', () => {
+  type S = { at: number; v: string }
+  const versionOf = (s: S) => s.at
+
+  it("a stale or echoed broadcast doesn't cancel the catch-up refetch", async () => {
+    let resolve: (v: S) => void = () => {}
+    const fetchSnapshot = () => new Promise<S>((r) => (resolve = r))
+    const { result } = renderHook(() =>
+      useLiveSnapshot(room, { at: 5, v: 'initial' }, fetchSnapshot, { versionOf, applyEvent: (prev) => prev })
+    )
+
+    act(() => onStatus('SUBSCRIBED')) // catch-up refetch in flight
+    act(() => onBroadcast({ payload: { type: 'BID' } })) // nothing new
+    await act(async () => resolve({ at: 9, v: 'caught-up' }))
+
+    expect(result.current.snapshot.v).toBe('caught-up')
+  })
+
+  it('a refetch older than a broadcast that landed meanwhile is read again, not lost', async () => {
+    const resolvers: ((v: S) => void)[] = []
+    const fetchSnapshot = vi.fn(() => new Promise<S>((r) => resolvers.push(r)))
+    const { result } = renderHook(() =>
+      useLiveSnapshot(room, { at: 1, v: 'initial' }, fetchSnapshot, {
+        versionOf,
+        applyEvent: (prev) => ({ ...prev, at: 7, v: 'bid' }),
+      })
+    )
+
+    act(() => onStatus('SUBSCRIBED'))
+    act(() => onBroadcast({ payload: { type: 'BID' } }))
+    await act(async () => resolvers[0]({ at: 5, v: 'older-read' }))
+    expect(fetchSnapshot).toHaveBeenCalledTimes(2)
+    await act(async () => resolvers[1]({ at: 8, v: 'second-read' }))
+
+    expect(result.current.snapshot.v).toBe('second-read')
+  })
 })

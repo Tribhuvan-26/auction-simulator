@@ -40,12 +40,18 @@ import {
 
 type Team = AdminSnapshot['teams'][number]
 
-// A new lot takes a player off the queue, which the broadcast doesn't carry —
-// refetch for that one (unless it's the echo of this console's own click).
+// The broadcast doesn't carry the queue (it's the auctioneer's alone), and the
+// only change another screen can make to it is calling the next lot — which
+// takes exactly that player off the front. So apply the new state and drop
+// that one player, rather than waiting on a refetch that could get lost.
 function applyAdminEvent(prev: AdminSnapshot, event: AuctionEvent) {
-  if (event.type === 'LOT_CHANGE' && prev.at < event.at) return null
-  return applyLiveEvent(prev, event)
+  const next = applyLiveEvent(prev, event)
+  if (!next || next === prev || event.type !== 'LOT_CHANGE') return next
+  const called = event.snapshot.currentLot?.player.id
+  return { ...next, queue: next.queue.filter((p) => p.id !== called) }
 }
+
+const LIVE_OPTIONS = { applyEvent: applyAdminEvent, versionOf: (s: AdminSnapshot) => s.at }
 
 // Standard order of teams matching Screenshot 1:
 // Row 1: PBKS, MI, LSG, KKR, DC
@@ -78,7 +84,7 @@ export function AdminConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, undefined, applyAdminEvent)
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, LIVE_OPTIONS)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
   const [disputeMessage, setDisputeMessage] = useState<string | null>(null)
@@ -143,9 +149,11 @@ export function AdminConsole({
       return
     }
     if (pendingRef.current) return
-    // Show the bid the moment it's clicked; the server's answer replaces it,
-    // and a rejected bid is undone by re-reading the room.
+    // Show the bid the moment it's clicked; the server's answer replaces it.
+    // A rejected bid puts the lot back as it was right away — not only once a
+    // re-read of the room succeeds — unless something newer already landed.
     const optimistic = lot
+    const before = snapshot
     setSnapshot((prev) => ({
       ...prev,
       currentLot: {
@@ -163,7 +171,8 @@ export function AdminConsole({
       try {
         return await placeBid(roomId, team.id, amount)
       } catch (e) {
-        getAdminSnapshot(roomId).then(setSnapshot, () => {})
+        setSnapshot((prev) => (prev.at === before.at ? { ...prev, currentLot: before.currentLot } : prev))
+        getAdminSnapshot(roomId).then((fresh) => setSnapshot((prev) => newer(prev, fresh)), () => {})
         throw e
       }
     })
@@ -203,12 +212,15 @@ export function AdminConsole({
       const lot = snapshot.currentLot
       if (!lot) return
       const target = e.target as HTMLElement | null
-      if (target && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)) return
+      if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
+      // A clicked button keeps focus, and Space would press it again — but the
+      // letter shortcuts must keep working right after clicking a team tile.
+      if (target?.tagName === 'BUTTON' && e.key === ' ') return
       const open = lot.status === 'QUEUED' || lot.status === 'BIDDING'
       const key = e.key.toLowerCase()
       if (e.key === ' ') {
         e.preventDefault()
-        if (snapshot.room.phase !== 'COMPLETED') togglePause()
+        if (snapshot.room.phase === 'LIVE' || snapshot.room.phase === 'PAUSED') togglePause()
       } else if (key === 's' && open) {
         run(() => markSold(roomId))
       } else if (key === 'u' && open) {
@@ -556,7 +568,9 @@ export function AdminConsole({
                 {/* [PAUSE] / [RESUME] */}
                 <button
                   onClick={togglePause}
-                  disabled={pending}
+                  // Nothing to pause before the first lot, and a room paused in
+                  // SETUP would stay paused when that lot opens.
+                  disabled={pending || snapshot.room.phase === 'SETUP'}
                   className="px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                 >
                   {paused || ended ? <Play className="h-3.5 w-3.5 text-brand-yellow" /> : <Pause className="h-3.5 w-3.5 text-white" />}
