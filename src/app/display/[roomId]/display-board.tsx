@@ -115,7 +115,9 @@ export function DisplayBoard({
           </span>
           <span className="font-mono text-[10px] text-white/50 tracking-wider">
             {/* Every called lot takes one player off the list; roomPlayers is only the page-load copy. */}
-            {Math.max(0, roomPlayers.length - (lot?.lotNumber ?? 0))} PLAYERS LEFT
+            {/* Closed lots, not the lot number: unsold players called back for
+                another round lose their old lot, so the number drifts. */}
+            {Math.max(0, roomPlayers.length - snapshot.resultLog.length - (lot && lot.status !== 'SOLD' && lot.status !== 'UNSOLD' ? 1 : 0))} PLAYERS LEFT
           </span>
         </div>
       </div>
