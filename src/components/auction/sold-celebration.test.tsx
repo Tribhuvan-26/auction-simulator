@@ -112,4 +112,40 @@ describe('SoldCelebration', () => {
 
     expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
   })
+
+  it('shows the SOLD card with player, price and team when asked', () => {
+    render(
+      <SoldCelebration
+        trigger={1}
+        showCard
+        player={{ name: 'Virat Kohli', price: 250, teamName: 'Royal Challengers Bengaluru', teamColor: '#B8151B' }}
+      />
+    )
+    const card = screen.getByTestId('sold-celebration-card')
+    expect(card).toHaveTextContent('Virat Kohli')
+    expect(card).toHaveTextContent('₹2.5 Cr')
+    expect(card).toHaveTextContent('TO Royal Challengers Bengaluru')
+  })
+
+  it('holds longer with the card so it can be read', () => {
+    render(<SoldCelebration trigger={1} showCard player={{ name: 'X', price: 50 }} />)
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
+    expect(screen.getByTestId('sold-celebration-card')).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(1700)
+    })
+    expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
+  })
+
+  it('plays again each time the trigger changes (replay)', () => {
+    const { rerender } = render(<SoldCelebration trigger={1} />)
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
+    expect(screen.queryByTestId('sold-celebration-overlay')).toBeNull()
+    rerender(<SoldCelebration trigger={2} />)
+    expect(screen.getByTestId('sold-celebration-overlay')).toBeInTheDocument()
+  })
 })

@@ -42,6 +42,8 @@ function snapshot(over: Partial<PublicSnapshot> = {}, teamOver = {}): PublicSnap
       currentBid: 20,
       currentBiddingTeamId: null,
       timerSeconds: 30,
+      activeBidders: [],
+      droppedTeamIds: [],
       bidHistory: [],
       player: {
         id: 'p1', name: 'Test Player', role: 'BATTER', basePrice: 20, photoUrl: null,
@@ -133,13 +135,32 @@ describe('TeamConsole bidding control panel', () => {
     sessionStorage.clear()
   })
 
-  it('locks out once bidding is live — the auctioneer runs it from there', () => {
+  it('keeps bidding open after the first bid — teams raise from their own seats', () => {
     const s = snapshot()
     s.currentLot!.status = 'BIDDING'
     s.currentLot!.currentBiddingTeamId = 'team-2'
+    s.currentLot!.activeBidders = ['team-2']
+    renderConsole(s)
+    expect(screen.getByRole('button', { name: /^bid$/i })).toBeEnabled()
+  })
+
+  it('locks a third team out while two teams are bidding', () => {
+    const s = snapshot()
+    s.currentLot!.status = 'BIDDING'
+    s.currentLot!.currentBiddingTeamId = 'team-2'
+    s.currentLot!.activeBidders = ['team-3', 'team-2']
     renderConsole(s)
     expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/bidding is live in the room/i)).toBeInTheDocument()
+    expect(screen.getByText(/two teams are bidding/i)).toBeInTheDocument()
+  })
+
+  it('a team in the contest gets DROP instead of PASS', () => {
+    const s = snapshot()
+    s.currentLot!.status = 'BIDDING'
+    s.currentLot!.currentBiddingTeamId = 'team-2'
+    s.currentLot!.activeBidders = ['team-1', 'team-2']
+    renderConsole(s)
+    expect(screen.getByRole('button', { name: /drop/i })).toBeEnabled()
   })
 
   it('has no withdraw button', () => {

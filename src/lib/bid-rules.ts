@@ -1,13 +1,16 @@
-import type { AdminSnapshot } from '@/app/admin/[roomId]/actions'
+import { isUncapped, squadRejectionReason, type SquadPlayer } from '@/lib/team-rules'
 
-// IPL bid ladder, in whole lakhs (see src/lib/money.ts) — the increment is set
-// by the price the bidding has already reached, not by the raise.
+// Bid ladder, in whole lakhs (see src/lib/money.ts) — the increment is set by
+// the price the bidding has already reached, not by the raise.
 const BID_TIERS = [
-  { below: 100, step: 5 },  // under ₹1 Cr  → 5 L
-  { below: 200, step: 10 }, // under ₹2 Cr  → 10 L
-  { below: 500, step: 20 }, // under ₹5 Cr  → 20 L
+  { below: 200, step: 10 }, // up to ₹2 Cr  → 10 L
+  { below: 500, step: 20 }, // ₹2–5 Cr      → 20 L
+  { below: 1000, step: 50 }, // ₹5–10 Cr    → 50 L
 ]
-const TOP_TIER_STEP = 25 // ₹5 Cr and above → 25 L
+const TOP_TIER_STEP = 100 // ₹10 Cr and above → 1 Cr
+
+/** Two teams contest a lot at a time; a third joins only once one of them drops. */
+export const MAX_ACTIVE_BIDDERS = 2
 
 /**
  * The one legal amount a team may bid next. Below the base price the ladder
@@ -20,19 +23,51 @@ export function getNextBidAmount(currentBid: number, basePrice: number): number 
   return currentBid + (tier ? tier.step : TOP_TIER_STEP)
 }
 
+/** Whether `amount` is a step on this lot's ladder — a jump bid may skip steps, never land between them. */
+export function isOnLadder(amount: number, basePrice: number): boolean {
+  for (let a = basePrice; a <= amount; a = getNextBidAmount(a, basePrice)) if (a === amount) return true
+  return false
+}
+
+/**
+ * The teams still contesting the lot: everyone who has bid on it, in the order
+ * they came in, minus the ones who dropped.
+ */
+export function activeBidders(bidTeamIds: string[], dropped: string[]): string[] {
+  return [...new Set(bidTeamIds)].filter((id) => !dropped.includes(id))
+}
+
+export type BidTeam = {
+  id: string
+  purseRemaining: number
+  squadMax: number
+  overseasSlotsMax: number
+  squad: SquadPlayer[]
+}
+
+export type BidLot = {
+  currentBid: number
+  status: string
+  player: { role: string; isOverseas: boolean; setNumber: string }
+  activeBidders: string[]
+  droppedTeamIds: string[]
+}
+
 /**
  * Reason this team can't bid `amount` on this lot, or null if they can.
- * Shared by the server guard below and the team console's disabled-button label,
- * so the UI never shows a dead button the server would have rejected anyway.
+ * Shared by the server guard and the consoles' disabled-button labels, so the
+ * UI never shows a dead button the server would have rejected anyway.
  */
-export function bidRejectionReason(
-  team: Pick<AdminSnapshot['teams'][number], 'purseRemaining' | 'squadCount' | 'squadMax' | 'overseasSlotsUsed' | 'overseasSlotsMax'>,
-  lot: { currentBid: number; status: string; player: { isOverseas: boolean } },
-  amount: number
-): string | null {
+export function bidRejectionReason(team: BidTeam, lot: BidLot, amount: number): string | null {
   if (lot.status === 'BIDDING' ? amount <= lot.currentBid : amount < lot.currentBid) return 'Bid below current price'
   if (amount > team.purseRemaining) return 'Purse insufficient'
-  if (team.squadCount >= team.squadMax) return 'Squad full'
-  if (lot.player.isOverseas && team.overseasSlotsUsed >= team.overseasSlotsMax) return 'Overseas slots full'
-  return null
+  if (lot.droppedTeamIds.includes(team.id)) return 'You dropped out of this lot'
+  if (lot.activeBidders.length >= MAX_ACTIVE_BIDDERS && !lot.activeBidders.includes(team.id)) {
+    return 'Two teams are bidding — wait for one to drop'
+  }
+  return squadRejectionReason(
+    team.squad,
+    { role: lot.player.role, isOverseas: lot.player.isOverseas, uncapped: isUncapped(lot.player.setNumber) },
+    { squadMax: team.squadMax, overseasMax: team.overseasSlotsMax }
+  )
 }

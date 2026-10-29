@@ -21,6 +21,7 @@ vi.mock('./actions', () => ({
   placeBid: vi.fn(async () => baseSnapshot),
   forceBid: vi.fn(async () => baseSnapshot),
   advanceToNextLot: vi.fn(async () => baseSnapshot),
+  replaySold: vi.fn(async () => {}),
 }))
 
 const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
@@ -51,7 +52,7 @@ const baseSnapshot: AdminSnapshot = {
 const liveSnapshot: AdminSnapshot = {
   ...baseSnapshot,
   currentLot: {
-    id: 'lot-1', lotNumber: 4, status: 'BIDDING', currentBid: 20, currentBiddingTeamId: 'team-1', timerSeconds: 30, bidHistory: [],
+    id: 'lot-1', lotNumber: 4, status: 'BIDDING', currentBid: 20, currentBiddingTeamId: 'team-1', timerSeconds: 30, activeBidders: [], droppedTeamIds: [], bidHistory: [],
     player: { id: 'p1', name: 'X', role: 'BATTER', basePrice: 20, photoUrl: null, nationality: 'India', matches: 1, runs: null, wickets: null, average: null, strikeRate: null, economy: null, isOverseas: false, setNumber: 'Set 1' },
   },
 }
@@ -105,7 +106,27 @@ describe('AdminConsole keyboard shortcuts', () => {
     expect(markSold).not.toHaveBeenCalled()
   })
 
-  it('space pauses the room through setPhase', async () => {
+  it('a sold lot puts NEXT PLAYER under the player card, and N calls the next lot', async () => {
+    const { advanceToNextLot } = await import('./actions')
+    vi.mocked(advanceToNextLot).mockClear()
+    const queue = [{ id: 'p2', name: 'Y', role: 'BATTER', basePrice: 20, setNumber: 'Set 1', status: 'UPCOMING', photoUrl: null }]
+    const sold = { ...liveSnapshot, queue, currentLot: { ...liveSnapshot.currentLot!, status: 'SOLD' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={sold} />)
+    fireEvent.click(screen.getByRole('button', { name: /NEXT PLAYER \[N\]/ }))
+    expect(advanceToNextLot).toHaveBeenCalledTimes(1)
+  })
+
+  it('a sold lot puts a NEXT PLAYER button under the top of the queue', async () => {
+    const { advanceToNextLot } = await import('./actions')
+    vi.mocked(advanceToNextLot).mockClear()
+    const queue = [{ id: 'p2', name: 'Abhishek Sharma', role: 'BATTER', basePrice: 200, setNumber: 'Capped Players', status: 'UPCOMING', photoUrl: null }]
+    const sold = { ...liveSnapshot, queue, currentLot: { ...liveSnapshot.currentLot!, status: 'SOLD' } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={sold} />)
+    fireEvent.click(screen.getByRole('button', { name: /NEXT PLAYER: Abhishek Sharma/i }))
+    expect(advanceToNextLot).toHaveBeenCalledTimes(1)
+  })
+
+    it('space pauses the room through setPhase', async () => {
     const { setPhase } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
     fireEvent.keyDown(window, { key: ' ' })
@@ -124,15 +145,15 @@ describe('AdminConsole bidding grid', () => {
   it('bids the next amount on the ladder for the team clicked', async () => {
     const { placeBid } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
-    // Lot is BIDDING at 20 L, so the ladder's next rung is 25 L.
+    // Lot is BIDDING at 20 L, so the ladder's next rung is 30 L.
     fireEvent.click(screen.getByTestId('bid-CSK'))
-    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 25))
+    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 30))
   })
 
-  it('jump bid sends the entered amount straight to forceBid, off the ladder and unblocked by placeBid', async () => {
+  it('jump bid sends the entered amount to forceBid, which checks it against the ladder', async () => {
     const { forceBid, placeBid } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
-    // Ladder's next rung is 25 L; 999 is deliberately off-tier.
+    // The server rejects an off-ladder amount; the console just passes it on.
     fireEvent.change(screen.getByLabelText(/^amount$/i), { target: { value: '999' } })
     fireEvent.click(screen.getByRole('button', { name: /^bid$/i }))
     await vi.waitFor(() => expect(forceBid).toHaveBeenCalledWith('room-1', 'team-1', 999))
@@ -186,7 +207,7 @@ describe('AdminConsole bidding grid', () => {
     const { setPhase } = await import('./actions')
     const ended = { ...baseSnapshot, room: { ...baseSnapshot.room, phase: 'COMPLETED' } }
     render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
-    fireEvent.click(screen.getByRole('button', { name: /reopen/i }))
+    fireEvent.click(screen.getByRole('button', { name: /reopen auction/i }))
     await vi.waitFor(() => expect(setPhase).toHaveBeenCalledWith('room-1', 'LIVE'))
   })
 

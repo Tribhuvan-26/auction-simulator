@@ -4,6 +4,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { PrismaClient, PlayerRole } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { basePriceFor, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE } from '../src/lib/team-rules'
 
 // Full official IPL 2026 squads (prisma/data/ipl-2026-official-players.json) —
 // scraped from each franchise's official squad page, merged with the real
@@ -48,11 +49,7 @@ const POOL_PATH = join(__dirname, 'data/auction-pool.json')
 
 type PoolEntry = { name: string; role: PlayerRole; category: 'Capped' | 'Uncapped' | 'Overseas'; rating: number }
 
-// Base price comes from the player's rating, in lakhs:
-// 90–100 → ₹2 Cr, 80–89 → ₹1 Cr, below → ₹50 L.
-export function basePriceForRating(rating: number): number {
-  return rating >= 90 ? 200 : rating >= 80 ? 100 : 50
-}
+export { basePriceFor }
 
 export function loadPool(): PoolEntry[] {
   return JSON.parse(readFileSync(POOL_PATH, 'utf-8'))
@@ -69,14 +66,20 @@ function loadOfficialPlayers(): Map<string, OfficialPlayer> {
  */
 export function poolPlayerRows(roomId: string) {
   const official = loadOfficialPlayers()
-  return loadPool().map((p, i) => {
+  // The auction calls roles in a fixed order — batters, bowlers, all-rounders,
+  // keepers — and within a role, in sheet order.
+  const pool = loadPool()
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => ROLE_ORDER.indexOf(a.p.role) - ROLE_ORDER.indexOf(b.p.role) || a.i - b.i)
+    .map(({ p }) => p)
+  return pool.map((p, i) => {
     const known = official.get(p.name)
     const overseas = p.category === 'Overseas'
     return {
       roomId,
       name: p.name,
       role: p.role,
-      basePrice: basePriceForRating(p.rating),
+      basePrice: basePriceFor(p.category, p.rating),
       // Legends outside the official squads have no photo; the UI shows initials.
       photoUrl: known?.photoUrl ?? null,
       nationality: overseas ? (known && known.nationality !== 'India' ? known.nationality : 'Overseas') : 'India',
@@ -84,7 +87,7 @@ export function poolPlayerRows(roomId: string) {
       matches: 0,
       setNumber: p.category === 'Uncapped' ? 'Uncapped Players' : 'Capped Players',
       status: 'UPCOMING' as const,
-      // Sheet order is the auction order, whatever order the ids come out in.
+      // Role order, then sheet order, whatever order the ids come out in.
       queueOrder: i,
     }
   })
@@ -133,11 +136,11 @@ export async function seedInto(prisma: PrismaClient, roomId: string, teamPasscod
         shortCode: meta.code,
         colorAccent: meta.color,
         logoUrl: logoUrl(meta.code),
-        purseTotal: 12000,
-        purseRemaining: 12000,
-        squadMax: 25,
-        squadMin: 18,
-        overseasSlotsMax: 8,
+        purseTotal: PURSE_TOTAL,
+        purseRemaining: PURSE_TOTAL,
+        squadMax: SQUAD_SIZE,
+        squadMin: SQUAD_SIZE - 1,
+        overseasSlotsMax: OVERSEAS_MAX,
         passcode: passcodes[i],
       },
     })

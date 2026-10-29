@@ -16,6 +16,7 @@ import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { RatingPanel } from '@/components/auction/rating-panel'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
+import { SquadNeeds, StandingsTable } from '@/components/auction/squad-rules'
 import { Model3D } from '@/components/ui/model-3d'
 import { LogoutButton } from '@/components/ui/logout-button'
 import { logoutTeam } from '@/lib/pin-actions'
@@ -26,6 +27,7 @@ import { formatMoney } from '@/lib/money'
 import {
   getPublicSnapshot,
   placeBid,
+  dropFromLot,
   type PublicSnapshot,
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
@@ -195,6 +197,7 @@ export function TeamConsole({
     applyEvent: applyLiveEvent,
     versionOf: (s) => s.at,
     onEvent: (event) => {
+      if (event.type === 'REPLAY') return setSoldTrigger((t) => t + 1)
       if (event.type !== 'BID') return
       const weWereLeading = leaderRef.current === teamId
       const weLead = event.teamId === teamId
@@ -224,7 +227,14 @@ export function TeamConsole({
   const closed = lot?.status === 'SOLD' || lot?.status === 'UNSOLD'
   const leading = lot?.currentBiddingTeamId === teamId
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
-  const passed = !!lot && passedLotId === lot.id
+  // In the pair contesting this lot — PASS then means DROP, which the server
+  // records so a third team can come in.
+  const inContest = !!lot && lot.activeBidders.includes(teamId)
+  const dropped = !!lot && lot.droppedTeamIds.includes(teamId)
+  const passed = !!lot && (passedLotId === lot.id || dropped)
+  const contestants = (lot?.activeBidders ?? [])
+    .map((id) => snapshot.teams.find((t) => t.id === id)?.shortCode)
+    .filter(Boolean)
   const paused = snapshot.room.phase === 'PAUSED'
   const ended = snapshot.room.phase === 'COMPLETED'
 
@@ -239,9 +249,7 @@ export function TeamConsole({
     : 'No active lot'
 
 
-  // Teams only open the bidding; after the first bid the auctioneer runs it.
-  const canBid =
-    !closed && !paused && !ended && lot?.status !== 'BIDDING' && !leading && !passed && !pending && !rejection && !!lot
+  const canBid = !closed && !paused && !ended && !leading && !passed && !pending && !rejection && !!lot
 
   useEffect(() => {
     leaderRef.current = lot?.currentBiddingTeamId ?? null
@@ -260,6 +268,22 @@ export function TeamConsole({
       setOutbid(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bid rejected')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function passOrDrop() {
+    if (!lot || closed || leading || passed) return
+    if (!inContest) return setPassedLotId(lot.id)
+    setPending(true)
+    setError(null)
+    try {
+      const next = await dropFromLot(roomId, teamId)
+      setSnapshot((prev) => newer(prev, next))
+      setPassedLotId(lot.id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Drop rejected')
     } finally {
       setPending(false)
     }
@@ -294,12 +318,12 @@ export function TeamConsole({
     ? 'auction paused'
     : leading
     ? 'you hold the highest bid'
+    : dropped
+    ? 'you dropped out of this lot'
     : passed
     ? 'sitting this lot out'
     : !lot || closed
     ? 'waiting for the auctioneer'
-    : lot.status === 'BIDDING'
-    ? 'bidding is live in the room'
     : rejection === 'Purse insufficient'
     ? 'purse insufficient'
     : rejection
@@ -502,6 +526,9 @@ export function TeamConsole({
             </div>
           </div>
 
+          {/* What the squad still needs for a legal XI */}
+          <SquadNeeds squad={team.squad} />
+
           {/* Top Grid: Active Player Card & Bidding Details | Bidding Control Panel */}
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
             {/* ── Active Player & Bidding Details Card ── */}
@@ -669,20 +696,20 @@ export function TeamConsole({
                   <Gavel className="h-5 w-5" />
                 </button>
 
-                {/* PASS Button */}
+                {/* PASS / DROP: a team in the two-team contest drops out, which lets a third team in. */}
                 <button
-                  onClick={() => lot && setPassedLotId(lot.id)}
-                  disabled={!lot || closed || leading || passed}
+                  onClick={passOrDrop}
+                  disabled={!lot || closed || leading || passed || pending}
                   className="flex items-center justify-between px-5 py-3.5 bg-[#EB547C] hover:bg-pink-600 active:bg-pink-700 disabled:opacity-35 disabled:cursor-not-allowed transition-all text-white font-condensed text-2xl font-black uppercase tracking-wider shadow-[0_0_20px_rgba(235,84,124,0.35)] cursor-pointer"
                 >
-                  <span>PASS</span>
+                  <span>{inContest ? 'DROP' : 'PASS'}</span>
                   <Hand className="h-5 w-5" />
                 </button>
 
                 {/* Press Space to Raise & Live Status Feedback */}
                 <div className="pt-1 flex flex-wrap items-center justify-between gap-1 border-t border-white/10 mt-1">
                   <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/50">
-                    PRESS SPACE TO OPEN BIDDING
+                    {contestants.length ? `BIDDING: ${contestants.join(' vs ')}` : 'PRESS SPACE TO BID'}
                   </span>
                   {statusMessage && (
                     <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-brand-yellow">
@@ -903,7 +930,7 @@ export function TeamConsole({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-xl border border-white/20 bg-[#141417] p-6 shadow-2xl"
+              className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto border border-white/20 bg-[#141417] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
                 <div>
@@ -911,7 +938,7 @@ export function TeamConsole({
                     {team.name} WAR ROOM ANALYTICS
                   </h3>
                   <p className="font-mono text-xs text-white/50">
-                    Purse usage
+                    Purse usage &amp; standings
                   </p>
                 </div>
                 <button
@@ -940,6 +967,11 @@ export function TeamConsole({
                     {Math.round(((team.purseTotal - team.purseRemaining) / team.purseTotal) * 100)}%
                   </span>
                 </div>
+              </div>
+
+              <div className="mt-5 border-t border-white/15 pt-4">
+                <h4 className="mb-2 font-condensed text-lg font-black uppercase tracking-wider text-white">STANDINGS</h4>
+                <StandingsTable teams={snapshot.teams} />
               </div>
             </motion.div>
           </div>
@@ -1057,9 +1089,12 @@ export function TeamConsole({
       {/* Player Sold Celebration Animation Overlay */}
       <SoldCelebration
         trigger={soldTrigger}
+        showCard
         player={lot?.player ? {
           name: lot.player.name,
           price: lot.currentBid,
+          teamName: leader?.name,
+          teamColor: leader?.colorAccent,
         } : undefined}
       />
     </div>

@@ -12,7 +12,9 @@ import type { PublicSnapshot } from '@/app/admin/[roomId]/actions'
  */
 export type LiveEvent =
   | { type: 'BID'; teamId: string; amount: number; at: number; lot: PublicSnapshot['currentLot'] }
-  | { type: 'SOLD' | 'UNSOLD' | 'UNDO' | 'TIMER' | 'PHASE' | 'LOT_CHANGE'; at: number; snapshot: PublicSnapshot }
+  | { type: 'SOLD' | 'UNSOLD' | 'UNDO' | 'TIMER' | 'PHASE' | 'LOT_CHANGE' | 'DROP'; at: number; snapshot: PublicSnapshot }
+  /** The auctioneer replaying the sold animation: nothing in the room changed. */
+  | { type: 'REPLAY'; at: number; lotId: string }
 
 /**
  * The snapshot after this event, or null when the event can't be applied
@@ -20,6 +22,7 @@ export type LiveEvent =
  * as the admin console's queue.
  */
 export function applyLiveEvent<T extends PublicSnapshot>(prev: T, event: LiveEvent): T | null {
+  if (event.type === 'REPLAY') return prev
   if (typeof event.at !== 'number') return null
   if (prev.at >= event.at) return prev
   if (event.type === 'BID') return event.lot === undefined ? null : { ...prev, currentLot: event.lot, at: event.at }

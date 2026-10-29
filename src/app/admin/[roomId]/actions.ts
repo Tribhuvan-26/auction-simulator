@@ -5,8 +5,9 @@ import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
-import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
-import { assertCanBidAs, assertIsAuctioneer, hasAdminAccess } from '@/lib/team-auth'
+import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidTeam } from '@/lib/bid-rules'
+import { isUncapped, ROLE_ORDER, squadProblems, squadRejectionReason } from '@/lib/team-rules'
+import { assertCanBidAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 
@@ -24,6 +25,10 @@ export type AdminSnapshot = {
     currentBid: number
     currentBiddingTeamId: string | null
     timerSeconds: number
+    /** Teams still contesting the lot, in the order they came in (two at most can bid). */
+    activeBidders: string[]
+    /** Teams that dropped out of this lot. */
+    droppedTeamIds: string[]
     bidHistory: { teamId: string; teamName: string; amount: number; timestamp: string }[]
     player: {
       id: string; name: string; role: string; basePrice: number
@@ -37,7 +42,7 @@ export type AdminSnapshot = {
     id: string; name: string; shortCode: string; colorAccent: string; logoUrl: string | null
     purseTotal: number; purseRemaining: number; squadCount: number; squadMax: number
     overseasSlotsUsed: number; overseasSlotsMax: number
-    squad: { id: string; name: string; role: string; price: number; photoUrl: string | null; isOverseas: boolean }[]
+    squad: { id: string; name: string; role: string; price: number; photoUrl: string | null; isOverseas: boolean; uncapped: boolean }[]
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
@@ -114,6 +119,8 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
           currentBid: lot.currentBid,
           currentBiddingTeamId: lot.currentBiddingTeamId,
           timerSeconds: lot.timerSeconds,
+          activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds ?? []),
+          droppedTeamIds: lot.droppedTeamIds ?? [],
           bidHistory: lot.bids.map((b) => ({
             teamId: b.teamId,
             teamName: b.team.name,
@@ -157,6 +164,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
         price: p.soldPrice ?? 0,
         photoUrl: p.photoUrl,
         isOverseas: p.isOverseas,
+        uncapped: isUncapped(p.setNumber),
       })),
     })),
     queue: queueRaw.map((p) => ({
@@ -217,7 +225,7 @@ function publish(roomId: string, event: LiveEvent) {
 }
 
 /** Broadcast a change that may touch more than the lot, and hand back the admin view. */
-async function publishSnapshot(roomId: string, type: Exclude<LiveEvent['type'], 'BID'>): Promise<AdminSnapshot> {
+async function publishSnapshot(roomId: string, type: Exclude<LiveEvent['type'], 'BID' | 'REPLAY'>): Promise<AdminSnapshot> {
   const snapshot = await buildSnapshot(roomId, true)
   publish(roomId, { type, at: snapshot.at, snapshot: toPublic(snapshot) })
   return snapshot
@@ -244,11 +252,44 @@ async function publishBid(roomId: string, teamId: string, amount: number, includ
 async function openLotOrThrow(roomId: string) {
   const lot = await prisma.auctionLot.findFirst({
     where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
-    include: { player: true, room: { select: { phase: true } } },
+    include: {
+      player: true,
+      room: { select: { phase: true } },
+      bids: { select: { teamId: true }, orderBy: { timestamp: 'asc' } },
+    },
     orderBy: { id: 'desc' },
   })
   if (!lot) throw new Error('No lot on the block — load the next player first')
   return lot
+}
+
+type OpenLot = Awaited<ReturnType<typeof openLotOrThrow>>
+
+/** The lot as the bid rules see it. */
+function bidLot(lot: OpenLot) {
+  return {
+    currentBid: lot.currentBid,
+    status: lot.status,
+    player: lot.player,
+    activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds ?? []),
+    droppedTeamIds: lot.droppedTeamIds ?? [],
+  }
+}
+
+/**
+ * A team as the bid rules see it, with its squad. Scoped to the room: a
+ * teamId from another room must not be able to bid on this lot, or markSold
+ * would debit a purse in a different auction entirely.
+ */
+async function bidTeam(roomId: string, teamId: string): Promise<BidTeam & { shortCode: string }> {
+  const team = await prisma.team.findFirstOrThrow({
+    where: { id: teamId, roomId },
+    include: { players: { select: { name: true, role: true, isOverseas: true, setNumber: true } } },
+  })
+  return {
+    ...team,
+    squad: team.players.map((p) => ({ ...p, uncapped: isUncapped(p.setNumber) })),
+  }
 }
 
 /**
@@ -303,17 +344,7 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   const lot = await openLotOrThrow(roomId)
   assertRoomOpen(lot.room.phase)
   if (lot.currentBiddingTeamId === teamId) throw new Error('You already hold the highest bid')
-  // Team seats only open the bidding; the room raises it from there and the
-  // auctioneer keys each call in (forceBid / the admin's team tracker).
-  if (lot.status === 'BIDDING' && !(await hasAdminAccess(roomId))) {
-    throw new Error('Opening bid is in — the auctioneer takes it from here')
-  }
-  // Scoped to the room: a teamId from another room must not be able to bid on
-  // this lot, or markSold would debit a purse in a different auction entirely.
-  const team = await prisma.team.findFirstOrThrow({
-    where: { id: teamId, roomId },
-    include: { _count: { select: { players: true } } },
-  })
+  const team = await bidTeam(roomId, teamId)
 
   // The ladder allows exactly one next amount, so don't take the client's word
   // for it — recompute and reject anything that doesn't match. A lot that
@@ -326,12 +357,9 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
   }
 
   // Trust boundary: team consoles are untrusted clients, so re-check here even
-  // though the BID button is already disabled with the same reason.
-  const rejection = bidRejectionReason(
-    { ...team, squadCount: team._count.players },
-    { currentBid: lot.currentBid, status: lot.status, player: lot.player },
-    amount
-  )
+  // though the BID button is already disabled with the same reason. This is
+  // also where the first two teams in lock the lot until one of them drops.
+  const rejection = bidRejectionReason(team, bidLot(lot), amount)
   if (rejection) throw new Error(rejection)
 
   // Optimistic concurrency: the lot only moves if it is still exactly as this
@@ -351,10 +379,9 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
 }
 
 /**
- * Auctioneer-only override: sets the lot to any amount for any team, skipping
- * the tier ladder and the purse/squad/overseas checks placeBid enforces for
- * team seats. Used by the admin console's Jump Bid — the auctioneer calling
- * out a number is the source of truth, not the ladder.
+ * Auctioneer's jump bid: any amount further up the ladder, for any team. Every
+ * bid must still land on a valid increment, and the team must be allowed to
+ * buy the player — same rules as a team's own bid, two-team lock included.
  */
 export async function forceBid(roomId: string, teamId: string, amount: number): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
@@ -367,7 +394,13 @@ export async function forceBid(roomId: string, teamId: string, amount: number): 
   if (lot.status === 'BIDDING' ? amount <= lot.currentBid : amount < lot.currentBid) {
     throw new Error(`Jump bid must be above the current ${formatMoney(lot.currentBid)}`)
   }
-  const team = await prisma.team.findFirstOrThrow({ where: { id: teamId, roomId } })
+  if (!isOnLadder(amount, lot.player.basePrice)) {
+    throw new Error(`${formatMoney(amount)} isn't a valid increment — bids go up in ladder steps`)
+  }
+  if (lot.currentBiddingTeamId === teamId) throw new Error('That team already holds the highest bid')
+  const team = await bidTeam(roomId, teamId)
+  const rejection = bidRejectionReason(team, bidLot(lot), amount)
+  if (rejection) throw new Error(`${team.shortCode}: ${rejection}`)
 
   await prisma.$transaction(async (tx) => {
     const { count } = await tx.auctionLot.updateMany({
@@ -388,19 +421,18 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
   const winnerId = lot.currentBiddingTeamId
   if (!winnerId) throw new Error('Cannot mark sold with no bidding team')
 
-  // Jump Bid skips the purse/squad checks, so the sale itself is where an
-  // overdrawn purse or an over-full squad gets stopped.
-  const winner = await prisma.team.findUniqueOrThrow({
-    where: { id: winnerId },
-    include: { _count: { select: { players: true } } },
-  })
+  // Bids are checked as they come in, but a squad can change under a bid
+  // (an undo elsewhere, a lot sold in between), so the sale checks again.
+  const winner = await bidTeam(roomId, winnerId)
   if (winner.purseRemaining < lot.currentBid) {
     throw new Error(`${winner.shortCode} cannot afford ${formatMoney(lot.currentBid)}`)
   }
-  if (winner._count.players >= winner.squadMax) throw new Error(`${winner.shortCode} squad is full`)
-  if (lot.player.isOverseas && winner.overseasSlotsUsed >= winner.overseasSlotsMax) {
-    throw new Error(`${winner.shortCode} has no overseas slots left`)
-  }
+  const squadRule = squadRejectionReason(
+    winner.squad,
+    { role: lot.player.role, isOverseas: lot.player.isOverseas, uncapped: isUncapped(lot.player.setNumber) },
+    { squadMax: winner.squadMax, overseasMax: winner.overseasSlotsMax }
+  )
+  if (squadRule) throw new Error(`${winner.shortCode}: ${squadRule}`)
 
   await prisma.$transaction(async (tx) => {
     const { count } = await tx.auctionLot.updateMany({ where: lotUnchanged(lot), data: { status: 'SOLD' } })
@@ -434,6 +466,41 @@ export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
   }, TX)
 
   return publishSnapshot(roomId, 'UNSOLD')
+}
+
+/**
+ * A team leaves the lot. Two teams contest a lot at a time, so this is what
+ * lets a third one in; the team that dropped can't come back to this lot.
+ * The team holding the highest bid can't drop — the auctioneer sells to it.
+ */
+export async function dropFromLot(roomId: string, teamId: string): Promise<PublicSnapshot> {
+  await assertCanBidAs(roomId, teamId)
+  const lot = await openLotOrThrow(roomId)
+  if (lot.currentBiddingTeamId === teamId) throw new Error('You hold the highest bid — you can only drop once outbid')
+  if ((lot.droppedTeamIds ?? []).includes(teamId)) return toPublic(await buildSnapshot(roomId, false))
+  await prisma.team.findFirstOrThrow({ where: { id: teamId, roomId }, select: { id: true } })
+
+  const { count } = await prisma.auctionLot.updateMany({
+    where: lotUnchanged(lot),
+    data: { droppedTeamIds: { push: teamId } },
+  })
+  if (count === 0) throw new Error(LOT_CHANGED)
+  return toPublic(await publishSnapshot(roomId, 'DROP'))
+}
+
+/**
+ * Play the sold animation again on every screen. Only for the lot on screen,
+ * and only once it's sold — there's nothing to celebrate otherwise.
+ */
+export async function replaySold(roomId: string): Promise<void> {
+  await assertIsAuctioneer(roomId)
+  const lot = await prisma.auctionLot.findFirst({
+    where: { roomId },
+    select: { id: true, status: true },
+    orderBy: { id: 'desc' },
+  })
+  if (lot?.status !== 'SOLD') throw new Error('Only a sold player can be replayed')
+  publish(roomId, { type: 'REPLAY', at: Date.now(), lotId: lot.id })
 }
 
 export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
@@ -532,6 +599,38 @@ export async function setPhase(
   return publishSnapshot(roomId, 'PHASE')
 }
 
+/**
+ * Once the queue runs dry, the unsold players come back for another round —
+ * while some team still can't field a legal XI and has room to buy. In the
+ * auction's role order: batters, bowlers, all-rounders, then keepers.
+ * Returns whether anyone came back.
+ */
+async function requeueUnsold(tx: Prisma.TransactionClient, roomId: string): Promise<boolean> {
+  const teams = await tx.team.findMany({
+    where: { roomId },
+    select: { squadMax: true, players: { select: { name: true, role: true, isOverseas: true, setNumber: true } } },
+  })
+  const someoneShort = teams.some(
+    (t) =>
+      t.players.length < t.squadMax &&
+      squadProblems(t.players.map((p) => ({ ...p, uncapped: isUncapped(p.setNumber) }))).length > 0
+  )
+  if (!someoneShort) return false
+
+  const unsold = await tx.player.findMany({ where: { roomId, status: 'UNSOLD' }, orderBy: QUEUE_ORDER })
+  if (unsold.length === 0) return false
+  const ids = unsold.map((p) => p.id)
+  // One lot per player, so the old lot goes — its bids first.
+  await tx.bid.deleteMany({ where: { lot: { playerId: { in: ids } } } })
+  await tx.auctionLot.deleteMany({ where: { playerId: { in: ids } } })
+  const ordered = [...unsold].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
+  for (const [i, p] of ordered.entries()) {
+    await tx.player.update({ where: { id: p.id }, data: { status: 'UPCOMING', queueOrder: i } })
+  }
+  await tx.auctionRoom.update({ where: { id: roomId }, data: { round: { increment: 1 } } })
+  return true
+}
+
 export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
@@ -541,23 +640,33 @@ export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
   // the wrong one. The room row is locked first so two clicks can't both
   // pass the check — the second waits, then finds the first one's lot.
   let opened: string | null = null
+  let nothingLeft = false
   try {
     opened = await prisma.$transaction(async (tx) => {
       const [room] = await tx.$queryRaw<{ phase: string }[]>`
         SELECT phase::text FROM "AuctionRoom" WHERE id = ${roomId} FOR UPDATE`
-      if (room?.phase === 'COMPLETED') throw new Error('Auction has ended — press [REOPEN] to continue')
       const alreadyActive = await tx.auctionLot.findFirst({
         where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
         select: { id: true },
       })
       if (alreadyActive) return null
 
-      const next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
-      if (!next) return null
+      let next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
+      if (!next && (await requeueUnsold(tx, roomId))) {
+        next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
+      }
+      if (!next) {
+        nothingLeft = true
+        return null
+      }
 
       await tx.player.update({ where: { id: next.id }, data: { status: 'LIVE' } })
-      // Rooms are seeded in SETUP; calling the first lot is what starts the auction.
-      if (room?.phase === 'SETUP') await tx.auctionRoom.update({ where: { id: roomId }, data: { phase: 'LIVE' } })
+      // Rooms are seeded in SETUP; calling the first lot is what starts the
+      // auction. Calling the next player after END AUCTION means the auctioneer
+      // is carrying on, so it reopens the room rather than refusing.
+      if (room?.phase === 'SETUP' || room?.phase === 'COMPLETED') {
+        await tx.auctionRoom.update({ where: { id: roomId }, data: { phase: 'LIVE' } })
+      }
       await tx.auctionLot.create({
         data: {
           roomId,
@@ -575,6 +684,7 @@ export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
     if ((e as { code?: string }).code !== 'P2002') throw e
   }
 
+  if (nothingLeft) throw new Error('No players left to call — the queue is empty and no team needs the unsold players')
   return opened ? publishSnapshot(roomId, 'LOT_CHANGE') : buildSnapshot(roomId, true)
 }
 

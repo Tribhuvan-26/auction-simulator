@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { seed, generatePasscodes, basePriceForRating, loadPool, DEFAULT_ROOM_NAME } from './seed'
+import { seed, generatePasscodes, basePriceFor, loadPool, DEFAULT_ROOM_NAME } from './seed'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -124,8 +124,10 @@ describe('seed room naming', () => {
   })
 })
 
-describe('basePriceForRating', () => {
-  it('maps rating bands to base prices in lakhs', () => {
-    expect([98, 90, 89, 80, 79, 65].map(basePriceForRating)).toEqual([200, 200, 100, 100, 50, 50])
+describe('basePriceFor', () => {
+  it('uncapped 50 L; capped and overseas 2 Cr at 90+, else 1 Cr', () => {
+    expect(basePriceFor('Uncapped', 95)).toBe(50)
+    expect([98, 90, 89, 65].map((r) => basePriceFor('Capped', r))).toEqual([200, 200, 100, 100])
+    expect(basePriceFor('Overseas', 91)).toBe(200)
   })
 })

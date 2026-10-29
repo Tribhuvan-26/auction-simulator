@@ -110,6 +110,8 @@ model AuctionLot {
   currentBiddingTeamId  String?
   status                LotStatus   @default(QUEUED)
   timerSeconds          Int         @default(30)
+  /// Teams that dropped out of this lot; they can't bid on it again.
+  droppedTeamIds        String[]    @default([])
   bids                  Bid[]
 
   @@index([roomId])

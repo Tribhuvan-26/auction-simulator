@@ -12,6 +12,8 @@ import {
   RotateCcw,
   AlertTriangle,
   Circle,
+  SkipForward,
+  Repeat,
 } from 'lucide-react'
 import { RatingPanel } from '@/components/auction/rating-panel'
 import { LogoutButton } from '@/components/ui/logout-button'
@@ -19,6 +21,7 @@ import { logoutAdmin } from '@/lib/pin-actions'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
+import { StandingsTable } from '@/components/auction/squad-rules'
 import { useLiveSnapshot, type AuctionEvent } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
@@ -34,6 +37,8 @@ import {
   forceBid,
   advanceToNextLot,
   moveInQueue,
+  replaySold,
+  dropFromLot,
   type AdminSnapshot,
   type PublicSnapshot,
 } from './actions'
@@ -87,6 +92,7 @@ export function AdminConsole({
   const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getAdminSnapshot, LIVE_OPTIONS)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [showSetupModal, setShowSetupModal] = useState(false)
+  const [showStandings, setShowStandings] = useState(false)
   const [disputeMessage, setDisputeMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [jumpBid, setJumpBid] = useState('')
@@ -139,6 +145,14 @@ export function AdminConsole({
       pendingRef.current = false
       setPending(false)
     }
+  }
+
+  // Plays here straight away; the broadcast replays it on the team seats and
+  // the big screen. Nothing changes in the room, so no snapshot comes back.
+  function replay() {
+    if (lot?.status !== 'SOLD') return
+    setSoldTrigger((t) => t + 1)
+    replaySold(roomId).catch((e) => setError(e instanceof Error ? e.message : 'Replay failed'))
   }
 
   async function bidFor(team: Team, amount = nextBid) {
@@ -208,7 +222,7 @@ export function AdminConsole({
       // A held key repeats, and Cmd+S / Ctrl+Z are the browser's — neither may
       // sell or undo a lot.
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
-      if (showEndConfirm || showSetupModal) return
+      if (showEndConfirm || showSetupModal || showStandings) return
       const lot = snapshot.currentLot
       if (!lot) return
       const target = e.target as HTMLElement | null
@@ -227,12 +241,16 @@ export function AdminConsole({
         run(() => markUnsold(roomId))
       } else if (key === 'z') {
         run(() => undoLastBid(roomId))
+      } else if (key === 'n' && !open) {
+        run(() => advanceToNextLot(roomId))
+      } else if (key === 'r' && lot.status === 'SOLD') {
+        replay()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, snapshot, showEndConfirm, showSetupModal])
+  }, [roomId, snapshot, showEndConfirm, showSetupModal, showStandings])
 
   // Sort teams in standard order matching Reference 1
   const sortedTeams = [...snapshot.teams].sort((a, b) => {
@@ -249,6 +267,10 @@ export function AdminConsole({
     : 'UNCAPPED PLAYERS'
 
   const remainingPlayersCount = snapshot.queue.length
+  // An empty queue brings the unsold back for another round (the server
+  // decides whether any team still needs them), so NEXT stays live for that.
+  const unsoldCount = snapshot.resultLog.filter((r) => r.status === 'UNSOLD').length
+  const noneLeft = remainingPlayersCount === 0 && unsoldCount === 0
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#0D0D10] text-white select-none overflow-x-hidden font-sans">
@@ -271,6 +293,13 @@ export function AdminConsole({
               className="text-white/70 hover:text-white transition-colors cursor-pointer"
             >
               SETUP
+            </button>
+            <span className="text-white/40">•</span>
+            <button
+              onClick={() => setShowStandings(true)}
+              className="text-white/70 hover:text-white transition-colors cursor-pointer"
+            >
+              STANDINGS
             </button>
             <span className="text-white/40">•</span>
             <span className="text-white/80">
@@ -303,6 +332,23 @@ export function AdminConsole({
 
       {/* ── Main Dashboard Body ── */}
       <div className="relative z-10 flex flex-1 flex-col gap-4 p-4 md:p-6 min-w-0">
+        {/* An ended room refuses bids and NEXT — say so loudly, with the way back. */}
+        {ended && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-2 border-[#F9CD05] bg-[#F9CD05]/15 px-4 py-3 shadow-lg">
+            <span className="font-condensed text-xl font-black uppercase tracking-wider text-[#F9CD05]">
+              AUCTION ENDED — bidding is off. NEXT PLAYER or REOPEN carries on
+            </span>
+            <button
+              onClick={togglePause}
+              disabled={pending}
+              className="flex items-center gap-2 bg-[#F9CD05] px-4 py-2 font-condensed text-lg font-black uppercase tracking-wider text-black hover:bg-yellow-300 disabled:opacity-35 cursor-pointer"
+            >
+              <Play className="h-4 w-4" />
+              REOPEN AUCTION
+            </button>
+          </div>
+        )}
+
         {/* Error Toast */}
         {error && (
           <div className="border border-brand-pink bg-[#EB547C] px-4 py-2 text-white font-mono text-xs font-black uppercase flex items-center justify-between shadow-lg">
@@ -366,6 +412,26 @@ export function AdminConsole({
                 >
                   <span>UNDO BID</span>
                   <Undo2 className="h-5 w-5 stroke-[2.5]" />
+                </button>
+
+                {/* NEXT PLAYER: once the lot is closed, the auctioneer calls the next one. */}
+                <button
+                  onClick={() => run(() => advanceToNextLot(roomId))}
+                  disabled={!closed || pending || noneLeft}
+                  className="flex items-center justify-between px-4 py-3 bg-[#34D399] hover:bg-emerald-400 active:bg-emerald-500 disabled:opacity-35 disabled:cursor-not-allowed text-[#05200F] font-condensed text-xl font-black uppercase tracking-wider transition-all shadow-md cursor-pointer"
+                >
+                  <span>NEXT PLAYER</span>
+                  <SkipForward className="h-5 w-5 stroke-[2.5]" />
+                </button>
+
+                {/* REPLAY: the sold animation again, on every screen in the room. */}
+                <button
+                  onClick={replay}
+                  disabled={lot?.status !== 'SOLD'}
+                  className="flex items-center justify-between px-4 py-3 bg-white/10 hover:bg-white/20 active:bg-white/25 border border-white/25 disabled:opacity-35 disabled:cursor-not-allowed text-white font-condensed text-xl font-black uppercase tracking-wider transition-all shadow-md cursor-pointer"
+                >
+                  <span>REPLAY SOLD</span>
+                  <Repeat className="h-5 w-5 stroke-[2.5]" />
                 </button>
               </div>
             </div>
@@ -544,6 +610,18 @@ export function AdminConsole({
                 </button>
               </div>
             )}
+
+            {/* Once the hammer falls, the next step goes where the auctioneer is looking. */}
+            {closed && (
+              <button
+                onClick={() => run(() => advanceToNextLot(roomId))}
+                disabled={pending || noneLeft}
+                className="mt-4 flex w-full items-center justify-center gap-3 bg-[#34D399] px-6 py-3.5 font-condensed text-2xl font-black uppercase tracking-wider text-[#05200F] shadow-lg transition-all hover:bg-emerald-400 active:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-35 cursor-pointer"
+              >
+                {noneLeft ? 'NO PLAYERS LEFT' : remainingPlayersCount === 0 ? `UNSOLD ROUND (${unsoldCount}) [N]` : 'NEXT PLAYER [N]'}
+                <SkipForward className="h-6 w-6 stroke-[2.5]" />
+              </button>
+            )}
           </div>
 
           {/* ──── Column 3: ADMIN SIMULATION CONTROLS & BIDDING LOG ──── */}
@@ -661,6 +739,34 @@ export function AdminConsole({
             </span>
           </div>
 
+          {/* The two teams contesting the lot. A third can only come in once one drops. */}
+          {lot && !closed && lot.activeBidders.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 border border-white/10 bg-white/5 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-white/70">
+              <span>{lot.activeBidders.length >= 2 ? 'LOCKED:' : 'IN:'}</span>
+              {lot.activeBidders.map((id) => {
+                const t = snapshot.teams.find((x) => x.id === id)
+                if (!t) return null
+                return (
+                  <span key={id} className="flex items-center gap-1.5">
+                    <span className="text-white">{t.shortCode}</span>
+                    {id !== leaderId && (
+                      <button
+                        onClick={() => run(() => dropFromLot(roomId, id))}
+                        disabled={pending}
+                        className="border border-rose-400/60 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/20 disabled:opacity-35 cursor-pointer"
+                      >
+                        DROP
+                      </button>
+                    )}
+                  </span>
+                )
+              })}
+              {lot.activeBidders.length >= 2 && (
+                <span className="text-white/40">— others wait until one drops</span>
+              )}
+            </div>
+          )}
+
           {/* 10 Teams in 2 Rows x 5 Columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
             {sortedTeams.map((team) => {
@@ -669,6 +775,8 @@ export function AdminConsole({
                 text: 'text-white',
               }
               const isLeading = leaderId === team.id
+              const isIn = !!lot && !closed && lot.activeBidders.includes(team.id)
+              const isOut = !!lot && !closed && lot.droppedTeamIds.includes(team.id)
 
               return (
                 <button
@@ -700,11 +808,19 @@ export function AdminConsole({
                       </span>
                     </div>
 
-                    {isLeading && (
+                    {isLeading ? (
                       <span className="font-mono text-[8px] font-black px-1.5 py-0.5 bg-black/40 text-white rounded">
                         LEAD
                       </span>
-                    )}
+                    ) : isIn ? (
+                      <span className="font-mono text-[8px] font-black px-1.5 py-0.5 bg-black/40 text-white rounded">
+                        IN
+                      </span>
+                    ) : isOut ? (
+                      <span className="font-mono text-[8px] font-black px-1.5 py-0.5 bg-black/60 text-white/60 rounded">
+                        OUT
+                      </span>
+                    ) : null}
                   </div>
 
                   {/* Bottom Stats: Purse & Squad Count */}
@@ -761,8 +877,8 @@ export function AdminConsole({
 
           <div className="flex flex-col gap-1 max-h-[220px] overflow-y-auto">
             {snapshot.queue.map((p, i) => (
+              <React.Fragment key={p.id}>
               <div
-                key={p.id}
                 className={`flex items-center gap-2 border px-2 py-1 text-xs ${
                   i === 0 ? 'border-brand-yellow bg-brand-yellow/10' : 'border-white/10 bg-[#1C1C22]'
                 }`}
@@ -775,12 +891,25 @@ export function AdminConsole({
                   <button
                     onClick={() => run(() => moveInQueue(roomId, p.id, 1))}
                     disabled={pending}
+                    title="Move this player to the top of the queue"
                     className="px-1.5 py-0.5 border border-white/20 font-mono text-[9px] font-bold uppercase text-brand-yellow hover:bg-white/10 cursor-pointer"
                   >
-                    NEXT
+                    TO TOP
                   </button>
                 )}
               </div>
+              {/* Once the lot is called, bring up the player above straight from the queue. */}
+              {i === 0 && closed && (
+                <button
+                  onClick={() => run(() => advanceToNextLot(roomId))}
+                  disabled={pending}
+                  className="flex items-center justify-center gap-1.5 bg-[#34D399] px-2 py-1 font-condensed text-sm font-black uppercase tracking-wider text-[#05200F] hover:bg-emerald-400 active:bg-emerald-500 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <SkipForward className="h-3.5 w-3.5 stroke-[2.5]" />
+                  NEXT PLAYER: {p.name}
+                </button>
+              )}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -823,6 +952,28 @@ export function AdminConsole({
         )}
       </AnimatePresence>
 
+      {/* ── Standings Modal ── */}
+      <AnimatePresence>
+        {showStandings && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-white/20 bg-[#18181B] p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                <h3 className="font-condensed text-2xl font-black uppercase text-white">STANDINGS</h3>
+                <button onClick={() => setShowStandings(false)} className="text-white/60 hover:text-white cursor-pointer">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <StandingsTable teams={snapshot.teams} />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ── Setup Info Modal ── */}
       <AnimatePresence>
         {showSetupModal && (
@@ -856,6 +1007,14 @@ export function AdminConsole({
                   <span>Undo Last Placed Bid</span>
                 </div>
                 <div className="flex items-center justify-between bg-white/5 p-2">
+                  <span className="font-bold text-brand-yellow">[N] KEY</span>
+                  <span>Next Player (after SOLD / UNSOLD)</span>
+                </div>
+                <div className="flex items-center justify-between bg-white/5 p-2">
+                  <span className="font-bold text-brand-yellow">[R] KEY</span>
+                  <span>Replay Sold Animation (all screens)</span>
+                </div>
+                <div className="flex items-center justify-between bg-white/5 p-2">
                   <span className="font-bold text-brand-yellow">[SPACE]</span>
                   <span>Pause / Resume Bidding</span>
                 </div>
@@ -877,9 +1036,12 @@ export function AdminConsole({
       {/* Player Sold Celebration Animation Overlay */}
       <SoldCelebration
         trigger={soldTrigger}
-        player={snapshot.currentLot?.player ? {
-          name: snapshot.currentLot.player.name,
-          price: snapshot.currentLot.currentBid,
+        showCard
+        player={lot ? {
+          name: lot.player.name,
+          price: lot.currentBid,
+          teamName: soldColor?.name,
+          teamColor: soldColor?.colorAccent,
         } : undefined}
       />
     </div>

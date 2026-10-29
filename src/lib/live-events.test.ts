@@ -36,3 +36,8 @@ it("an action's late result does not overwrite a newer broadcast", () => {
   expect(newer(prev, snap(4, { currentLot: lot(25) }))).toBe(prev)
   expect(newer(prev, snap(6, { currentLot: lot(35) })).currentLot?.currentBid).toBe(35)
 })
+
+it('a REPLAY changes nothing on screen, so no refetch either', () => {
+  const prev = snap(1)
+  expect(applyLiveEvent(prev, { type: 'REPLAY', at: 99, lotId: 'lot-1' })).toBe(prev)
+})
