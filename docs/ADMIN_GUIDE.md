@@ -45,7 +45,7 @@ Repeat until the queue is empty. When the queue runs out and any team still has 
 Bids a big amount for a team in one go, e.g. when a team shouts a number in the room.
 
 1. Pick the **TEAM**.
-2. Type the **AMOUNT** in lakhs (`250` = ₹2.5 Cr).
+2. Type the **AMOUNT** in crore (`2.5` = ₹2.5 Cr).
 3. Press **BID**.
 
 The amount must be a valid step on the bid ladder (see Rules below), and the team must be allowed to buy the player. Otherwise you'll see an error saying why.
@@ -119,16 +119,16 @@ Shortcuts don't work while you're typing in a box or while a pop-up is open.
 - A team can't buy a player when that role is full, or when the buy would leave no room for a missing role or the uncapped player.
 
 **Base prices**
-- Uncapped: ₹50 L.
+- Uncapped: ₹0.5 Cr.
 - Capped / overseas: ₹1 Cr, or ₹2 Cr if rated 90 or more.
 
 **Bid steps**
 
 | Current price | Next bid goes up by |
 |---|---|
-| up to ₹2 Cr | ₹10 L |
-| ₹2 Cr – ₹5 Cr | ₹20 L |
-| ₹5 Cr – ₹10 Cr | ₹50 L |
+| up to ₹2 Cr | ₹0.1 Cr |
+| ₹2 Cr – ₹5 Cr | ₹0.2 Cr |
+| ₹5 Cr – ₹10 Cr | ₹0.5 Cr |
 | ₹10 Cr and above | ₹1 Cr |
 
 **Bidding**

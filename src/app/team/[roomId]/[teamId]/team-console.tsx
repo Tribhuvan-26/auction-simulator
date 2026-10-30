@@ -25,6 +25,7 @@ import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { formatMoney } from '@/lib/money'
 import { categoryLabel } from '@/lib/team-rules'
+import { unwrap } from '@/lib/action-result'
 import {
   getPublicSnapshot,
   placeBid,
@@ -265,7 +266,7 @@ export function TeamConsole({
     setError(null)
     try {
       // Show our own bid now rather than waiting for the broadcast round trip.
-      const next = await placeBid(roomId, teamId, nextBid)
+      const next = unwrap(await placeBid(roomId, teamId, nextBid))
       if (next) setSnapshot((prev) => newer(prev, next))
       setOutbid(false)
     } catch (e) {
@@ -287,7 +288,7 @@ export function TeamConsole({
     setPending(true)
     setError(null)
     try {
-      const next = await dropFromLot(roomId, teamId)
+      const next = unwrap(await dropFromLot(roomId, teamId))
       setSnapshot((prev) => newer(prev, next))
       setPassedLotId(lot.id)
     } catch (e) {

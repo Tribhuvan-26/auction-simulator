@@ -25,8 +25,9 @@ import { StandingsTable } from '@/components/auction/squad-rules'
 import { useLiveSnapshot, type AuctionEvent } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
-import { formatMoney } from '@/lib/money'
+import { croreToLakhs, formatMoney } from '@/lib/money'
 import { categoryLabel } from '@/lib/team-rules'
+import { unwrap, type Rejected } from '@/lib/action-result'
 import {
   getAdminSnapshot,
   setPhase,
@@ -132,13 +133,13 @@ export function AdminConsole({
   // it reads this to know an action is already in flight.
   const pendingRef = useRef(false)
 
-  async function run(action: () => Promise<AdminSnapshot | PublicSnapshot | BidResult>, onDone?: () => void) {
+  async function run(action: () => Promise<AdminSnapshot | PublicSnapshot | BidResult | Rejected>, onDone?: () => void) {
     if (pendingRef.current) return
     pendingRef.current = true
     setError(null)
     setPending(true)
     try {
-      const next = await action()
+      const next = unwrap(await action())
       // A bid answers with just the lot, and placeBid's public snapshot has no
       // queue — either way, keep what's on screen for the rest.
       setSnapshot((prev) => newer(prev, next))
@@ -156,7 +157,7 @@ export function AdminConsole({
   function replay() {
     if (lot?.status !== 'SOLD') return
     setSoldTrigger((t) => t + 1)
-    replaySold(roomId).catch((e) => setError(e instanceof Error ? e.message : 'Replay failed'))
+    replaySold(roomId).then(unwrap).catch((e) => setError(e instanceof Error ? e.message : 'Replay failed'))
   }
 
   async function bidFor(team: Team, amount = nextBid) {
@@ -190,7 +191,7 @@ export function AdminConsole({
     }))
     await run(async () => {
       try {
-        return await placeBid(roomId, team.id, amount)
+        return unwrap(await placeBid(roomId, team.id, amount))
       } catch (e) {
         setSnapshot((prev) => (prev.at === before.at ? { ...prev, currentLot: before.currentLot } : prev))
         getAdminSnapshot(roomId).then((fresh) => setSnapshot((prev) => newer(prev, fresh)), () => {})
@@ -210,9 +211,9 @@ export function AdminConsole({
 
   async function handleJumpBid(e: React.FormEvent) {
     e.preventDefault()
-    const amount = Number(jumpBid)
-    if (!amount || amount <= 0) {
-      setError('Please enter a valid bid amount')
+    const amount = croreToLakhs(jumpBid)
+    if (!(amount > 0)) {
+      setError('Enter the bid in crore, e.g. 2.5')
       return
     }
     await run(() => forceBid(roomId, effectiveJumpTeamId, amount), () => setJumpBid(''))
@@ -486,14 +487,16 @@ export function AdminConsole({
                     htmlFor="jump-amount"
                     className="font-mono text-[9px] font-bold uppercase tracking-wider text-white/50 block mb-1"
                   >
-                    AMOUNT
+                    AMOUNT (CR)
                   </label>
                   <div className="flex gap-2">
                     <input
                       id="jump-amount"
                       aria-label="Amount"
                       type="number"
-                      placeholder="e.g. 100"
+                      step="0.01"
+                      min="0"
+                      placeholder="e.g. 2.5"
                       value={jumpBid}
                       onChange={(e) => setJumpBid(e.target.value)}
                       className="min-w-0 flex-1 border border-white/20 bg-[#1C1C22] px-3 py-2 font-mono text-sm font-bold text-white placeholder-white/30 focus:border-[#2074D5] focus:outline-none tabular-nums"

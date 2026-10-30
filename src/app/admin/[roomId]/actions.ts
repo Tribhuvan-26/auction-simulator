@@ -10,6 +10,7 @@ import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadRej
 import { assertCanBidAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
+import { rejectable } from '@/lib/action-result'
 
 // Upcoming order: the auctioneer's moves (queueOrder) first, then seed order.
 const QUEUE_ORDER = [{ queueOrder: 'asc' as const }, { id: 'asc' as const }]
@@ -379,7 +380,7 @@ const LOT_CHANGED = 'The lot changed while you were acting on it — check the l
  * and the queue isn't theirs to see. A bid never changes the queue, so the
  * admin console keeps the one it already has.
  */
-export async function placeBid(roomId: string, teamId: string, amount: number): Promise<BidResult> {
+async function placeBidOrThrow(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   // Server Actions are POST endpoints — the PIN gate on the page stops nobody
   // who crafts the request by hand. Authorise before touching the database.
   await assertCanBidAs(roomId, teamId)
@@ -428,9 +429,9 @@ export async function placeBid(roomId: string, teamId: string, amount: number): 
  * bid must still land on a valid increment, and the team must be allowed to
  * buy the player — same rules as a team's own bid, two-team lock included.
  */
-export async function forceBid(roomId: string, teamId: string, amount: number): Promise<BidResult> {
+async function forceBidOrThrow(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   await assertIsAuctioneer(roomId)
-  if (!Number.isInteger(amount) || amount <= 0) throw new Error('Bid must be a whole number of lakhs above zero')
+  if (!Number.isInteger(amount) || amount <= 0) throw new Error('Bid must be above zero, in steps of 0.01 Cr')
 
   const [lot, team] = await Promise.all([openLotOrThrow(roomId), bidTeam(roomId, teamId)])
   assertRoomOpen(lot.room.phase)
@@ -458,7 +459,7 @@ export async function forceBid(roomId: string, teamId: string, amount: number): 
   return publishBid(roomId, team.id, amount)
 }
 
-export async function markSold(roomId: string): Promise<AdminSnapshot> {
+async function markSoldOrThrow(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   const lot = await openLotOrThrow(roomId)
@@ -497,7 +498,7 @@ export async function markSold(roomId: string): Promise<AdminSnapshot> {
   return publishSnapshot(roomId, 'SOLD')
 }
 
-export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
+async function markUnsoldOrThrow(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   const lot = await openLotOrThrow(roomId)
@@ -517,7 +518,7 @@ export async function markUnsold(roomId: string): Promise<AdminSnapshot> {
  * lets a third one in; the team that dropped can't come back to this lot.
  * The team holding the highest bid can't drop — the auctioneer sells to it.
  */
-export async function dropFromLot(roomId: string, teamId: string): Promise<PublicSnapshot> {
+async function dropFromLotOrThrow(roomId: string, teamId: string): Promise<PublicSnapshot> {
   await assertCanBidAs(roomId, teamId)
   const lot = await openLotOrThrow(roomId)
   if (lot.currentBiddingTeamId === teamId) throw new Error('You hold the highest bid — you can only drop once outbid')
@@ -542,7 +543,7 @@ export async function dropFromLot(roomId: string, teamId: string): Promise<Publi
  * Play the sold animation again on every screen. Only for the lot on screen,
  * and only once it's sold — there's nothing to celebrate otherwise.
  */
-export async function replaySold(roomId: string): Promise<void> {
+async function replaySoldOrThrow(roomId: string): Promise<void> {
   await assertIsAuctioneer(roomId)
   const lot = await prisma.auctionLot.findFirst({
     where: { roomId },
@@ -553,7 +554,7 @@ export async function replaySold(roomId: string): Promise<void> {
   publish(roomId, { type: 'REPLAY', at: Date.now(), lotId: lot.id })
 }
 
-export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
+async function undoLastBidOrThrow(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   // Undo walks back one step of whatever just happened, so it looks at the
@@ -625,7 +626,7 @@ export async function undoLastBid(roomId: string): Promise<AdminSnapshot> {
   return publishSnapshot(roomId, 'UNDO')
 }
 
-export async function controlTimer(
+async function controlTimerOrThrow(
   roomId: string,
   action: 'reset' | 'add10'
 ): Promise<AdminSnapshot> {
@@ -639,7 +640,7 @@ export async function controlTimer(
   return publishSnapshot(roomId, 'TIMER')
 }
 
-export async function setPhase(
+async function setPhaseOrThrow(
   roomId: string,
   phase: 'LIVE' | 'PAUSED' | 'COMPLETED'
 ): Promise<AdminSnapshot> {
@@ -655,7 +656,7 @@ export async function setPhase(
  * code, teams and PINs stay. Only from an ended room, so a stray click can't
  * wipe an auction that's running.
  */
-export async function restartRoom(roomId: string): Promise<AdminSnapshot> {
+async function restartRoomOrThrow(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
   await prisma.$transaction(async (tx) => {
     const [room] = await tx.$queryRaw<{ phase: string }[]>`
@@ -715,7 +716,7 @@ async function requeueUnsold(tx: Prisma.TransactionClient, roomId: string): Prom
   return true
 }
 
-export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
+async function advanceToNextLotOrThrow(roomId: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   // A lot already on the block must be closed (SOLD/UNSOLD) before the next
@@ -776,7 +777,7 @@ export async function advanceToNextLot(roomId: string): Promise<AdminSnapshot> {
  * Moves an UPCOMING player to a 1-based spot in the queue (1 = up next) by
  * renumbering the whole queue — it's only ~100 rows.
  */
-export async function moveInQueue(roomId: string, playerId: string, position: number): Promise<AdminSnapshot> {
+async function moveInQueueOrThrow(roomId: string, playerId: string, position: number): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
   const queue = await prisma.player.findMany({
     where: { roomId, status: 'UPCOMING' },
@@ -828,3 +829,42 @@ export async function getRoomPlayers(roomId: string) {
 }
 
 export type RoomPlayerItem = Awaited<ReturnType<typeof getRoomPlayers>>[number]
+
+// What the screens call. A refusal comes back as { rejected } rather than a
+// throw, so its message survives a production build (see action-result.ts).
+export async function placeBid(...args: Parameters<typeof placeBidOrThrow>) {
+  return rejectable(() => placeBidOrThrow(...args))
+}
+export async function forceBid(...args: Parameters<typeof forceBidOrThrow>) {
+  return rejectable(() => forceBidOrThrow(...args))
+}
+export async function markSold(...args: Parameters<typeof markSoldOrThrow>) {
+  return rejectable(() => markSoldOrThrow(...args))
+}
+export async function markUnsold(...args: Parameters<typeof markUnsoldOrThrow>) {
+  return rejectable(() => markUnsoldOrThrow(...args))
+}
+export async function dropFromLot(...args: Parameters<typeof dropFromLotOrThrow>) {
+  return rejectable(() => dropFromLotOrThrow(...args))
+}
+export async function replaySold(...args: Parameters<typeof replaySoldOrThrow>) {
+  return rejectable(() => replaySoldOrThrow(...args))
+}
+export async function undoLastBid(...args: Parameters<typeof undoLastBidOrThrow>) {
+  return rejectable(() => undoLastBidOrThrow(...args))
+}
+export async function controlTimer(...args: Parameters<typeof controlTimerOrThrow>) {
+  return rejectable(() => controlTimerOrThrow(...args))
+}
+export async function setPhase(...args: Parameters<typeof setPhaseOrThrow>) {
+  return rejectable(() => setPhaseOrThrow(...args))
+}
+export async function restartRoom(...args: Parameters<typeof restartRoomOrThrow>) {
+  return rejectable(() => restartRoomOrThrow(...args))
+}
+export async function advanceToNextLot(...args: Parameters<typeof advanceToNextLotOrThrow>) {
+  return rejectable(() => advanceToNextLotOrThrow(...args))
+}
+export async function moveInQueue(...args: Parameters<typeof moveInQueueOrThrow>) {
+  return rejectable(() => moveInQueueOrThrow(...args))
+}

@@ -151,11 +151,11 @@ describe('AdminConsole bidding grid', () => {
     await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 30))
   })
 
-  it('jump bid sends the entered amount to forceBid, which checks it against the ladder', async () => {
+  it('jump bid takes crore and sends lakhs to forceBid, which checks it against the ladder', async () => {
     const { forceBid, placeBid } = await import('./actions')
     render(<AdminConsole roomId="room-1" initialSnapshot={liveSnapshot} />)
     // The server rejects an off-ladder amount; the console just passes it on.
-    fireEvent.change(screen.getByLabelText(/^amount$/i), { target: { value: '999' } })
+    fireEvent.change(screen.getByLabelText(/^amount$/i), { target: { value: '9.99' } })
     fireEvent.click(screen.getByRole('button', { name: /^bid$/i }))
     await vi.waitFor(() => expect(forceBid).toHaveBeenCalledWith('room-1', 'team-1', 999))
     expect(placeBid).not.toHaveBeenCalled()

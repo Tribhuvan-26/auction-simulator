@@ -1,8 +1,19 @@
 import { vi } from 'vitest'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { getAdminSnapshot, getPublicSnapshot, placeBid, markSold, markUnsold, undoLastBid, controlTimer, setPhase, advanceToNextLot } from './actions'
+import { getAdminSnapshot, getPublicSnapshot } from './actions'
+import * as actions from './actions'
+import { unwrap } from '@/lib/action-result'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
+
+// The actions answer a refusal with { rejected }; throw it, as a screen does.
+const placeBid = (...a: Parameters<typeof actions.placeBid>) => actions.placeBid(...a).then(unwrap)
+const markSold = (...a: Parameters<typeof actions.markSold>) => actions.markSold(...a).then(unwrap)
+const markUnsold = (...a: Parameters<typeof actions.markUnsold>) => actions.markUnsold(...a).then(unwrap)
+const undoLastBid = (...a: Parameters<typeof actions.undoLastBid>) => actions.undoLastBid(...a).then(unwrap)
+const controlTimer = (...a: Parameters<typeof actions.controlTimer>) => actions.controlTimer(...a).then(unwrap)
+const setPhase = (...a: Parameters<typeof actions.setPhase>) => actions.setPhase(...a).then(unwrap)
+const advanceToNextLot = (...a: Parameters<typeof actions.advanceToNextLot>) => actions.advanceToNextLot(...a).then(unwrap)
 
 vi.mock('@/lib/socket-emitter', () => ({
   emitAuctionEvent: vi.fn(async () => {}),
