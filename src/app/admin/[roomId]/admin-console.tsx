@@ -741,31 +741,69 @@ export function AdminConsole({
             </span>
           </div>
 
-          {/* The two teams contesting the lot. A third can only come in once one drops. */}
-          {lot && !closed && lot.activeBidders.length > 0 && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 border border-white/10 bg-white/5 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-white/70">
-              <span>{lot.activeBidders.length >= 2 ? 'LOCKED:' : 'IN:'}</span>
-              {lot.activeBidders.map((id) => {
-                const t = snapshot.teams.find((x) => x.id === id)
-                if (!t) return null
-                return (
-                  <span key={id} className="flex items-center gap-1.5">
-                    <span className="text-white">{t.shortCode}</span>
-                    {id !== leaderId && (
-                      <button
-                        onClick={() => run(() => dropFromLot(roomId, id))}
-                        disabled={pending}
-                        className="border border-rose-400/60 px-1.5 py-0.5 text-rose-300 hover:bg-rose-500/20 disabled:opacity-35 cursor-pointer"
+          {/* The two teams in this lot (first two to press I'M IN, or that you bid
+              for). A third can only come in once one of them is dropped. */}
+          {lot && !closed && (
+            <div className="mb-3 border border-white/15 bg-white/5 p-3">
+              <div className="mb-2 flex items-center justify-between font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
+                <span>TEAMS IN · {Math.min(lot.activeBidders.length, 2)}/2</span>
+                <span className="text-white/40">
+                  {lot.activeBidders.length >= 2 ? 'Others wait until you drop one' : "Waiting for teams to press I'M IN"}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {[0, 1].map((slot) => {
+                  const id = lot.activeBidders[slot]
+                  const t = id ? snapshot.teams.find((x) => x.id === id) : undefined
+                  if (!t) {
+                    return (
+                      <div
+                        key={slot}
+                        className="flex min-h-[72px] items-center justify-center border border-dashed border-white/20 font-mono text-xs font-bold uppercase tracking-widest text-white/35"
                       >
-                        DROP
-                      </button>
-                    )}
-                  </span>
-                )
-              })}
-              {lot.activeBidders.length >= 2 && (
-                <span className="text-white/40">— others wait until one drops</span>
-              )}
+                        Slot {slot + 1} open
+                      </div>
+                    )
+                  }
+                  const accent = TEAM_ACCENTS[t.shortCode.toUpperCase()] || { bg: 'bg-[#2074D5]', text: 'text-white' }
+                  const isLead = t.id === leaderId
+                  return (
+                    <div key={t.id} data-testid={`in-${t.shortCode}`} className={`flex min-h-[72px] items-center gap-3 px-3 py-2 ${accent.bg} ${accent.text}`}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-condensed text-3xl font-black uppercase leading-none">{t.shortCode}</span>
+                          {isLead && (
+                            <span className="bg-black/70 px-1.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-brand-yellow">
+                              LEADING
+                            </span>
+                          )}
+                        </div>
+                        <div className="truncate font-mono text-[10px] font-bold uppercase tracking-wider opacity-80">
+                          {t.name} · {formatMoney(t.purseRemaining)} left
+                        </div>
+                      </div>
+                      {!isLead && (
+                        <button
+                          onClick={() => bidFor(t)}
+                          disabled={!biddingOpen || pending}
+                          className="shrink-0 bg-black/70 px-3 py-2 font-condensed text-base font-black uppercase tracking-wider text-white hover:bg-black disabled:opacity-35 cursor-pointer"
+                        >
+                          BID {formatMoney(nextBid)}
+                        </button>
+                      )}
+                      {!isLead && (
+                        <button
+                          onClick={() => run(() => dropFromLot(roomId, t.id))}
+                          disabled={pending}
+                          className="shrink-0 border border-white/60 px-2 py-2 font-mono text-[10px] font-black uppercase tracking-wider hover:bg-black/30 disabled:opacity-35 cursor-pointer"
+                        >
+                          DROP
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 

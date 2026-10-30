@@ -81,7 +81,7 @@ One tile per team, with its purse and squad size (e.g. `3/12`).
 
 - **Click a team's tile** to bid the next amount for that team when it calls out. This is the only way bids get in, besides JUMP BID: team screens can't bid. Once two teams are in (pressed I'M IN or bid), every other tile is greyed out.
 - Tile badges: **LEAD** = highest bid now, **IN** = one of the two teams bidding, **OUT** = dropped out of this player.
-- The **LOCKED: MI CSK** strip shows the two teams bidding. **DROP** next to a team takes it out of this player, which lets a third team in. The team with the highest bid can't be dropped.
+- The **TEAMS IN · 2/2** panel above the tiles shows the two teams in this player, in their colours, with **LEADING** on the top bidder. The other one has **BID** (raises it to the next amount) and **DROP** (takes it out, which lets a third team press I'M IN). Empty slots say **Slot 1 open** until a team presses I'M IN.
 
 ### UP NEXT (bottom right)
 

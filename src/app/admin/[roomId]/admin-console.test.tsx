@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AdminConsole } from './admin-console'
 import type { AdminSnapshot } from './actions'
@@ -23,6 +23,7 @@ vi.mock('./actions', () => ({
   advanceToNextLot: vi.fn(async () => baseSnapshot),
   replaySold: vi.fn(async () => {}),
   restartRoom: vi.fn(async () => baseSnapshot),
+  dropFromLot: vi.fn(async () => baseSnapshot),
 }))
 
 const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
@@ -220,6 +221,38 @@ describe('AdminConsole bidding grid', () => {
     expect(restartRoom).not.toHaveBeenCalled()
     fireEvent.click(screen.getAllByRole('button', { name: /^start new auction$/i }).at(-1)!)
     await vi.waitFor(() => expect(restartRoom).toHaveBeenCalledWith('room-1'))
+  })
+
+  it('shows the two teams that are in, and which one leads', () => {
+    const s = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, activeBidders: ['team-1', 'team-2'] } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    expect(screen.getByText(/teams in · 2\/2/i)).toBeInTheDocument()
+    expect(screen.getByTestId('in-DC')).toHaveTextContent(/leading/i)
+    expect(within(screen.getByTestId('in-DC')).queryByRole('button', { name: /^drop$/i })).toBeNull()
+  })
+
+  it('BID on a team that is in raises for it', async () => {
+    const { placeBid } = await import('./actions')
+    const s = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, activeBidders: ['team-1', 'team-2'] } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    fireEvent.click(within(screen.getByTestId('in-CSK')).getByRole('button', { name: /^bid /i }))
+    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-2', 30))
+  })
+
+  it('DROP on a team that is in takes it out', async () => {
+    const { dropFromLot } = await import('./actions')
+    const s = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, activeBidders: ['team-1', 'team-2'] } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    fireEvent.click(within(screen.getByTestId('in-CSK')).getByRole('button', { name: /^drop$/i }))
+    await vi.waitFor(() => expect(dropFromLot).toHaveBeenCalledWith('room-1', 'team-2'))
+  })
+
+  it('shows open slots until two teams are in', () => {
+    const s = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, currentBiddingTeamId: null, activeBidders: [] } }
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    expect(screen.getByText(/teams in · 0\/2/i)).toBeInTheDocument()
+    expect(screen.getByText(/slot 1 open/i)).toBeInTheDocument()
+    expect(screen.getByText(/slot 2 open/i)).toBeInTheDocument()
   })
 
   it('renders a purse row per team', () => {
