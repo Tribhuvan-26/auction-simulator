@@ -62,119 +62,57 @@ function renderConsole(s: PublicSnapshot) {
   return render(<TeamConsole roomId="room-1" teamId="team-1" initialSnapshot={s} />)
 }
 
-describe('TeamConsole bidding control panel', () => {
+describe('TeamConsole bidding panel (view only — the auctioneer enters every bid)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    sessionStorage.clear()
   })
 
-  it('opens the bidding at the base price', async () => {
-    const { placeBid } = await import('@/app/admin/[roomId]/actions')
-    renderConsole(snapshot())
-    const bid = screen.getByRole('button', { name: /^bid$/i })
-    expect(bid).not.toBeDisabled()
-    fireEvent.click(bid)
-    // Lot hasn't opened, so the opening bid is the base price.
-    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 20))
-  })
-
-  it('locks out while this team already holds the lot', () => {
-    const s = snapshot()
-    s.currentLot!.currentBiddingTeamId = 'team-1'
-    renderConsole(s)
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/you hold the highest bid/i)).toBeInTheDocument()
-  })
-
-  it('locks out when there is no lot on the block', () => {
-    renderConsole(snapshot({ currentLot: null }))
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/waiting for the auctioneer/i)).toBeInTheDocument()
-  })
-
-  it('locks out when the lot has been called', () => {
-    const s = snapshot()
-    s.currentLot!.status = 'SOLD'
-    renderConsole(s)
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-  })
-
-  it('locks out and explains when the purse cannot cover the next bid', () => {
-    renderConsole(snapshot({}, { purseRemaining: 10 }))
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/purse insufficient/i)).toBeInTheDocument()
-  })
-
-  it('raises on the spacebar', async () => {
-    const { placeBid } = await import('@/app/admin/[roomId]/actions')
-    renderConsole(snapshot())
-    fireEvent.keyDown(window, { key: ' ' })
-    await vi.waitFor(() => expect(placeBid).toHaveBeenCalledWith('room-1', 'team-1', 20))
-  })
-
-  it('ignores the spacebar while a modal is open or the key is held down', async () => {
-    const { placeBid } = await import('@/app/admin/[roomId]/actions')
-    vi.mocked(placeBid).mockClear()
-    renderConsole(snapshot())
-    fireEvent.keyDown(window, { key: ' ', repeat: true })
-    fireEvent.click(screen.getByRole('button', { name: /^squad$/i }))
-    fireEvent.keyDown(window, { key: ' ' })
-    expect(placeBid).not.toHaveBeenCalled()
-  })
-
-  it('passing sits the lot out until the auctioneer loads the next one', () => {
-    renderConsole(snapshot())
-    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
-  })
-
-  it('a pass can be taken back', () => {
-    renderConsole(snapshot())
-    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
-    fireEvent.click(screen.getByRole('button', { name: /undo pass/i }))
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeEnabled()
-  })
-
-  it('a pass survives a reload of the page', () => {
-    const first = renderConsole(snapshot())
-    fireEvent.click(screen.getByRole('button', { name: /^pass$/i }))
-    first.unmount()
-    renderConsole(snapshot())
-    expect(screen.getByText(/sitting this lot out/i)).toBeInTheDocument()
-  })
-
-  it('keeps bidding open after the first bid — teams raise from their own seats', () => {
-    const s = snapshot()
-    s.currentLot!.status = 'BIDDING'
-    s.currentLot!.currentBiddingTeamId = 'team-2'
-    s.currentLot!.activeBidders = ['team-2']
-    renderConsole(s)
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeEnabled()
-  })
-
-  it('locks a third team out while two teams are bidding', () => {
-    const s = snapshot()
-    s.currentLot!.status = 'BIDDING'
-    s.currentLot!.currentBiddingTeamId = 'team-2'
-    s.currentLot!.activeBidders = ['team-3', 'team-2']
-    renderConsole(s)
-    expect(screen.getByRole('button', { name: /^bid$/i })).toBeDisabled()
-    expect(screen.getByText(/two teams are bidding/i)).toBeInTheDocument()
-  })
-
-  it('a team in the contest gets DROP instead of PASS', () => {
+  it('has no BID, PASS or DROP button', () => {
     const s = snapshot()
     s.currentLot!.status = 'BIDDING'
     s.currentLot!.currentBiddingTeamId = 'team-2'
     s.currentLot!.activeBidders = ['team-1', 'team-2']
     renderConsole(s)
-    expect(screen.getByRole('button', { name: /drop/i })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /^bid$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /pass|drop/i })).toBeNull()
   })
 
-  it('has no withdraw button', () => {
+  it('the spacebar does not bid', async () => {
+    const { placeBid } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
-    expect(screen.queryByRole('button', { name: /^withdraw$/i })).toBeNull()
+    fireEvent.keyDown(window, { key: ' ' })
+    expect(placeBid).not.toHaveBeenCalled()
+  })
+
+  it('tells the team to call out while a bid from them would be taken', () => {
+    renderConsole(snapshot())
+    expect(screen.getByText(/raise your paddle to bid/i)).toBeInTheDocument()
+  })
+
+  it('says so while this team already holds the lot', () => {
+    const s = snapshot()
+    s.currentLot!.currentBiddingTeamId = 'team-1'
+    renderConsole(s)
+    expect(screen.getByText(/you hold the highest bid/i)).toBeInTheDocument()
+  })
+
+  it('says so when there is no lot on the block', () => {
+    renderConsole(snapshot({ currentLot: null }))
+    expect(screen.getByText(/waiting for the auctioneer/i)).toBeInTheDocument()
+  })
+
+  it('explains when the purse cannot cover the next bid', () => {
+    renderConsole(snapshot({}, { purseRemaining: 10 }))
+    expect(screen.getByText(/purse insufficient/i)).toBeInTheDocument()
+  })
+
+  it('shows which two teams are bidding', () => {
+    const s = snapshot()
+    s.currentLot!.status = 'BIDDING'
+    s.currentLot!.currentBiddingTeamId = 'team-2'
+    s.currentLot!.activeBidders = ['team-1', 'team-2']
+    renderConsole(s)
+    expect(screen.getByText(/bidding: dc vs csk/i)).toBeInTheDocument()
   })
 })
 

@@ -7,7 +7,7 @@ import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
 import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidTeam } from '@/lib/bid-rules'
 import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadRejectionReason } from '@/lib/team-rules'
-import { assertCanBidAs, assertIsAuctioneer } from '@/lib/team-auth'
+import { assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 import { rejectable } from '@/lib/action-result'
@@ -382,8 +382,9 @@ const LOT_CHANGED = 'The lot changed while you were acting on it — check the l
  */
 async function placeBidOrThrow(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   // Server Actions are POST endpoints — the PIN gate on the page stops nobody
-  // who crafts the request by hand. Authorise before touching the database.
-  await assertCanBidAs(roomId, teamId)
+  // who crafts the request by hand. Only the auctioneer enters bids: teams
+  // call out in the room, so a team seat can't bid even with its PIN.
+  await assertIsAuctioneer(roomId)
 
   // Independent reads, so together: every round trip here is time a bid
   // spends waiting while the other team can still get in first.
@@ -519,7 +520,7 @@ async function markUnsoldOrThrow(roomId: string): Promise<AdminSnapshot> {
  * The team holding the highest bid can't drop — the auctioneer sells to it.
  */
 async function dropFromLotOrThrow(roomId: string, teamId: string): Promise<PublicSnapshot> {
-  await assertCanBidAs(roomId, teamId)
+  await assertIsAuctioneer(roomId)
   const lot = await openLotOrThrow(roomId)
   if (lot.currentBiddingTeamId === teamId) throw new Error('You hold the highest bid — you can only drop once outbid')
   if (lot.droppedTeamIds.includes(teamId)) return toPublic(await buildSnapshot(roomId, false))

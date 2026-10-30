@@ -23,7 +23,6 @@ vi.mock('@/lib/socket-emitter', () => ({
 // have. Their own behaviour is covered in src/lib/team-auth.test.ts; here we
 // only assert that every mutation calls them.
 vi.mock('@/lib/team-auth', () => ({
-  assertCanBidAs: vi.fn(async () => {}),
   assertIsAuctioneer: vi.fn(async () => {}),
 }))
 
@@ -128,12 +127,11 @@ describe('placeBid', () => {
     await prisma.auctionRoom.delete({ where: { id: roomId } })
   })
 
-  it('authorises the bidder before touching the database', async () => {
-    const { assertCanBidAs } = await import('@/lib/team-auth')
-    vi.mocked(assertCanBidAs).mockRejectedValueOnce(new Error('Unauthorized: nope'))
+  it('only the auctioneer can enter a bid, checked before touching the database', async () => {
+    const { assertIsAuctioneer } = await import('@/lib/team-auth')
+    vi.mocked(assertIsAuctioneer).mockRejectedValueOnce(new Error('Unauthorized: nope'))
     await expect(placeBid(roomId, teamId, 25)).rejects.toThrow(/unauthorized/i)
     expect(await prisma.bid.count({ where: { lotId } })).toBe(0)
-    vi.mocked(assertCanBidAs).mockResolvedValue(undefined)
   })
 
   // Lot is BIDDING at 20 L, so the ladder's next amount is 25 L.
