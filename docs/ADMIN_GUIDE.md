@@ -63,7 +63,6 @@ After SOLD or UNSOLD, a big green **NEXT PLAYER [N]** bar appears under the card
 | **[START LOT]** | Same as NEXT PLAYER: brings up the next player. |
 | **[PAUSE] / [RESUME]** | Stops all bidding, then lets it continue. Teams can't bid while paused. (Space bar does the same.) |
 | **[REOPEN]** | Shows instead of PAUSE after the auction is ended; restarts it. |
-| **[RESET TIMER]** | Puts the lot's timer value back to 30 s. (There's no on-screen countdown yet.) |
 | **[DISPUTE]** | Removes the last bid and shows a "dispute flagged" note. Use it when a bid was wrong. |
 | **END AUCTION** | Ends the auction after you confirm. All bidding stops and the big screen shows the final standings. To carry on later, press **REOPEN AUCTION** or **NEXT PLAYER**. |
 

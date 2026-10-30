@@ -34,7 +34,6 @@ import {
   markSold,
   markUnsold,
   undoLastBid,
-  controlTimer,
   placeBid,
   forceBid,
   advanceToNextLot,
@@ -645,7 +644,7 @@ export function AdminConsole({
                 ADMIN SIMULATION CONTROLS
               </span>
 
-              {/* 2x2 Grid of Actions matching Screenshot 1 */}
+              {/* START LOT and PAUSE side by side, DISPUTE across the row below */}
               <div className="grid grid-cols-2 gap-2 mb-3">
                 {/* [START LOT] */}
                 <button
@@ -668,16 +667,6 @@ export function AdminConsole({
                   <span>{ended ? '[REOPEN]' : paused ? '[RESUME]' : '[PAUSE]'}</span>
                 </button>
 
-                {/* [RESET TIMER] */}
-                <button
-                  onClick={() => run(() => controlTimer(roomId, 'reset'))}
-                  disabled={!lot || closed || pending}
-                  className="px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
-                >
-                  <RotateCcw className="h-3.5 w-3.5 text-white/70" />
-                  <span>[RESET TIMER]</span>
-                </button>
-
                 {/* [DISPUTE] */}
                 <button
                   onClick={() => {
@@ -688,7 +677,7 @@ export function AdminConsole({
                     )
                   }}
                   disabled={!lot || closed || pending || lot.bidHistory.length === 0}
-                  className="px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                  className="col-span-2 px-3 py-2.5 bg-[#1C1C22] border border-white/20 hover:bg-white/10 active:bg-white/15 text-white font-mono text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer text-center"
                 >
                   [DISPUTE]
                 </button>
