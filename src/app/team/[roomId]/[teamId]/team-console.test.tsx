@@ -11,8 +11,9 @@ vi.mock('@/hooks/use-live-snapshot', () => ({
   }),
 }))
 vi.mock('@/app/admin/[roomId]/actions', () => ({
-  getPublicSnapshot: vi.fn(),
+  getPublicSnapshot: vi.fn(async () => ({})),
   placeBid: vi.fn(async () => {}),
+  claimLot: vi.fn(async () => ({ at: 0 })),
 }))
 
 const team = (over: Partial<PublicSnapshot['teams'][number]> = {}): PublicSnapshot['teams'][number] => ({
@@ -62,57 +63,78 @@ function renderConsole(s: PublicSnapshot) {
   return render(<TeamConsole roomId="room-1" teamId="team-1" initialSnapshot={s} />)
 }
 
-describe('TeamConsole bidding panel (view only — the auctioneer enters every bid)', () => {
+describe('TeamConsole bidding panel (I\'M IN — the auctioneer enters every bid)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('has no BID, PASS or DROP button', () => {
-    const s = snapshot()
-    s.currentLot!.status = 'BIDDING'
-    s.currentLot!.currentBiddingTeamId = 'team-2'
-    s.currentLot!.activeBidders = ['team-1', 'team-2']
-    renderConsole(s)
+    renderConsole(snapshot())
     expect(screen.queryByRole('button', { name: /^bid$/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /pass|drop/i })).toBeNull()
   })
 
-  it('the spacebar does not bid', async () => {
-    const { placeBid } = await import('@/app/admin/[roomId]/actions')
+  it("I'M IN claims a place in the lot, and never bids", async () => {
+    const { claimLot, placeBid } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
-    fireEvent.keyDown(window, { key: ' ' })
+    fireEvent.click(screen.getByRole('button', { name: /i'm in/i }))
+    await vi.waitFor(() => expect(claimLot).toHaveBeenCalledWith('room-1', 'team-1'))
     expect(placeBid).not.toHaveBeenCalled()
   })
 
-  it('tells the team to call out while a bid from them would be taken', () => {
+  it("the spacebar presses I'M IN", async () => {
+    const { claimLot } = await import('@/app/admin/[roomId]/actions')
     renderConsole(snapshot())
-    expect(screen.getByText(/raise your paddle to bid/i)).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: ' ' })
+    await vi.waitFor(() => expect(claimLot).toHaveBeenCalledWith('room-1', 'team-1'))
   })
 
-  it('says so while this team already holds the lot', () => {
+  it('ignores the spacebar while a modal is open or the key is held down', async () => {
+    const { claimLot } = await import('@/app/admin/[roomId]/actions')
+    renderConsole(snapshot())
+    fireEvent.keyDown(window, { key: ' ', repeat: true })
+    fireEvent.click(screen.getByRole('button', { name: /^squad$/i }))
+    fireEvent.keyDown(window, { key: ' ' })
+    expect(claimLot).not.toHaveBeenCalled()
+  })
+
+  it("shows YOU'RE IN once this team is one of the two", () => {
     const s = snapshot()
-    s.currentLot!.currentBiddingTeamId = 'team-1'
+    s.currentLot!.activeBidders = ['team-1']
     renderConsole(s)
-    expect(screen.getByText(/you hold the highest bid/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /you're in/i })).toBeDisabled()
   })
 
-  it('says so when there is no lot on the block', () => {
+  it('shuts a third team out while two teams are in', () => {
+    const s = snapshot()
+    s.currentLot!.activeBidders = ['team-2', 'team-3']
+    renderConsole(s)
+    expect(screen.getByRole('button', { name: /i'm in/i })).toBeDisabled()
+    expect(screen.getByText(/two teams are bidding/i)).toBeInTheDocument()
+  })
+
+  it('is shut while there is no lot on the block', () => {
     renderConsole(snapshot({ currentLot: null }))
+    expect(screen.getByRole('button', { name: /i'm in/i })).toBeDisabled()
     expect(screen.getByText(/waiting for the auctioneer/i)).toBeInTheDocument()
+  })
+
+  it('is shut while the auction is paused', () => {
+    renderConsole(snapshot({ room: { id: 'room-1', name: 'Room One', phase: 'PAUSED', round: 1 } }))
+    expect(screen.getByRole('button', { name: /i'm in/i })).toBeDisabled()
   })
 
   it('explains when the purse cannot cover the next bid', () => {
     renderConsole(snapshot({}, { purseRemaining: 10 }))
+    expect(screen.getByRole('button', { name: /i'm in/i })).toBeDisabled()
     expect(screen.getByText(/purse insufficient/i)).toBeInTheDocument()
   })
 
-  it('shows which two teams are bidding', () => {
+  it('shows which two teams are in', () => {
     const s = snapshot()
-    s.currentLot!.status = 'BIDDING'
-    s.currentLot!.currentBiddingTeamId = 'team-2'
     s.currentLot!.activeBidders = ['team-1', 'team-2']
     renderConsole(s)
-    expect(screen.getByText(/bidding: dc vs csk/i)).toBeInTheDocument()
+    expect(screen.getByText(/in: dc vs csk/i)).toBeInTheDocument()
   })
 })
 

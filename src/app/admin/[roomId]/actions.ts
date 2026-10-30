@@ -1,13 +1,13 @@
 'use server'
 
-import type { AuctionLot, Prisma } from '@prisma/client'
+import { Prisma, type AuctionLot } from '@prisma/client'
 import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
-import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidTeam } from '@/lib/bid-rules'
+import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, MAX_ACTIVE_BIDDERS, type BidTeam } from '@/lib/bid-rules'
 import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadRejectionReason } from '@/lib/team-rules'
-import { assertIsAuctioneer } from '@/lib/team-auth'
+import { assertCanClaimAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
 import { TIMER_DEFAULT_SECONDS } from '@/lib/auction-constants'
 import { rejectable } from '@/lib/action-result'
@@ -65,7 +65,7 @@ export type PublicSnapshot = Omit<AdminSnapshot, 'queue'>
 const LOT_INCLUDE = { player: true, bids: { include: { team: true }, orderBy: { amount: 'asc' } } } as const
 type LotRow = Prisma.AuctionLotGetPayload<{ include: typeof LOT_INCLUDE }>
 
-function toLotView(lot: LotRow, lotCount: number, dropped: string[]): NonNullable<AdminSnapshot['currentLot']> {
+function toLotView(lot: LotRow, lotCount: number, { dropped, claimed }: LotTeams): NonNullable<AdminSnapshot['currentLot']> {
   return {
   id: lot.id,
   lotNumber: lotCount,
@@ -73,7 +73,7 @@ function toLotView(lot: LotRow, lotCount: number, dropped: string[]): NonNullabl
   currentBid: lot.currentBid,
   currentBiddingTeamId: lot.currentBiddingTeamId,
   timerSeconds: lot.timerSeconds,
-  activeBidders: activeBidders(lot.bids.map((b) => b.teamId), dropped),
+  activeBidders: activeBidders([...claimed, ...lot.bids.map((b) => b.teamId)], dropped),
   droppedTeamIds: dropped,
   bidHistory: lot.bids.map((b) => ({
     teamId: b.teamId,
@@ -116,12 +116,12 @@ export type BidResult = { at: number; currentLot: PublicSnapshot['currentLot'] }
  */
 async function buildLot(roomId: string): Promise<BidResult> {
   const at = await dbNow()
-  const [lot, lotCount, dropped] = await Promise.all([
+  const [lot, lotCount, lotTeamIds] = await Promise.all([
     prisma.auctionLot.findFirst({ where: { roomId }, include: LOT_INCLUDE, orderBy: { id: 'desc' } }),
     prisma.auctionLot.count({ where: { roomId } }),
-    droppedTeams(roomId),
+    lotTeams(roomId),
   ])
-  return { at, currentLot: lot ? toLotView(lot, lotCount, dropped) : null }
+  return { at, currentLot: lot ? toLotView(lot, lotCount, lotTeamIds) : null }
 }
 
 async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<AdminSnapshot> {
@@ -133,7 +133,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
   // These reads are independent of each other, so they run in parallel (as far
   // as the pool allows). Each action builds this once and broadcasts it, so
   // the other screens don't each rebuild it.
-  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw, dropped] = await Promise.all([
+  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw, lotTeamIds] = await Promise.all([
     prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
     // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
     // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
@@ -164,13 +164,13 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
         player: { select: { id: true, name: true, soldPrice: true, team: { select: { shortCode: true, colorAccent: true } } } },
       },
     }),
-    droppedTeams(roomId),
+    lotTeams(roomId),
   ])
 
   return {
     at,
     room: { id: room.id, name: room.name, phase: room.phase, round: room.round },
-    currentLot: lot ? toLotView(lot, lotCount, dropped) : null,
+    currentLot: lot ? toLotView(lot, lotCount, lotTeamIds) : null,
     teams: teamsRaw.map((t) => ({
       id: t.id,
       name: t.name,
@@ -276,7 +276,7 @@ async function publishBid(roomId: string, teamId: string, amount: number): Promi
  * "no record was found" surface in the console.
  */
 async function openLotOrThrow(roomId: string) {
-  const [lot, dropped] = await Promise.all([
+  const [lot, { dropped, claimed }] = await Promise.all([
     prisma.auctionLot.findFirst({
       where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
       include: {
@@ -286,21 +286,32 @@ async function openLotOrThrow(roomId: string) {
       },
       orderBy: { id: 'desc' },
     }),
-    droppedTeams(roomId),
+    lotTeams(roomId),
   ])
   if (!lot) throw new Error('No lot on the block — load the next player first')
-  return { ...lot, droppedTeamIds: dropped }
+  return { ...lot, droppedTeamIds: dropped, claimedTeamIds: claimed }
 }
 
+type LotTeams = { dropped: string[]; claimed: string[] }
+
 /**
- * Teams that dropped out of the room's newest lot (the one on screen). Raw SQL
- * because the column may not exist yet on an older database — then nobody has
- * dropped, and the two-team lock still works, just without DROP.
+ * Teams that dropped out of, and teams that pressed I'M IN on, the room's
+ * newest lot (the one on screen). Raw SQL because the columns may not exist
+ * yet on an older database — then nobody has dropped or claimed, and the
+ * two-team lock still works off the bids alone.
  */
-async function droppedTeams(roomId: string): Promise<string[]> {
+async function lotTeams(roomId: string): Promise<LotTeams> {
+  const [dropped, claimed] = await Promise.all([
+    lotColumn(roomId, Prisma.sql`"droppedTeamIds"`),
+    lotColumn(roomId, Prisma.sql`"claimedTeamIds"`),
+  ])
+  return { dropped, claimed }
+}
+
+async function lotColumn(roomId: string, column: Prisma.Sql): Promise<string[]> {
   try {
     const rows = await prisma.$queryRaw<{ d: string[] }[]>`
-      SELECT "droppedTeamIds" AS d FROM "AuctionLot" WHERE "roomId" = ${roomId} ORDER BY id DESC LIMIT 1`
+      SELECT ${column} AS d FROM "AuctionLot" WHERE "roomId" = ${roomId} ORDER BY id DESC LIMIT 1`
     return rows[0]?.d ?? []
   } catch {
     return []
@@ -315,7 +326,7 @@ function bidLot(lot: OpenLot) {
     currentBid: lot.currentBid,
     status: lot.status,
     player: lot.player,
-    activeBidders: activeBidders(lot.bids.map((b) => b.teamId), lot.droppedTeamIds),
+    activeBidders: activeBidders([...lot.claimedTeamIds, ...lot.bids.map((b) => b.teamId)], lot.droppedTeamIds),
     droppedTeamIds: lot.droppedTeamIds,
   }
 }
@@ -538,6 +549,50 @@ async function dropFromLotOrThrow(roomId: string, teamId: string): Promise<Publi
   }
   if (count === 0) throw new Error(LOT_CHANGED)
   return toPublic(await publishSnapshot(roomId, 'DROP'))
+}
+
+/**
+ * A team presses I'M IN. The first two teams in are the pair contesting the
+ * lot; everyone else is shut out until the auctioneer drops one of them. The
+ * auctioneer then enters the bids for the pair.
+ */
+async function claimLotOrThrow(roomId: string, teamId: string): Promise<PublicSnapshot> {
+  await assertCanClaimAs(roomId, teamId)
+  const [lot, team] = await Promise.all([openLotOrThrow(roomId), bidTeam(roomId, teamId)])
+  assertRoomOpen(lot.room.phase)
+  const view = bidLot(lot)
+  if (view.activeBidders.includes(teamId)) return toPublic(await buildSnapshot(roomId, false))
+  // Same checks as a bid at the next price: full pair, dropped, purse, squad.
+  const amount = lot.status === 'BIDDING' ? getNextBidAmount(lot.currentBid, lot.player.basePrice) : lot.currentBid
+  const rejection = bidRejectionReason(team, view, amount)
+  if (rejection) throw new Error(rejection)
+
+  // Two teams pressing at once both pass the check above. Locking the lot row
+  // makes the second wait, then count again — so only two ever get in.
+  let won = false
+  try {
+    won = await prisma.$transaction(async (tx) => {
+      const [row] = await tx.$queryRaw<{ claimed: string[]; dropped: string[]; status: string }[]>`
+        SELECT "claimedTeamIds" AS claimed, "droppedTeamIds" AS dropped, status::text AS status
+        FROM "AuctionLot" WHERE id = ${lot.id} FOR UPDATE`
+      if (!row || (row.status !== 'QUEUED' && row.status !== 'BIDDING')) throw new Error(LOT_CHANGED)
+      const bids = await tx.bid.findMany({ where: { lotId: lot.id }, select: { teamId: true }, orderBy: { amount: 'asc' } })
+      const active = activeBidders([...row.claimed, ...bids.map((b) => b.teamId)], row.dropped)
+      if (active.includes(teamId)) return false
+      if (row.dropped.includes(teamId)) throw new Error('You dropped out of this lot')
+      if (active.length >= MAX_ACTIVE_BIDDERS) throw new Error('Too late — two teams are already in')
+      await tx.$executeRaw`
+        UPDATE "AuctionLot" SET "claimedTeamIds" = array_append("claimedTeamIds", ${teamId}) WHERE id = ${lot.id}`
+      return true
+    }, TX)
+  } catch (e) {
+    // The column is missing on a database that hasn't had the migration.
+    if (e instanceof Error && e.message.includes('claimedTeamIds')) {
+      throw new Error("I'M IN needs a database update — run migration 20261030120000_lot_claimed_teams")
+    }
+    throw e
+  }
+  return toPublic(won ? await publishSnapshot(roomId, 'CLAIM') : await buildSnapshot(roomId, false))
 }
 
 /**
@@ -844,6 +899,9 @@ export async function markSold(...args: Parameters<typeof markSoldOrThrow>) {
 }
 export async function markUnsold(...args: Parameters<typeof markUnsoldOrThrow>) {
   return rejectable(() => markUnsoldOrThrow(...args))
+}
+export async function claimLot(...args: Parameters<typeof claimLotOrThrow>) {
+  return rejectable(() => claimLotOrThrow(...args))
 }
 export async function dropFromLot(...args: Parameters<typeof dropFromLotOrThrow>) {
   return rejectable(() => dropFromLotOrThrow(...args))

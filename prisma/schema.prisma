@@ -110,9 +110,10 @@ model AuctionLot {
   currentBiddingTeamId  String?
   status                LotStatus   @default(QUEUED)
   timerSeconds          Int         @default(30)
-  // "droppedTeamIds" TEXT[] (migration 20261030090000) is read and written with
-  // raw SQL in actions.ts, not mapped here, so the app keeps running on a
-  // database that hasn't had that migration yet.
+  // "droppedTeamIds" TEXT[] (migration 20261030090000) and "claimedTeamIds"
+  // TEXT[] (migration 20261030120000) are read and written with raw SQL in
+  // actions.ts, not mapped here, so the app keeps running on a database that
+  // hasn't had those migrations yet.
   bids                  Bid[]
 
   @@index([roomId])

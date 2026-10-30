@@ -53,9 +53,18 @@ export async function hasAdminAccess(roomId: string): Promise<boolean> {
 }
 
 /**
- * The guard every mutation in the admin actions file runs first. Bids too:
- * teams call out in the room and the auctioneer enters them, so a team seat
- * can watch but never change anything.
+ * The one thing a team seat can do: press I'M IN to claim a place in the lot.
+ * The auctioneer can do it for any team.
+ */
+export async function assertCanClaimAs(roomId: string, teamId: string): Promise<void> {
+  if (await hasTeamAccess(teamId)) return
+  if (await hasAdminAccess(roomId)) return
+  throw new Error('Unauthorized: take this team seat with its PIN first')
+}
+
+/**
+ * The guard every other mutation in the admin actions file runs first. Bids
+ * too: teams call out in the room and the auctioneer enters them.
  */
 export async function assertIsAuctioneer(roomId: string): Promise<void> {
   if (await hasAdminAccess(roomId)) return

@@ -779,13 +779,15 @@ export function AdminConsole({
               const isLeading = leaderId === team.id
               const isIn = !!lot && !closed && lot.activeBidders.includes(team.id)
               const isOut = !!lot && !closed && lot.droppedTeamIds.includes(team.id)
+              // Two teams are in (pressed I'M IN or bid): the rest wait for a DROP.
+              const lockedOut = !!lot && !closed && lot.activeBidders.length >= 2 && !isIn
 
               return (
                 <button
                   key={team.id}
                   data-testid={`bid-${team.shortCode}`}
                   onClick={() => bidFor(team)}
-                  disabled={!biddingOpen || pending}
+                  disabled={!biddingOpen || pending || lockedOut || isOut}
                   className={`group flex flex-col border transition-all text-left overflow-hidden disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer ${
                     isLeading
                       ? 'border-brand-yellow ring-2 ring-brand-yellow shadow-[0_0_15px_rgba(249,205,5,0.4)]'

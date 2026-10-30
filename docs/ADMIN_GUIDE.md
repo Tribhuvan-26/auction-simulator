@@ -7,7 +7,7 @@ How to run an auction from the admin screen: `/admin/ROOM1` (use your room's cod
 ## Running one player, step by step
 
 1. **Bring up a player.** Click **START NEXT LOT** (or **[START LOT]**, or press **N**). The first player in the UP NEXT list comes on screen, and every team screen and the big screen show them.
-2. **Teams call out bids in the room; you enter every bid.** Team screens are view only, with no BID button. Click a team's tile to bid the next amount for it, or use **JUMP BID**. The first two teams to bid are locked in. Other teams wait until you **DROP** one of the two.
+2. **The two fastest teams get in; you enter every bid.** Each team screen has one **I'M IN** button (or Space). The first two teams to press it are locked in for this player, and everyone else is shut out. Team screens have no BID button: those two call out in the room, and you click their tile to bid the next amount, or use **JUMP BID**. Other teams' tiles are greyed out. To let a third team in, **DROP** one of the two.
 3. **Close the player.**
    - Someone bid → press **SOLD** (or **S**). The player goes to the top bidder and the price comes off that team's purse. The sold animation plays on every screen.
    - Nobody bid → press **UNSOLD** (or **U**).
@@ -79,7 +79,7 @@ Every bid on the current player, newest first, with team, amount and time.
 
 One tile per team, with its purse and squad size (e.g. `3/12`).
 
-- **Click a team's tile** to bid the next amount for that team when it calls out. This is the only way bids get in, besides JUMP BID: team screens can't bid.
+- **Click a team's tile** to bid the next amount for that team when it calls out. This is the only way bids get in, besides JUMP BID: team screens can't bid. Once two teams are in (pressed I'M IN or bid), every other tile is greyed out.
 - Tile badges: **LEAD** = highest bid now, **IN** = one of the two teams bidding, **OUT** = dropped out of this player.
 - The **LOCKED: MI CSK** strip shows the two teams bidding. **DROP** next to a team takes it out of this player, which lets a third team in. The team with the highest bid can't be dropped.
 
@@ -131,7 +131,7 @@ Shortcuts don't work while you're typing in a box or while a pop-up is open.
 | ₹10 Cr and above | ₹1 Cr |
 
 **Bidding**
-- The first two teams to bid on a player are locked in. A third team can join only when one of them drops.
+- The first two teams to press I'M IN (or that you bid for) are locked in. A third team can join only when one of them drops.
 - A team that drops can't come back for that player.
 - A team with no purse left can't bid.
 

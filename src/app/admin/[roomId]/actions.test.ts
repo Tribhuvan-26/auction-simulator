@@ -14,6 +14,8 @@ const undoLastBid = (...a: Parameters<typeof actions.undoLastBid>) => actions.un
 const controlTimer = (...a: Parameters<typeof actions.controlTimer>) => actions.controlTimer(...a).then(unwrap)
 const setPhase = (...a: Parameters<typeof actions.setPhase>) => actions.setPhase(...a).then(unwrap)
 const advanceToNextLot = (...a: Parameters<typeof actions.advanceToNextLot>) => actions.advanceToNextLot(...a).then(unwrap)
+const claimLot = (...a: Parameters<typeof actions.claimLot>) => actions.claimLot(...a).then(unwrap)
+const dropFromLot = (...a: Parameters<typeof actions.dropFromLot>) => actions.dropFromLot(...a).then(unwrap)
 
 vi.mock('@/lib/socket-emitter', () => ({
   emitAuctionEvent: vi.fn(async () => {}),
@@ -24,6 +26,7 @@ vi.mock('@/lib/socket-emitter', () => ({
 // only assert that every mutation calls them.
 vi.mock('@/lib/team-auth', () => ({
   assertIsAuctioneer: vi.fn(async () => {}),
+  assertCanClaimAs: vi.fn(async () => {}),
 }))
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
@@ -567,5 +570,82 @@ describe('mutations with no lot on the block', () => {
   it('undo is a no-op when the room has never had a lot', async () => {
     const snapshot = await undoLastBid(roomId)
     expect(snapshot.currentLot).toBeNull()
+  })
+})
+
+describe("claimLot (I'M IN)", () => {
+  let roomId: string
+  let teamIds: string[]
+
+  beforeEach(async () => {
+    const room = await prisma.auctionRoom.create({ data: { name: 'Claim Room', phase: 'LIVE' } })
+    roomId = room.id
+    teamIds = []
+    for (const [i, code] of ['CA', 'CB', 'CC', 'CD'].entries()) {
+      const t = await prisma.team.create({
+        data: { roomId, name: `Claim ${code}`, shortCode: code, purseTotal: 10000, purseRemaining: 10000, squadMax: 12, squadMin: 11, passcode: `81${i}0`, overseasSlotsMax: 4 },
+      })
+      teamIds.push(t.id)
+    }
+    const player = await prisma.player.create({
+      data: { roomId, name: 'Claim Player', role: 'BATTER', basePrice: 100, nationality: 'India', matches: 10, setNumber: 'Set 1', status: 'LIVE' },
+    })
+    await prisma.auctionLot.create({ data: { roomId, playerId: player.id, currentBid: 100, status: 'QUEUED' } })
+  })
+
+  afterEach(async () => {
+    await prisma.bid.deleteMany({ where: { lot: { roomId } } })
+    await prisma.auctionLot.deleteMany({ where: { roomId } })
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.team.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+  })
+
+  it('the first two teams in contest the lot, in the order they pressed', async () => {
+    await claimLot(roomId, teamIds[1])
+    const snapshot = await claimLot(roomId, teamIds[0])
+    expect(snapshot.currentLot?.activeBidders).toEqual([teamIds[1], teamIds[0]])
+  })
+
+  it('pressing again is harmless', async () => {
+    await claimLot(roomId, teamIds[0])
+    const snapshot = await claimLot(roomId, teamIds[0])
+    expect(snapshot.currentLot?.activeBidders).toEqual([teamIds[0]])
+  })
+
+  it('a third team is shut out', async () => {
+    await claimLot(roomId, teamIds[0])
+    await claimLot(roomId, teamIds[1])
+    await expect(claimLot(roomId, teamIds[2])).rejects.toThrow(/two teams/i)
+  })
+
+  it('four teams pressing at once: exactly two get in', async () => {
+    const results = await Promise.allSettled(teamIds.map((id) => claimLot(roomId, id)))
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(2)
+    const snapshot = await getAdminSnapshot(roomId)
+    expect(snapshot.currentLot?.activeBidders).toHaveLength(2)
+  })
+
+  it('the auctioneer can only bid for the two teams that are in', async () => {
+    await claimLot(roomId, teamIds[0])
+    await claimLot(roomId, teamIds[1])
+    await expect(placeBid(roomId, teamIds[2], 100)).rejects.toThrow(/two teams/i)
+    const snapshot = await placeBid(roomId, teamIds[0], 100)
+    expect(snapshot.currentLot?.currentBiddingTeamId).toBe(teamIds[0])
+  })
+
+  it('a drop lets the next team in, and the dropped team stays out', async () => {
+    await claimLot(roomId, teamIds[0])
+    await claimLot(roomId, teamIds[1])
+    await placeBid(roomId, teamIds[0], 100)
+    await dropFromLot(roomId, teamIds[1])
+    await expect(claimLot(roomId, teamIds[1])).rejects.toThrow(/dropped/i)
+    const snapshot = await claimLot(roomId, teamIds[2])
+    expect(snapshot.currentLot?.activeBidders).toEqual([teamIds[0], teamIds[2]])
+  })
+
+  it('refused while the auction is paused', async () => {
+    await prisma.auctionRoom.update({ where: { id: roomId }, data: { phase: 'PAUSED' } })
+    await expect(claimLot(roomId, teamIds[0])).rejects.toThrow(/paused/i)
   })
 })

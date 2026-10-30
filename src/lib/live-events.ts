@@ -12,7 +12,7 @@ import type { PublicSnapshot } from '@/app/admin/[roomId]/actions'
  */
 export type LiveEvent =
   | { type: 'BID'; teamId: string; amount: number; at: number; lot: PublicSnapshot['currentLot'] }
-  | { type: 'SOLD' | 'UNSOLD' | 'UNDO' | 'TIMER' | 'PHASE' | 'LOT_CHANGE' | 'DROP'; at: number; snapshot: PublicSnapshot }
+  | { type: 'SOLD' | 'UNSOLD' | 'UNDO' | 'TIMER' | 'PHASE' | 'LOT_CHANGE' | 'DROP' | 'CLAIM'; at: number; snapshot: PublicSnapshot }
   /** The auctioneer replaying the sold animation: nothing in the room changed. */
   | { type: 'REPLAY'; at: number; lotId: string }
 

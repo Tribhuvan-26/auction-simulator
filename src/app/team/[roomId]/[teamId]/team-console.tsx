@@ -4,7 +4,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  Hand,
   X,
+  TriangleAlert,
   Maximize2,
   Search,
 } from 'lucide-react'
@@ -19,11 +21,13 @@ import { LogoutButton } from '@/components/ui/logout-button'
 import { logoutTeam } from '@/lib/pin-actions'
 import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
-import { applyLiveEvent } from '@/lib/live-events'
+import { applyLiveEvent, newer } from '@/lib/live-events'
 import { formatMoney } from '@/lib/money'
 import { categoryLabel } from '@/lib/team-rules'
+import { unwrap } from '@/lib/action-result'
 import {
   getPublicSnapshot,
+  claimLot,
   type PublicSnapshot,
   type RoomPlayerItem,
 } from '@/app/admin/[roomId]/actions'
@@ -153,6 +157,8 @@ export function TeamConsole({
   roomPlayers?: RoomPlayerItem[]
 }) {
   const [outbid, setOutbid] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
   const leaderRef = useRef(initialSnapshot.currentLot?.currentBiddingTeamId ?? null)
   const outbidTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -173,7 +179,7 @@ export function TeamConsole({
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
 
-  const { snapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, {
+  const { snapshot, setSnapshot } = useLiveSnapshot(roomId, initialSnapshot, getPublicSnapshot, {
     applyEvent: applyLiveEvent,
     versionOf: (s) => s.at,
     onEvent: (event) => {
@@ -208,6 +214,7 @@ export function TeamConsole({
   const leading = lot?.currentBiddingTeamId === teamId
   const leader = snapshot.teams.find((t) => t.id === lot?.currentBiddingTeamId)
   const dropped = !!lot && lot.droppedTeamIds.includes(teamId)
+  const inContest = !!lot && lot.activeBidders.includes(teamId)
   const contestants = (lot?.activeBidders ?? [])
     .map((id) => snapshot.teams.find((t) => t.id === id)?.shortCode)
     .filter(Boolean)
@@ -224,9 +231,46 @@ export function TeamConsole({
     ? bidRejectionReason(team, lot, nextBid)
     : 'No active lot'
 
-  // Teams don't bid from this screen: they call out in the room and the
-  // auctioneer enters every bid. This only says whether a call would be taken.
-  const canBid = !closed && !paused && !ended && !leading && !rejection && !!lot
+  // Teams don't bid from this screen: they press I'M IN, the first two in
+  // contest the lot, and the auctioneer enters every bid for them.
+  const canClaim = !!lot && !closed && !paused && !ended && !inContest && !rejection && !pending
+
+  async function claim() {
+    if (!canClaim) return
+    setPending(true)
+    setError(null)
+    try {
+      const next = unwrap(await claimLot(roomId, teamId))
+      setSnapshot((prev) => newer(prev, next))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Not in this time')
+      getPublicSnapshot(roomId).then((fresh) => setSnapshot((prev) => newer(prev, fresh)), () => {})
+    } finally {
+      setPending(false)
+    }
+  }
+
+  // A refused I'M IN is news for a moment, not for the rest of the lot.
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(null), 4000)
+    return () => clearTimeout(t)
+  }, [error])
+
+  // Space presses I'M IN: speed decides who gets in. Never while a modal is
+  // open over the panel, and never from a held-down key repeating.
+  const modalOpen = showSquadModal || showPlayersModal || showAnalyticsModal || !!previewPlayer
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== ' ' || e.repeat || modalOpen) return
+      const target = e.target as HTMLElement | null
+      if (target && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)) return
+      e.preventDefault()
+      claim()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  })
 
   useEffect(() => {
     leaderRef.current = lot?.currentBiddingTeamId ?? null
@@ -241,6 +285,8 @@ export function TeamConsole({
     ? 'auction paused'
     : leading
     ? 'you hold the highest bid'
+    : inContest
+    ? "you're in — call your bids"
     : dropped
     ? 'you dropped out of this lot'
     : !lot || closed
@@ -590,22 +636,40 @@ export function TeamConsole({
                     NEXT BID
                   </span>
                   <span className="font-condensed text-2xl font-black text-white tabular-nums">
-                    {canBid ? formatMoney(nextBid) : formatMoney(lot?.currentBid ?? 0)}
+                    {lot && !closed ? formatMoney(nextBid) : formatMoney(lot?.currentBid ?? 0)}
                   </span>
                 </div>
 
-                {/* No BID button: the auctioneer enters every bid. */}
-                <div className="border border-white/15 bg-[#1C1C20] px-3.5 py-3 font-condensed text-lg font-black uppercase leading-tight tracking-wider text-white">
-                  {canBid ? 'Raise your paddle to bid' : 'Bids are entered by the auctioneer'}
-                  <span className="mt-1 block font-mono text-[9px] font-bold tracking-widest text-white/50">
-                    Call out in the room — the auctioneer enters every bid
-                  </span>
-                </div>
+                {/* I'M IN: the first two teams to press it contest the lot. No BID
+                    button — the auctioneer enters every bid. */}
+                <button
+                  onClick={claim}
+                  disabled={!canClaim}
+                  className="flex items-center justify-between px-5 py-3.5 hover:opacity-95 active:scale-[0.99] disabled:opacity-35 disabled:cursor-not-allowed transition-all font-condensed text-2xl font-black uppercase tracking-wider cursor-pointer"
+                  style={
+                    inContest || canClaim
+                      ? {
+                          backgroundColor: theme.primary,
+                          color: theme.buttonTextColor || '#FFFFFF',
+                          boxShadow: `0 0 20px ${theme.glow}`,
+                          opacity: 1,
+                        }
+                      : { backgroundColor: '#2074D5', color: '#FFFFFF' }
+                  }
+                >
+                  <span>{inContest ? "YOU'RE IN" : dropped ? 'DROPPED' : "I'M IN"}</span>
+                  <Hand className="h-5 w-5" />
+                </button>
+                <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/50">
+                  {inContest
+                    ? 'Call out your bids — the auctioneer enters them'
+                    : 'First two teams in get to bid — the auctioneer enters every bid'}
+                </p>
 
                 {/* Live status */}
                 <div className="pt-1 flex flex-wrap items-center justify-between gap-1 border-t border-white/10 mt-1">
                   <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/50">
-                    {contestants.length ? `BIDDING: ${contestants.join(' vs ')}` : 'NO BIDS YET'}
+                    {contestants.length ? `IN: ${contestants.join(' vs ')}` : 'PRESS SPACE FOR I\'M IN'}
                   </span>
                   {statusMessage && (
                     <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-brand-yellow">
@@ -944,7 +1008,7 @@ export function TeamConsole({
 
       {/* Outbid / Error Notification Toast */}
       <AnimatePresence>
-        {outbid && !leading && (
+        {(error || (outbid && !leading)) && (
           <motion.div
             role="alert"
             initial={{ opacity: 0, y: 10 }}
@@ -952,7 +1016,13 @@ export function TeamConsole({
             exit={{ opacity: 0, y: 10 }}
             className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 border border-brand-pink bg-[#EB547C] px-6 py-3 font-condensed text-lg font-black uppercase tracking-widest text-white shadow-2xl"
           >
-            OUTBID — RAISE YOUR PADDLE TO COUNTER
+            {error ? (
+              <span className="flex items-center gap-2">
+                <TriangleAlert size={18} aria-hidden /> {error}
+              </span>
+            ) : (
+              'OUTBID — CALL OUT TO COUNTER'
+            )}
           </motion.div>
         )}
       </AnimatePresence>
