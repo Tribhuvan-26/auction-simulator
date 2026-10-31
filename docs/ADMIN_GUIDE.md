@@ -13,7 +13,7 @@ How to run an auction from the admin screen: `/admin/ROOM1` (use your room's cod
    - Nobody bid → press **UNSOLD** (or **U**).
 4. **Go to the next player.** Press the green **NEXT PLAYER** button (or **N**).
 
-Repeat until the queue is empty. When the queue runs out and any team still has an empty slot, **NEXT PLAYER** brings the unsold players back for another round. To call them sooner, press **BACK TO UNSOLD** in UP NEXT: every unsold player goes to the front of the queue, and the first one comes on screen right away (if a player is still on the block, they're simply up next). To bring back just one, press **BRING BACK** next to that player's name under the button.
+Repeat until the queue is empty. When the queue runs out and any team still has an empty slot, **NEXT PLAYER** brings the unsold players back for another round. To call them sooner, press **BACK TO UNSOLD** in UP NEXT: every unsold player goes to the front of the queue, and the first one comes on screen right away (if a player is still on the block, they're simply up next). To bring back just one, press **BRING BACK** next to that player's name under the button. To call any player out of order, press **CALL** on them in UP NEXT (once the block is clear); the list keeps its order. To skip a player for now, press **TO UNSOLD** on them in UP NEXT: they leave the queue and wait on the unsold list until you bring them back.
 
 ---
 

@@ -25,6 +25,7 @@ vi.mock('./actions', () => ({
   restartRoom: vi.fn(async () => baseSnapshot),
   dropFromLot: vi.fn(async () => baseSnapshot),
   recallUnsold: vi.fn(async () => baseSnapshot),
+  sendToUnsold: vi.fn(async () => baseSnapshot),
 }))
 
 const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
@@ -48,6 +49,7 @@ const baseSnapshot: AdminSnapshot = {
   currentLot: null,
   teams: [team('team-1', 'DC'), team('team-2', 'CSK')],
   queue: [],
+  unsold: [],
   soldLog: [],
     resultLog: [],
 }
@@ -246,7 +248,7 @@ describe('AdminConsole bidding grid', () => {
 
   it('BACK TO UNSOLD brings the unsold players back', async () => {
     const { recallUnsold } = await import('./actions')
-    const s = { ...baseSnapshot, resultLog: [{ id: 'l1', playerId: 'p1', playerName: 'X', status: 'UNSOLD' }] } as unknown as AdminSnapshot
+    const s = { ...baseSnapshot, unsold: [{ id: 'p1', name: 'X', role: 'BATTER' }] }
     render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
     fireEvent.click(screen.getByRole('button', { name: /back to unsold \(1\)/i }))
     await vi.waitFor(() => expect(recallUnsold).toHaveBeenCalledWith('room-1'))
@@ -254,10 +256,32 @@ describe('AdminConsole bidding grid', () => {
 
   it('BRING BACK calls back just that unsold player', async () => {
     const { recallUnsold } = await import('./actions')
-    const s = { ...baseSnapshot, resultLog: [{ id: 'l1', playerId: 'p1', playerName: 'X', status: 'UNSOLD' }] } as unknown as AdminSnapshot
+    const s = { ...baseSnapshot, unsold: [{ id: 'p1', name: 'X', role: 'BATTER' }] }
     render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
     fireEvent.click(screen.getByRole('button', { name: /^bring back$/i }))
     await vi.waitFor(() => expect(recallUnsold).toHaveBeenCalledWith('room-1', 'p1'))
+  })
+
+  it('TO UNSOLD moves a queued player onto the unsold list', async () => {
+    const { sendToUnsold } = await import('./actions')
+    const s = { ...baseSnapshot, queue: [{ id: 'q1', name: 'Q', role: 'BATTER', basePrice: 50, setNumber: 'Set 1', status: 'UPCOMING', photoUrl: null }] }
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    fireEvent.click(screen.getByRole('button', { name: /^to unsold$/i }))
+    await vi.waitFor(() => expect(sendToUnsold).toHaveBeenCalledWith('room-1', 'q1'))
+  })
+
+  it('CALL puts the picked player on the block, not the front of the queue', async () => {
+    const { advanceToNextLot } = await import('./actions')
+    const q = (id: string) => ({ id, name: id.toUpperCase(), role: 'BATTER', basePrice: 50, setNumber: 'Set 1', status: 'UPCOMING', photoUrl: null })
+    render(<AdminConsole roomId="room-1" initialSnapshot={{ ...baseSnapshot, queue: [q('q1'), q('q2')] }} />)
+    fireEvent.click(screen.getAllByRole('button', { name: /^call$/i })[1])
+    await vi.waitFor(() => expect(advanceToNextLot).toHaveBeenCalledWith('room-1', 'q2'))
+  })
+
+  it('CALL is off while a player is on the block', () => {
+    const q = { id: 'q1', name: 'Q', role: 'BATTER', basePrice: 50, setNumber: 'Set 1', status: 'UPCOMING', photoUrl: null }
+    render(<AdminConsole roomId="room-1" initialSnapshot={{ ...liveSnapshot, queue: [q] }} />)
+    expect(screen.getByRole('button', { name: /^call$/i })).toBeDisabled()
   })
 
   it('BACK TO UNSOLD is off with no unsold players', () => {

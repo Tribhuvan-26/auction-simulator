@@ -46,6 +46,8 @@ export type AdminSnapshot = {
     squad: { id: string; name: string; role: string; price: number; photoUrl: string | null; isOverseas: boolean; uncapped: boolean }[]
   }[]
   queue: { id: string; name: string; role: string; basePrice: number; setNumber: string; status: string; photoUrl: string | null }[]
+  /** Players waiting on the unsold list — the auctioneer's alone, like the queue. */
+  unsold: { id: string; name: string; role: string }[]
   soldLog: { id: string; playerName: string; price: number; teamShortCode: string }[]
   /** Every closed lot in the room, newest first — feeds the display's ticker. */
   resultLog: {
@@ -60,7 +62,7 @@ export type AdminSnapshot = {
  * to every screen on every bid if it stays in. Only the auctioneer picks the
  * next lot, so only the auctioneer needs it.
  */
-export type PublicSnapshot = Omit<AdminSnapshot, 'queue'>
+export type PublicSnapshot = Omit<AdminSnapshot, 'queue' | 'unsold'>
 
 const LOT_INCLUDE = { player: true, bids: { include: { team: true }, orderBy: { amount: 'asc' } } } as const
 type LotRow = Prisma.AuctionLotGetPayload<{ include: typeof LOT_INCLUDE }>
@@ -133,7 +135,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
   // These reads are independent of each other, so they run in parallel (as far
   // as the pool allows). Each action builds this once and broadcasts it, so
   // the other screens don't each rebuild it.
-  const [room, lot, lotCount, teamsRaw, queueRaw, soldRaw, resultsRaw, lotTeamIds] = await Promise.all([
+  const [room, lot, lotCount, teamsRaw, queueRaw, unsoldRaw, soldRaw, resultsRaw, lotTeamIds] = await Promise.all([
     prisma.auctionRoom.findUniqueOrThrow({ where: { id: roomId } }),
     // Latest lot regardless of status, so a just-closed SOLD/UNSOLD lot stays visible
     // until the admin advances. cuid()s sort chronologically, so an active lot (newest) wins.
@@ -147,6 +149,9 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
     }),
     includeQueue
       ? prisma.player.findMany({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
+      : Promise.resolve([]),
+    includeQueue
+      ? prisma.player.findMany({ where: { roomId, status: 'UNSOLD' }, orderBy: QUEUE_ORDER, select: { id: true, name: true, role: true } })
       : Promise.resolve([]),
     prisma.player.findMany({
       where: { roomId, status: 'SOLD' },
@@ -202,6 +207,7 @@ async function buildSnapshot(roomId: string, includeQueue: boolean): Promise<Adm
       status: p.status,
       photoUrl: p.photoUrl,
     })),
+    unsold: unsoldRaw,
     soldLog: soldRaw.map((p) => ({
       id: p.id,
       playerName: p.name,
@@ -231,8 +237,9 @@ export async function getPublicSnapshot(roomId: string): Promise<PublicSnapshot>
   return toPublic(await buildSnapshot(roomId, false))
 }
 
-function toPublic({ queue: _queue, ...rest }: AdminSnapshot): PublicSnapshot {
+function toPublic({ queue: _queue, unsold: _unsold, ...rest }: AdminSnapshot): PublicSnapshot {
   void _queue
+  void _unsold
   return rest
 }
 
@@ -799,7 +806,23 @@ async function recallUnsoldOrThrow(roomId: string, playerId?: string): Promise<A
   return busy ? publishSnapshot(roomId, 'LOT_CHANGE') : advanceToNextLotOrThrow(roomId)
 }
 
-async function advanceToNextLotOrThrow(roomId: string): Promise<AdminSnapshot> {
+/**
+ * TO UNSOLD: takes a player out of the queue onto the unsold list without
+ * calling them, for BACK TO UNSOLD / BRING BACK to fetch later. No lot is
+ * made, so the block and the results ticker are untouched.
+ */
+async function sendToUnsoldOrThrow(roomId: string, playerId: string): Promise<AdminSnapshot> {
+  await assertIsAuctioneer(roomId)
+  const { count } = await prisma.player.updateMany({ where: { id: playerId, roomId, status: 'UPCOMING' }, data: { status: 'UNSOLD' } })
+  if (count === 0) throw new Error('That player is no longer in the queue')
+  return buildSnapshot(roomId, true)
+}
+
+/**
+ * NEXT PLAYER calls the front of the queue; CALL (with `playerId`) calls that
+ * queued player instead, leaving everyone else in order.
+ */
+async function advanceToNextLotOrThrow(roomId: string, playerId?: string): Promise<AdminSnapshot> {
   await assertIsAuctioneer(roomId)
 
   // A lot already on the block must be closed (SOLD/UNSOLD) before the next
@@ -817,10 +840,17 @@ async function advanceToNextLotOrThrow(roomId: string): Promise<AdminSnapshot> {
         where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } },
         select: { id: true },
       })
-      if (alreadyActive) return null
+      if (alreadyActive) {
+        if (playerId) throw new Error('Finish the player on the block first — SOLD or UNSOLD')
+        return null
+      }
 
-      let next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
-      if (!next && (await requeueUnsold(tx, roomId))) {
+      if (playerId) {
+        const picked = await tx.player.findFirst({ where: { id: playerId, roomId, status: 'UPCOMING' } })
+        if (!picked) throw new Error('That player is no longer in the queue')
+      }
+      let next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING', id: playerId }, orderBy: QUEUE_ORDER })
+      if (!next && !playerId && (await requeueUnsold(tx, roomId))) {
         next = await tx.player.findFirst({ where: { roomId, status: 'UPCOMING' }, orderBy: QUEUE_ORDER })
       }
       if (!next) {
@@ -953,6 +983,9 @@ export async function advanceToNextLot(...args: Parameters<typeof advanceToNextL
 }
 export async function moveInQueue(...args: Parameters<typeof moveInQueueOrThrow>) {
   return rejectable(() => moveInQueueOrThrow(...args))
+}
+export async function sendToUnsold(...args: Parameters<typeof sendToUnsoldOrThrow>) {
+  return rejectable(() => sendToUnsoldOrThrow(...args))
 }
 export async function recallUnsold(...args: Parameters<typeof recallUnsoldOrThrow>) {
   return rejectable(() => recallUnsoldOrThrow(...args))

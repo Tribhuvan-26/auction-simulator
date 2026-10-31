@@ -39,6 +39,7 @@ import {
   advanceToNextLot,
   moveInQueue,
   recallUnsold,
+  sendToUnsold,
   replaySold,
   dropFromLot,
   restartRoom,
@@ -275,7 +276,7 @@ export function AdminConsole({
   const remainingPlayersCount = snapshot.queue.length
   // An empty queue brings the unsold back for another round (the server
   // decides whether any team still needs them), so NEXT stays live for that.
-  const unsoldCount = snapshot.resultLog.filter((r) => r.status === 'UNSOLD').length
+  const unsoldCount = snapshot.unsold.length
   const noneLeft = remainingPlayersCount === 0 && unsoldCount === 0
 
   return (
@@ -916,13 +917,11 @@ export function AdminConsole({
           {/* Or bring back just one of them. */}
           {unsoldCount > 0 && (
             <div className="mb-2 flex max-h-[120px] flex-col gap-1 overflow-y-auto">
-              {snapshot.resultLog
-                .filter((r) => r.status === 'UNSOLD')
-                .map((r) => (
+              {snapshot.unsold.map((r) => (
                   <div key={r.id} className="flex items-center gap-2 border border-[#F97316]/30 bg-[#1C1C22] px-2 py-1 text-xs">
-                    <span className="flex-1 truncate font-condensed font-black uppercase text-white">{r.playerName}</span>
+                    <span className="flex-1 truncate font-condensed font-black uppercase text-white">{r.name}</span>
                     <button
-                      onClick={() => run(() => recallUnsold(roomId, r.playerId))}
+                      onClick={() => run(() => recallUnsold(roomId, r.id))}
                       disabled={pending}
                       title="Bring this player back: on the block now, or up next if a player is still on the block"
                       className="px-1.5 py-0.5 border border-[#F97316]/60 font-mono text-[9px] font-bold uppercase text-[#FDBA74] hover:bg-white/10 disabled:opacity-35 cursor-pointer"
@@ -985,6 +984,22 @@ export function AdminConsole({
                     TO TOP
                   </button>
                 )}
+                <button
+                  onClick={() => run(() => advanceToNextLot(roomId, p.id))}
+                  disabled={pending || (!!lot && !closed)}
+                  title="Put this player on the block now; the rest of the list keeps its order"
+                  className="px-1.5 py-0.5 border border-[#34D399]/60 font-mono text-[9px] font-bold uppercase text-[#34D399] hover:bg-white/10 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  CALL
+                </button>
+                <button
+                  onClick={() => run(() => sendToUnsold(roomId, p.id))}
+                  disabled={pending}
+                  title="Move this player to the unsold list without calling them"
+                  className="px-1.5 py-0.5 border border-[#F97316]/60 font-mono text-[9px] font-bold uppercase text-[#FDBA74] hover:bg-white/10 disabled:opacity-35 cursor-pointer"
+                >
+                  TO UNSOLD
+                </button>
               </div>
               {/* Once the lot is called, bring up the player above straight from the queue. */}
               {i === 0 && closed && (
