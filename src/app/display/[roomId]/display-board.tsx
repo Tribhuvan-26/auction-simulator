@@ -10,7 +10,6 @@ import { Model3D } from '@/components/ui/model-3d'
 import { GlobalHeader } from '@/components/ui/global-header'
 import { GlobalFooter } from '@/components/ui/global-footer'
 import { BiddingLogTable } from '@/components/auction/bidding-log-table'
-import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
 import { ResultsTicker } from '@/components/auction/results-ticker'
@@ -21,6 +20,7 @@ import {
 } from '@/app/admin/[roomId]/actions'
 import { RatingPanel } from '@/components/auction/rating-panel'
 import { formatMoney } from '@/lib/money'
+import { TeamsIn } from '@/components/auction/teams-in'
 
 export function DisplayBoard({
   roomId,
@@ -169,20 +169,8 @@ export function DisplayBoard({
 
           <div className="grid grid-cols-3 gap-px bg-white/15 border border-white/15">
             <div className="col-span-3 bg-[#17171A] px-4 py-[1vh]">
-              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">HIGHEST BIDDER</span>
-              <span className="font-condensed text-[3.4vh] leading-tight font-black uppercase text-white whitespace-nowrap flex items-center gap-2">
-                {leader && (
-                  <TeamCrest
-                    shortCode={leader.shortCode}
-                    name={leader.name}
-                    colorAccent={leader.colorAccent}
-                    logoUrl={leader.logoUrl}
-                    mark
-                    className="h-[3.6vh] w-[3.6vh] shrink-0"
-                  />
-                )}
-                {leader ? leader.name : 'Waiting for bid'}
-              </span>
+              <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block mb-[0.4vh]">IN THE BIDDING</span>
+              <TeamsIn teams={snapshot.teams} activeBidders={lot?.activeBidders ?? []} leaderId={lot?.currentBiddingTeamId} size="lg" />
             </div>
             <div className="bg-[#17171A] px-4 py-[1vh]">
               <span className="font-mono text-[1.5vh] font-bold uppercase tracking-wider text-white/60 block">ROLE</span>

@@ -23,6 +23,7 @@ import { bidRejectionReason, getNextBidAmount } from '@/lib/bid-rules'
 import { useLiveSnapshot } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { formatMoney } from '@/lib/money'
+import { TeamsIn } from '@/components/auction/teams-in'
 import { categoryLabel } from '@/lib/team-rules'
 import { unwrap } from '@/lib/action-result'
 import {
@@ -544,6 +545,14 @@ export function TeamConsole({
                           </div>
                         </div>
                         {lot && <RatingTile name={lot.player.name} />}
+                      </div>
+
+                      {/* The two teams contesting this lot, leader marked */}
+                      <div className="border border-white/15 bg-[#17171A] p-2">
+                        <span className="mb-1 block font-mono text-[8px] font-bold uppercase tracking-wider text-white/50">
+                          IN THE BIDDING
+                        </span>
+                        <TeamsIn teams={snapshot.teams} activeBidders={lot?.activeBidders ?? []} leaderId={lot?.currentBiddingTeamId} />
                       </div>
 
                       {/* 2x2 Info Grid: TEAM | ROLE | BASE | ORIGIN */}

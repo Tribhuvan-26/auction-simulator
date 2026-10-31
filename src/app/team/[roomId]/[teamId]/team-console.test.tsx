@@ -136,6 +136,15 @@ describe('TeamConsole bidding panel (I\'M IN — the auctioneer enters every bid
     renderConsole(s)
     expect(screen.getByText(/in: dc vs csk/i)).toBeInTheDocument()
   })
+
+  it('shows the two teams in, side by side, with the leader marked', () => {
+    const s = snapshot()
+    s.currentLot!.activeBidders = ['team-1', 'team-2']
+    s.currentLot!.currentBiddingTeamId = 'team-2'
+    renderConsole(s)
+    const strip = screen.getByTestId('teams-in')
+    expect(strip).toHaveTextContent(/DC.*VS.*CSK.*LEADING/)
+  })
 })
 
 describe('TeamConsole team status', () => {
