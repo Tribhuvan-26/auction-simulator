@@ -24,6 +24,7 @@ vi.mock('./actions', () => ({
   replaySold: vi.fn(async () => {}),
   restartRoom: vi.fn(async () => baseSnapshot),
   dropFromLot: vi.fn(async () => baseSnapshot),
+  recallUnsold: vi.fn(async () => baseSnapshot),
 }))
 
 const team = (id: string, shortCode: string): AdminSnapshot['teams'][number] => ({
@@ -241,6 +242,27 @@ describe('AdminConsole bidding grid', () => {
     }
     render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
     expect(screen.getByTestId('final-result')).toHaveTextContent(/winner: DC Team \(DC\)/i)
+  })
+
+  it('BACK TO UNSOLD brings the unsold players back', async () => {
+    const { recallUnsold } = await import('./actions')
+    const s = { ...baseSnapshot, resultLog: [{ id: 'l1', playerId: 'p1', playerName: 'X', status: 'UNSOLD' }] } as unknown as AdminSnapshot
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    fireEvent.click(screen.getByRole('button', { name: /back to unsold \(1\)/i }))
+    await vi.waitFor(() => expect(recallUnsold).toHaveBeenCalledWith('room-1'))
+  })
+
+  it('BRING BACK calls back just that unsold player', async () => {
+    const { recallUnsold } = await import('./actions')
+    const s = { ...baseSnapshot, resultLog: [{ id: 'l1', playerId: 'p1', playerName: 'X', status: 'UNSOLD' }] } as unknown as AdminSnapshot
+    render(<AdminConsole roomId="room-1" initialSnapshot={s} />)
+    fireEvent.click(screen.getByRole('button', { name: /^bring back$/i }))
+    await vi.waitFor(() => expect(recallUnsold).toHaveBeenCalledWith('room-1', 'p1'))
+  })
+
+  it('BACK TO UNSOLD is off with no unsold players', () => {
+    render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
+    expect(screen.getByRole('button', { name: /back to unsold \(0\)/i })).toBeDisabled()
   })
 
   it('a live auction shows no result yet', () => {

@@ -38,6 +38,7 @@ import {
   forceBid,
   advanceToNextLot,
   moveInQueue,
+  recallUnsold,
   replaySold,
   dropFromLot,
   restartRoom,
@@ -901,6 +902,37 @@ export function AdminConsole({
           <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] text-white/60 mb-2 block">
             UP NEXT · {snapshot.queue.length} IN QUEUE
           </span>
+
+          {/* Call the unsold now instead of waiting for the queue to run dry. */}
+          <button
+            onClick={() => run(() => recallUnsold(roomId))}
+            disabled={pending || unsoldCount === 0}
+            title="Put every unsold player at the front of the queue, and call the first one if nothing is on the block"
+            className="mb-2 flex items-center justify-center gap-1.5 border-2 border-[#F97316] bg-[#F97316]/15 px-2 py-1.5 font-condensed text-sm font-black uppercase tracking-wider text-[#FDBA74] hover:bg-[#F97316]/30 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <RotateCcw className="h-3.5 w-3.5 stroke-[2.5]" />
+            BACK TO UNSOLD ({unsoldCount})
+          </button>
+          {/* Or bring back just one of them. */}
+          {unsoldCount > 0 && (
+            <div className="mb-2 flex max-h-[120px] flex-col gap-1 overflow-y-auto">
+              {snapshot.resultLog
+                .filter((r) => r.status === 'UNSOLD')
+                .map((r) => (
+                  <div key={r.id} className="flex items-center gap-2 border border-[#F97316]/30 bg-[#1C1C22] px-2 py-1 text-xs">
+                    <span className="flex-1 truncate font-condensed font-black uppercase text-white">{r.playerName}</span>
+                    <button
+                      onClick={() => run(() => recallUnsold(roomId, r.playerId))}
+                      disabled={pending}
+                      title="Bring this player back: on the block now, or up next if a player is still on the block"
+                      className="px-1.5 py-0.5 border border-[#F97316]/60 font-mono text-[9px] font-bold uppercase text-[#FDBA74] hover:bg-white/10 disabled:opacity-35 cursor-pointer"
+                    >
+                      BRING BACK
+                    </button>
+                  </div>
+                ))}
+            </div>
+          )}
 
           <form onSubmit={handleMove} className="flex gap-1.5 mb-2">
             <select

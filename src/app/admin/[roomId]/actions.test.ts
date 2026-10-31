@@ -16,6 +16,7 @@ const setPhase = (...a: Parameters<typeof actions.setPhase>) => actions.setPhase
 const advanceToNextLot = (...a: Parameters<typeof actions.advanceToNextLot>) => actions.advanceToNextLot(...a).then(unwrap)
 const claimLot = (...a: Parameters<typeof actions.claimLot>) => actions.claimLot(...a).then(unwrap)
 const dropFromLot = (...a: Parameters<typeof actions.dropFromLot>) => actions.dropFromLot(...a).then(unwrap)
+const recallUnsold = (...a: Parameters<typeof actions.recallUnsold>) => actions.recallUnsold(...a).then(unwrap)
 
 vi.mock('@/lib/socket-emitter', () => ({
   emitAuctionEvent: vi.fn(async () => {}),
@@ -647,5 +648,70 @@ describe("claimLot (I'M IN)", () => {
   it('refused while the auction is paused', async () => {
     await prisma.auctionRoom.update({ where: { id: roomId }, data: { phase: 'PAUSED' } })
     await expect(claimLot(roomId, teamIds[0])).rejects.toThrow(/paused/i)
+  })
+})
+
+describe('recallUnsold (BACK TO UNSOLD)', () => {
+  let roomId: string
+  const player = (name: string, role: 'BATTER' | 'BOWLER', status: 'UPCOMING' | 'UNSOLD', queueOrder: number) =>
+    prisma.player.create({
+      data: { roomId, name, role, basePrice: 50, nationality: 'India', matches: 1, setNumber: 'Set 1', status, queueOrder },
+    })
+
+  beforeEach(async () => {
+    roomId = (await prisma.auctionRoom.create({ data: { name: 'Recall Room', phase: 'LIVE' } })).id
+  })
+
+  afterEach(async () => {
+    await prisma.bid.deleteMany({ where: { lot: { roomId } } })
+    await prisma.auctionLot.deleteMany({ where: { roomId } })
+    await prisma.player.deleteMany({ where: { roomId } })
+    await prisma.auctionRoom.delete({ where: { id: roomId } })
+  })
+
+  it('calls the first unsold player now, ahead of the queue, batters first', async () => {
+    await player('Still Upcoming', 'BATTER', 'UPCOMING', 0)
+    const bowler = await player('Unsold Bowler', 'BOWLER', 'UNSOLD', 1)
+    const batter = await player('Unsold Batter', 'BATTER', 'UNSOLD', 2)
+    for (const p of [bowler, batter]) {
+      await prisma.auctionLot.create({ data: { roomId, playerId: p.id, currentBid: 50, status: 'UNSOLD' } })
+    }
+
+    const snapshot = await recallUnsold(roomId)
+    expect(snapshot.currentLot?.player.name).toBe('Unsold Batter')
+    expect(snapshot.currentLot?.status).toBe('QUEUED')
+    expect(snapshot.queue.map((p) => p.name)).toEqual(['Unsold Bowler', 'Still Upcoming'])
+    expect(snapshot.resultLog).toEqual([])
+  })
+
+  it('leaves a running lot alone and puts the unsold up next', async () => {
+    const live = await player('On The Block', 'BATTER', 'UPCOMING', 0)
+    await player('Still Upcoming', 'BATTER', 'UPCOMING', 1)
+    const unsold = await player('Unsold Bowler', 'BOWLER', 'UNSOLD', 2)
+    await prisma.auctionLot.create({ data: { roomId, playerId: unsold.id, currentBid: 50, status: 'UNSOLD' } })
+    await advanceToNextLot(roomId)
+
+    const snapshot = await recallUnsold(roomId)
+    expect(snapshot.currentLot?.player.id).toBe(live.id)
+    expect(snapshot.queue.map((p) => p.name)).toEqual(['Unsold Bowler', 'Still Upcoming'])
+  })
+
+  it('brings back only the player picked, leaving the other unsold', async () => {
+    await player('Still Upcoming', 'BATTER', 'UPCOMING', 0)
+    const picked = await player('Unsold Bowler', 'BOWLER', 'UNSOLD', 1)
+    const other = await player('Unsold Batter', 'BATTER', 'UNSOLD', 2)
+    for (const p of [picked, other]) {
+      await prisma.auctionLot.create({ data: { roomId, playerId: p.id, currentBid: 50, status: 'UNSOLD' } })
+    }
+
+    const snapshot = await recallUnsold(roomId, picked.id)
+    expect(snapshot.currentLot?.player.name).toBe('Unsold Bowler')
+    expect(snapshot.queue.map((p) => p.name)).toEqual(['Still Upcoming'])
+    expect(snapshot.resultLog.map((r) => r.playerName)).toEqual(['Unsold Batter'])
+  })
+
+  it('refuses when there is nobody unsold', async () => {
+    await player('Still Upcoming', 'BATTER', 'UPCOMING', 0)
+    await expect(recallUnsold(roomId)).rejects.toThrow('No unsold players to bring back')
   })
 })

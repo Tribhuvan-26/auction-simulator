@@ -748,26 +748,55 @@ async function restartRoomOrThrow(roomId: string): Promise<AdminSnapshot> {
 
 /**
  * Once the queue runs dry, the unsold players come back for another round —
- * while some team still has slots to fill. In the auction's role order:
- * batters, bowlers, all-rounders, then keepers. Returns whether anyone came back.
+ * while some team still has slots to fill. Returns whether anyone came back.
  */
 async function requeueUnsold(tx: Prisma.TransactionClient, roomId: string): Promise<boolean> {
   const teams = await tx.team.findMany({ where: { roomId }, select: { squadMax: true, _count: { select: { players: true } } } })
   const someoneShort = teams.some((t) => t._count.players < t.squadMax)
   if (!someoneShort) return false
+  return (await unsoldToFrontOfQueue(tx, roomId)) > 0
+}
 
-  const unsold = await tx.player.findMany({ where: { roomId, status: 'UNSOLD' }, orderBy: QUEUE_ORDER })
-  if (unsold.length === 0) return false
+/**
+ * Puts the unsold players (or just `playerId`) back in the queue, ahead of
+ * anyone still to come, in the auction's role order: batters, bowlers,
+ * all-rounders, then keepers. Returns how many came back.
+ */
+async function unsoldToFrontOfQueue(tx: Prisma.TransactionClient, roomId: string, playerId?: string): Promise<number> {
+  const unsold = await tx.player.findMany({ where: { roomId, status: 'UNSOLD', id: playerId }, orderBy: QUEUE_ORDER })
+  if (unsold.length === 0) return 0
   const ids = unsold.map((p) => p.id)
   // One lot per player, so the old lot goes — its bids first.
   await tx.bid.deleteMany({ where: { lot: { playerId: { in: ids } } } })
   await tx.auctionLot.deleteMany({ where: { playerId: { in: ids } } })
+  await tx.player.updateMany({ where: { roomId, status: 'UPCOMING' }, data: { queueOrder: { increment: unsold.length } } })
   const ordered = [...unsold].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
   for (const [i, p] of ordered.entries()) {
     await tx.player.update({ where: { id: p.id }, data: { status: 'UPCOMING', queueOrder: i } })
   }
   await tx.auctionRoom.update({ where: { id: roomId }, data: { round: { increment: 1 } } })
-  return true
+  return unsold.length
+}
+
+/**
+ * BACK TO UNSOLD: the auctioneer calls the unsold players now — all of them,
+ * or the one `playerId` picked — without waiting for the queue to run dry.
+ * They go to the front of the queue, and if nothing is on the block the first
+ * of them is called straight away.
+ */
+async function recallUnsoldOrThrow(roomId: string, playerId?: string): Promise<AdminSnapshot> {
+  await assertIsAuctioneer(roomId)
+  const busy = await prisma.$transaction(async (tx) => {
+    // Same lock as NEXT PLAYER, so the two can't interleave.
+    await tx.$queryRaw`SELECT id FROM "AuctionRoom" WHERE id = ${roomId} FOR UPDATE`
+    if ((await unsoldToFrontOfQueue(tx, roomId, playerId)) === 0) {
+      throw new Error(playerId ? 'That player is no longer unsold' : 'No unsold players to bring back')
+    }
+    const active = await tx.auctionLot.findFirst({ where: { roomId, status: { in: ['QUEUED', 'BIDDING'] } }, select: { id: true } })
+    return !!active
+  }, TX)
+  // A lot still running keeps the block; the unsold are simply up next.
+  return busy ? publishSnapshot(roomId, 'LOT_CHANGE') : advanceToNextLotOrThrow(roomId)
 }
 
 async function advanceToNextLotOrThrow(roomId: string): Promise<AdminSnapshot> {
@@ -924,4 +953,7 @@ export async function advanceToNextLot(...args: Parameters<typeof advanceToNextL
 }
 export async function moveInQueue(...args: Parameters<typeof moveInQueueOrThrow>) {
   return rejectable(() => moveInQueueOrThrow(...args))
+}
+export async function recallUnsold(...args: Parameters<typeof recallUnsoldOrThrow>) {
+  return rejectable(() => recallUnsoldOrThrow(...args))
 }
