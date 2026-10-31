@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getPublicSnapshot, getRoomPlayers } from '@/app/admin/[roomId]/actions'
+import { getPublicSnapshot } from '@/app/admin/[roomId]/actions'
 import { hasTeamAccess } from '@/lib/team-auth'
 import { resolveRoomId } from '@/lib/resolve-room'
 import { unlockTeam } from '@/lib/pin-actions'
@@ -16,10 +16,7 @@ export default async function TeamPage({
   const { roomId: roomCode, teamId } = await params
   const roomId = await resolveRoomId(roomCode)
   if (!roomId) notFound()
-  const [initialSnapshot, roomPlayers] = await Promise.all([
-    getPublicSnapshot(roomId),
-    getRoomPlayers(roomId),
-  ])
+  const initialSnapshot = await getPublicSnapshot(roomId)
   const team = initialSnapshot.teams.find(
     (t) => t.id === teamId || t.shortCode.toUpperCase() === teamId.toUpperCase()
   )
@@ -46,7 +43,6 @@ export default async function TeamPage({
       roomId={roomId}
       teamId={team.id}
       initialSnapshot={initialSnapshot}
-      roomPlayers={roomPlayers}
     />
   )
 }

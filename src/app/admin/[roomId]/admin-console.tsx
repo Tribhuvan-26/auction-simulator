@@ -26,7 +26,7 @@ import { useLiveSnapshot, type AuctionEvent } from '@/hooks/use-live-snapshot'
 import { applyLiveEvent, newer } from '@/lib/live-events'
 import { getNextBidAmount, bidRejectionReason } from '@/lib/bid-rules'
 import { croreToLakhs, formatMoney } from '@/lib/money'
-import { categoryLabel } from '@/lib/team-rules'
+import { categoryLabel, standings } from '@/lib/team-rules'
 import { unwrap, type Rejected } from '@/lib/action-result'
 import {
   getAdminSnapshot,
@@ -361,6 +361,20 @@ export function AdminConsole({
             </button>
           </div>
         )}
+
+        {/* The result, without opening STANDINGS: the best score wins, full squad or not. */}
+        {ended && (() => {
+          const top = standings(snapshot.teams)[0]
+          const winner = top && snapshot.teams.find((t) => t.id === top.teamId)
+          return (
+            <div data-testid="final-result" className="flex flex-col gap-3 border-2 border-[#F9CD05]/60 bg-[#18181B] p-4 shadow-lg">
+              <span className="font-condensed text-3xl font-black uppercase tracking-wider text-[#F9CD05]">
+                {winner ? `WINNER: ${winner.name} (${winner.shortCode}) · ${top.score.toFixed(1)}` : 'NO TEAMS IN THIS ROOM'}
+              </span>
+              <StandingsTable teams={snapshot.teams} />
+            </div>
+          )
+        })()}
 
         {/* Error Toast */}
         {error && (

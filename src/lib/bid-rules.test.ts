@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, type BidLot, type BidTeam } from './bid-rules'
+import { activeBidders, bidRejectionReason, getNextBidAmount, type BidLot, type BidTeam } from './bid-rules'
 
 // Amounts are whole lakhs: 100 = ₹1 Cr.
 describe('getNextBidAmount', () => {
@@ -26,17 +26,6 @@ describe('getNextBidAmount', () => {
   it('raises by 1 Cr at ₹10 Cr and above', () => {
     expect(getNextBidAmount(1000, 50)).toBe(1100)
     expect(getNextBidAmount(2000, 50)).toBe(2100)
-  })
-})
-
-describe('isOnLadder', () => {
-  it('accepts ladder steps and rejects amounts between them', () => {
-    expect(isOnLadder(100, 100)).toBe(true)
-    expect(isOnLadder(240, 100)).toBe(true)
-    expect(isOnLadder(250, 100)).toBe(false)
-    expect(isOnLadder(1100, 100)).toBe(true)
-    expect(isOnLadder(1050, 100)).toBe(false)
-    expect(isOnLadder(90, 100)).toBe(false)
   })
 })
 

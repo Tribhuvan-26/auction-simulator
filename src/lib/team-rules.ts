@@ -94,8 +94,8 @@ export type Standing = {
 
 /**
  * The winning criteria: 80% the average rating of the players bought, 20% the
- * purse left. A team that can't field a legal XI can't win, so eligible teams
- * rank first.
+ * purse left. The best score wins even with an incomplete squad — `problems`
+ * only says what the squad is missing.
  */
 export function standings(
   teams: { id: string; purseRemaining: number; purseTotal: number; squad: SquadPlayer[] }[]
@@ -115,7 +115,7 @@ export function standings(
         problems,
       }
     })
-    .sort((a, b) => Number(b.eligible) - Number(a.eligible) || b.score - a.score)
+    .sort((a, b) => b.score - a.score)
 }
 
 /** Base price from the sheet's category and rating: uncapped 50 L; capped and overseas 1 Cr, or 2 Cr at 90+. */

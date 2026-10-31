@@ -54,8 +54,7 @@ type StandingsTeam = {
 
 /**
  * The winning criteria: 80% average rating of the players bought + 20% purse
- * left. A team that can't field a legal XI can't win — it's listed below the
- * eligible ones with what it's missing.
+ * left. The best score wins; a team short of a legal XI says what it's missing.
  */
 export function StandingsTable({ teams }: { teams: StandingsTeam[] }) {
   const rows = standings(teams)
@@ -75,10 +74,10 @@ export function StandingsTable({ teams }: { teams: StandingsTeam[] }) {
           <div
             key={r.teamId}
             className={`grid grid-cols-[28px_1fr_64px_64px_64px] items-center gap-2 border px-2 py-2 ${
-              r.eligible ? (i === 0 ? 'border-[#F9CD05] bg-[#F9CD05]/10' : 'border-white/10 bg-white/5') : 'border-white/5 bg-transparent opacity-60'
+              i === 0 ? 'border-[#F9CD05] bg-[#F9CD05]/10' : 'border-white/10 bg-white/5'
             }`}
           >
-            <span className="font-condensed text-lg font-black text-white/70">{r.eligible ? i + 1 : '—'}</span>
+            <span className="font-condensed text-lg font-black text-white/70">{i + 1}</span>
             <div className="min-w-0">
               <p className="truncate font-condensed text-base font-black uppercase tracking-wide text-white">
                 <span className="mr-2 inline-block h-2.5 w-2.5" style={{ background: t.colorAccent }} />
@@ -86,7 +85,7 @@ export function StandingsTable({ teams }: { teams: StandingsTeam[] }) {
                 <span className="ml-2 font-mono text-[10px] font-bold text-white/40">{t.squad.length} players</span>
               </p>
               {!r.eligible && (
-                <p className="truncate font-mono text-[9px] font-bold uppercase text-rose-300">Can&apos;t win: {r.problems.join(', ')}</p>
+                <p className="truncate font-mono text-[9px] font-bold uppercase text-white/40">Missing: {r.problems.join(', ')}</p>
               )}
             </div>
             <span className="text-right font-mono text-sm font-bold tabular-nums text-white">{r.avgRating.toFixed(1)}</span>

@@ -24,7 +24,7 @@ Repeat until the queue is empty. When the queue runs out and any team still has 
 | Item | What it does |
 |---|---|
 | **SETUP** | Opens the list of keyboard shortcuts. |
-| **STANDINGS** | Shows the live leaderboard: score = 80% average rating of players bought + 20% purse left. Teams that can't make a legal XI are listed at the bottom with what they're missing. |
+| **STANDINGS** | Shows the live leaderboard: score = 80% average rating of players bought + 20% purse left. The best score is on top. A team short of a legal XI still counts; it just shows what it's missing. |
 | **PLAYERS LEFT** | How many players are still in the queue. |
 | **ALL ROOMS** | Goes to the room list. |
 | **LOG OUT** | Locks the admin screen on this browser. |
@@ -48,7 +48,7 @@ Bids a big amount for a team in one go, e.g. when a team shouts a number in the 
 2. Type the **AMOUNT** in crore (`2.5` = ₹2.5 Cr).
 3. Press **BID**.
 
-The amount must be a valid step on the bid ladder (see Rules below), and the team must be allowed to buy the player. Otherwise you'll see an error saying why.
+Any amount above the current price works, even between steps (2.5 Cr is fine). The team must be allowed to buy the player. Otherwise you'll see an error saying why.
 
 ### Player card (middle)
 
@@ -141,7 +141,7 @@ Shortcuts don't work while you're typing in a box or while a pop-up is open.
 
 **Winner**
 - Score = 80% average rating of players bought + 20% purse left (as % of 100 Cr).
-- A team that can't field a legal XI (the role counts above plus 1 uncapped) can't win.
+- At the end, the best score wins, even if the squad isn't complete.
 
 ---
 

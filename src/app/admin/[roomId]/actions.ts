@@ -5,7 +5,7 @@ import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emitAuctionEvent } from '@/lib/socket-emitter'
 import type { LiveEvent } from '@/lib/live-events'
-import { activeBidders, bidRejectionReason, getNextBidAmount, isOnLadder, MAX_ACTIVE_BIDDERS, type BidTeam } from '@/lib/bid-rules'
+import { activeBidders, bidRejectionReason, getNextBidAmount, MAX_ACTIVE_BIDDERS, type BidTeam } from '@/lib/bid-rules'
 import { isUncapped, OVERSEAS_MAX, PURSE_TOTAL, ROLE_ORDER, SQUAD_SIZE, squadRejectionReason } from '@/lib/team-rules'
 import { assertCanClaimAs, assertIsAuctioneer } from '@/lib/team-auth'
 import { formatMoney } from '@/lib/money'
@@ -437,9 +437,10 @@ async function placeBidOrThrow(roomId: string, teamId: string, amount: number): 
 }
 
 /**
- * Auctioneer's jump bid: any amount further up the ladder, for any team. Every
- * bid must still land on a valid increment, and the team must be allowed to
- * buy the player — same rules as a team's own bid, two-team lock included.
+ * Auctioneer's jump bid: any amount above the current price, for any team —
+ * it needn't land on a ladder step (2.5 Cr is fine), since the auctioneer has
+ * already taken it in the room. The team must still be allowed to buy the
+ * player — same rules as a team's own bid, two-team lock included.
  */
 async function forceBidOrThrow(roomId: string, teamId: string, amount: number): Promise<BidResult> {
   await assertIsAuctioneer(roomId)
@@ -451,9 +452,6 @@ async function forceBidOrThrow(roomId: string, teamId: string, amount: number): 
   // room already bid.
   if (lot.status === 'BIDDING' ? amount <= lot.currentBid : amount < lot.currentBid) {
     throw new Error(`Jump bid must be above the current ${formatMoney(lot.currentBid)}`)
-  }
-  if (!isOnLadder(amount, lot.player.basePrice)) {
-    throw new Error(`${formatMoney(amount)} isn't a valid increment — bids go up in ladder steps`)
   }
   if (lot.currentBiddingTeamId === teamId) throw new Error('That team already holds the highest bid')
   const rejection = bidRejectionReason(team, bidLot(lot), amount)

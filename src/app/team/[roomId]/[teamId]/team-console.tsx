@@ -15,7 +15,7 @@ import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { RatingPanel, RatingTile } from '@/components/auction/rating-panel'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
-import { SquadNeeds, StandingsTable } from '@/components/auction/squad-rules'
+import { SquadNeeds } from '@/components/auction/squad-rules'
 import { Model3D } from '@/components/ui/model-3d'
 import { LogoutButton } from '@/components/ui/logout-button'
 import { logoutTeam } from '@/lib/pin-actions'
@@ -149,12 +149,10 @@ export function TeamConsole({
   roomId,
   teamId,
   initialSnapshot,
-  roomPlayers = [],
 }: {
   roomId: string
   teamId: string
   initialSnapshot: PublicSnapshot
-  roomPlayers?: RoomPlayerItem[]
 }) {
   const [outbid, setOutbid] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -171,10 +169,7 @@ export function TeamConsole({
 
   // Interactive modal states
   const [showSquadModal, setShowSquadModal] = useState(false)
-  const [showPlayersModal, setShowPlayersModal] = useState(false)
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false)
-  const [playerSearch, setPlayerSearch] = useState('')
-  const [playerRoleFilter, setPlayerRoleFilter] = useState<string>('ALL')
   const [previewPlayer, setPreviewPlayer] = useState<RoomPlayerItem | null>(null)
   const [soldTrigger, setSoldTrigger] = useState<number>(0)
   const lastLotStatusRef = useRef(initialSnapshot.currentLot?.status)
@@ -259,7 +254,7 @@ export function TeamConsole({
 
   // Space presses I'M IN: speed decides who gets in. Never while a modal is
   // open over the panel, and never from a held-down key repeating.
-  const modalOpen = showSquadModal || showPlayersModal || showAnalyticsModal || !!previewPlayer
+  const modalOpen = showSquadModal || showAnalyticsModal || !!previewPlayer
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== ' ' || e.repeat || modalOpen) return
@@ -316,24 +311,6 @@ export function TeamConsole({
   const theme = TEAM_THEMES[teamCode] || DEFAULT_THEME
   const teamBgSvg = `/assets/teams/${teamCode.toLowerCase()}-team-bg.webp`
 
-  // roomPlayers is the page-load copy; overlay the live status from the snapshot
-  // so the PLAYERS modal doesn't show a sold player as still UPCOMING.
-  const liveStatus = new Map<string, string>(snapshot.resultLog.map((r) => [r.playerId, r.status]))
-  if (lot && !closed) liveStatus.set(lot.player.id, 'LIVE')
-
-  // Filter room players for the PLAYERS modal
-  const filteredRoomPlayers = roomPlayers.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(playerSearch.toLowerCase())
-    if (!matchesSearch) return false
-    if (playerRoleFilter === 'ALL') return true
-    const r = p.role.toUpperCase()
-    if (playerRoleFilter === 'BATTER') return r.includes('BAT')
-    if (playerRoleFilter === 'BOWLER') return r.includes('BOWL')
-    if (playerRoleFilter === 'ALL_ROUNDER') return r.includes('ALL')
-    if (playerRoleFilter === 'WICKET_KEEPER') return r.includes('WICKET') || r === 'WK'
-    return true
-  })
-
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#0d0d0f] text-white select-none overflow-x-hidden">
       {/* Environmental Architectural Backdrop */}
@@ -359,7 +336,6 @@ export function TeamConsole({
             <button
               onClick={() => {
                 setShowSquadModal(false)
-                setShowPlayersModal(false)
                 setShowAnalyticsModal(false)
               }}
               className="px-3 py-4 text-white relative flex items-center gap-1 cursor-pointer transition-colors"
@@ -384,12 +360,6 @@ export function TeamConsole({
               className="px-3 py-4 text-white/50 hover:text-white transition-colors cursor-pointer"
             >
               BIDDING
-            </button>
-            <button
-              onClick={() => setShowPlayersModal(true)}
-              className="px-3 py-4 text-white/50 hover:text-white transition-colors cursor-pointer"
-            >
-              PLAYERS
             </button>
             <button
               onClick={() => setShowAnalyticsModal(true)}
@@ -791,97 +761,6 @@ export function TeamConsole({
         )}
       </AnimatePresence>
 
-      {/* ── PLAYERS ROSTER MODAL ── */}
-      <AnimatePresence>
-        {showPlayersModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-3xl border border-white/20 bg-[#141417] p-6 shadow-2xl"
-            >
-              <div className="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
-                <div>
-                  <h3 className="font-condensed text-2xl font-black uppercase text-white">
-                    AUCTION PLAYER POOL ({roomPlayers.length})
-                  </h3>
-                  <p className="font-mono text-xs text-white/50">
-                    Search and inspect player profiles across all categories
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowPlayersModal(false)}
-                  className="p-1 text-white/60 hover:text-white cursor-pointer"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Search & Category Filter */}
-              <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
-                  <input
-                    type="text"
-                    value={playerSearch}
-                    onChange={(e) => setPlayerSearch(e.target.value)}
-                    placeholder="Search player by name..."
-                    className="w-full bg-[#1C1C20] border border-white/15 pl-9 pr-3 py-2 text-sm text-white font-mono placeholder:text-white/30 focus:border-white/50 focus:outline-none"
-                  />
-                </div>
-                <div className="flex items-center gap-1 font-mono text-[10px] uppercase font-bold overflow-x-auto pb-1">
-                  {['ALL', 'BATTER', 'BOWLER', 'ALL_ROUNDER', 'WICKET_KEEPER'].map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => setPlayerRoleFilter(role)}
-                      className={`px-2.5 py-2 border transition-colors cursor-pointer ${
-                        playerRoleFilter === role
-                          ? 'border-brand-yellow bg-brand-yellow/20 text-white font-black'
-                          : 'border-white/10 bg-[#1C1C20] text-white/50 hover:text-white'
-                      }`}
-                    >
-                      {role.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Players Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[55vh] overflow-y-auto pr-1">
-                {filteredRoomPlayers.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      setPreviewPlayer(p)
-                      setShowPlayersModal(false)
-                    }}
-                    className="flex items-center justify-between border border-white/10 bg-[#1C1C20] hover:border-white/40 p-2 text-left transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 truncate max-w-[170px]">
-                      <div className="h-7 w-7 bg-black border border-white/15 flex items-center justify-center font-condensed font-bold text-xs text-white/60 shrink-0">
-                        {p.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="truncate">
-                        <span className="font-condensed text-xs font-bold uppercase text-white truncate block group-hover:text-brand-yellow">
-                          {p.name}
-                        </span>
-                        <span className="font-mono text-[8px] text-white/40 block">
-                          {p.role.replace('_', ' ')} • {liveStatus.get(p.id) ?? p.status}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="font-mono text-[10px] font-black text-brand-yellow tabular-nums shrink-0">
-                      {formatMoney(p.basePrice)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* ── ANALYTICS MODAL ── */}
       <AnimatePresence>
         {showAnalyticsModal && (
@@ -898,7 +777,7 @@ export function TeamConsole({
                     {team.name} WAR ROOM ANALYTICS
                   </h3>
                   <p className="font-mono text-xs text-white/50">
-                    Purse usage &amp; standings
+                    Purse usage
                   </p>
                 </div>
                 <button
@@ -927,11 +806,6 @@ export function TeamConsole({
                     {Math.round(((team.purseTotal - team.purseRemaining) / team.purseTotal) * 100)}%
                   </span>
                 </div>
-              </div>
-
-              <div className="mt-5 border-t border-white/15 pt-4">
-                <h4 className="mb-2 font-condensed text-lg font-black uppercase tracking-wider text-white">STANDINGS</h4>
-                <StandingsTable teams={snapshot.teams} />
               </div>
             </motion.div>
           </div>

@@ -223,6 +223,31 @@ describe('AdminConsole bidding grid', () => {
     await vi.waitFor(() => expect(restartRoom).toHaveBeenCalledWith('room-1'))
   })
 
+  it('an ended auction shows the result without opening STANDINGS', () => {
+    const ended = {
+      ...baseSnapshot,
+      room: { ...baseSnapshot.room, phase: 'COMPLETED' },
+      teams: [{ ...team('team-1', 'DC'), purseRemaining: 6000 }, team('team-2', 'CSK')],
+    }
+    render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
+    expect(screen.getByTestId('final-result')).toHaveTextContent(/winner: CSK Team \(CSK\)/i)
+  })
+
+  it('an ended auction picks the best score even with no legal squad', () => {
+    const ended = {
+      ...baseSnapshot,
+      room: { ...baseSnapshot.room, phase: 'COMPLETED' },
+      teams: [team('team-1', 'DC'), { ...team('team-2', 'CSK'), purseRemaining: 6000 }],
+    }
+    render(<AdminConsole roomId="room-1" initialSnapshot={ended} />)
+    expect(screen.getByTestId('final-result')).toHaveTextContent(/winner: DC Team \(DC\)/i)
+  })
+
+  it('a live auction shows no result yet', () => {
+    render(<AdminConsole roomId="room-1" initialSnapshot={baseSnapshot} />)
+    expect(screen.queryByTestId('final-result')).toBeNull()
+  })
+
   it('shows the two teams that are in, and which one leads', () => {
     const s = { ...liveSnapshot, currentLot: { ...liveSnapshot.currentLot!, activeBidders: ['team-1', 'team-2'] } }
     render(<AdminConsole roomId="room-1" initialSnapshot={s} />)

@@ -23,12 +23,6 @@ export function getNextBidAmount(currentBid: number, basePrice: number): number 
   return currentBid + (tier ? tier.step : TOP_TIER_STEP)
 }
 
-/** Whether `amount` is a step on this lot's ladder — a jump bid may skip steps, never land between them. */
-export function isOnLadder(amount: number, basePrice: number): boolean {
-  for (let a = basePrice; a <= amount; a = getNextBidAmount(a, basePrice)) if (a === amount) return true
-  return false
-}
-
 /**
  * The teams still contesting the lot: everyone who has bid on it, in the order
  * they came in, minus the ones who dropped.

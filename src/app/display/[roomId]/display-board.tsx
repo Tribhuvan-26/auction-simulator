@@ -13,7 +13,6 @@ import { BiddingLogTable } from '@/components/auction/bidding-log-table'
 import { TeamCrest } from '@/components/ui/team-crest'
 import { LotPhoto } from '@/components/auction/lot-photo'
 import { SoldCelebration } from '@/components/auction/sold-celebration'
-import { StandingsTable } from '@/components/auction/squad-rules'
 import { ResultsTicker } from '@/components/auction/results-ticker'
 import {
   getPublicSnapshot,
@@ -255,14 +254,16 @@ export function DisplayBoard({
         showPalette={false}
       />
 
-      {/* Final standings once the auctioneer ends the auction */}
+      {/* The auction is over; the result is the auctioneer's to announce. */}
       {snapshot.room.phase === 'COMPLETED' && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/85 p-6 backdrop-blur-md">
           <div className="w-full max-w-3xl border border-white/20 bg-[#141417] p-6 shadow-2xl">
-            <h2 className="mb-4 text-center font-condensed text-4xl font-black uppercase tracking-wider text-white">
-              FINAL STANDINGS
+            <h2 className="text-center font-condensed text-4xl font-black uppercase tracking-wider text-white">
+              AUCTION ENDED
             </h2>
-            <StandingsTable teams={snapshot.teams} />
+            <p className="mt-2 text-center font-mono text-sm uppercase tracking-wider text-white/50">
+              The auctioneer will announce the winner
+            </p>
           </div>
         </div>
       )}

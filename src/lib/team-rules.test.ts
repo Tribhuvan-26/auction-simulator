@@ -56,7 +56,7 @@ describe('squadProblems', () => {
 })
 
 describe('standings', () => {
-  it('scores 80% average rating + 20% purse left, eligible teams first', () => {
+  it('scores 80% average rating + 20% purse left, best score first even with a short squad', () => {
     const rated = (name: string, role: string, uncapped = false) => ({ name, role, isOverseas: false, uncapped })
     // Ratings from the sheet: Kohli 98.
     const legal = [...legalXI().slice(1), rated('Virat Kohli', 'BATTER')]
@@ -64,8 +64,8 @@ describe('standings', () => {
       { id: 'short', purseRemaining: 10_000, purseTotal: 10_000, squad: [rated('Virat Kohli', 'BATTER')] },
       { id: 'legal', purseRemaining: 5_000, purseTotal: 10_000, squad: legal },
     ])
-    expect(rows.map((r) => r.teamId)).toEqual(['legal', 'short'])
-    expect(rows[1]).toMatchObject({ eligible: false, avgRating: 98, walletPct: 100, score: 0.8 * 98 + 20 })
-    expect(rows[0].walletPct).toBe(50)
+    expect(rows.map((r) => r.teamId)).toEqual(['short', 'legal'])
+    expect(rows[0]).toMatchObject({ eligible: false, avgRating: 98, walletPct: 100, score: 0.8 * 98 + 20 })
+    expect(rows[1].walletPct).toBe(50)
   })
 })
